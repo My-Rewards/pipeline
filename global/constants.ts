@@ -1,0 +1,1 @@
+export const COGNITO_DOMAIN_PREFIX = 'myrewardsapp'
