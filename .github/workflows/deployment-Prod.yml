@@ -9,16 +9,15 @@ jobs:
   aws_cdk:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out code
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 2
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js environment
-        uses: actions/setup-node@v2
+      - name: 🏗 Setup Node
+        uses: actions/setup-node@v4
         with:
-          node-version: 16
-          cache: "npm"
+          cache-dependency-path: "**/package-lock.json"
+          node-version: 20
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm install
