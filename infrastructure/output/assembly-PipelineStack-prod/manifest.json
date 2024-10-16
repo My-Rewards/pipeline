@@ -1,0 +1,139 @@
+{
+  "version": "38.0.1",
+  "artifacts": {
+    "PipelineStackprodAmplifyStack6E6018E2.assets": {
+      "type": "cdk:asset-manifest",
+      "properties": {
+        "file": "PipelineStackprodAmplifyStack6E6018E2.assets.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+      }
+    },
+    "PipelineStackprodAmplifyStack6E6018E2": {
+      "type": "aws:cloudformation:stack",
+      "environment": "aws://396608803858/us-east-1",
+      "properties": {
+        "templateFile": "PipelineStackprodAmplifyStack6E6018E2.template.json",
+        "terminationProtection": false,
+        "validateOnSynth": true,
+        "notificationArns": [],
+        "assumeRoleArn": "arn:${AWS::Partition}:iam::396608803858:role/cdk-hnb659fds-deploy-role-396608803858-us-east-1",
+        "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::396608803858:role/cdk-hnb659fds-cfn-exec-role-396608803858-us-east-1",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-396608803858-us-east-1/571d4791f665ed3429cddde4bf9f9b5e44429b25b51d461bbbd003128d393021.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
+        "additionalDependencies": [
+          "PipelineStackprodAmplifyStack6E6018E2.assets"
+        ],
+        "lookupRole": {
+          "arn": "arn:${AWS::Partition}:iam::396608803858:role/cdk-hnb659fds-lookup-role-396608803858-us-east-1",
+          "requiresBootstrapStackVersion": 8,
+          "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+        },
+        "stackName": "prod-Amplify-Stack"
+      },
+      "dependencies": [
+        "PipelineStackprodAmplifyStack6E6018E2.assets"
+      ],
+      "metadata": {
+        "/PipelineStack/prod/Amplify-Stack/userPool/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "userPoolDC9497E0"
+          }
+        ],
+        "/PipelineStack/prod/Amplify-Stack/CognitoDomain/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CognitoDomainACF3E069"
+          }
+        ],
+        "/PipelineStack/prod/Amplify-Stack/userPoolClient/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "userPoolClientB67490F4"
+          }
+        ],
+        "/PipelineStack/prod/Amplify-Stack/myRewards_IdentityPool": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "myRewardsIdentityPool"
+          }
+        ],
+        "/PipelineStack/prod/Amplify-Stack/UnauthenticatedRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "UnauthenticatedRole01CC4258"
+          }
+        ],
+        "/PipelineStack/prod/Amplify-Stack/AuthenticatedRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AuthenticatedRole86104F1A"
+          }
+        ],
+        "/PipelineStack/prod/Amplify-Stack/IdentityPoolRoleAttachment": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "IdentityPoolRoleAttachment"
+          }
+        ],
+        "/PipelineStack/prod/Amplify-Stack/myRewards-undefined": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "myRewardsundefined"
+          }
+        ],
+        "/PipelineStack/prod/Amplify-Stack/UserPoolId": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "UserPoolId"
+          }
+        ],
+        "/PipelineStack/prod/Amplify-Stack/UserPoolClient": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "UserPoolClient"
+          }
+        ],
+        "/PipelineStack/prod/Amplify-Stack/IdentityPool": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "IdentityPool"
+          }
+        ],
+        "/PipelineStack/prod/Amplify-Stack/Cognito Domain": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CognitoDomain"
+          }
+        ],
+        "/PipelineStack/prod/Amplify-Stack/AmplifyAppId": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AmplifyAppId"
+          }
+        ],
+        "/PipelineStack/prod/Amplify-Stack/CDKMetadata/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CDKMetadata"
+          }
+        ],
+        "/PipelineStack/prod/Amplify-Stack/BootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BootstrapVersion"
+          }
+        ],
+        "/PipelineStack/prod/Amplify-Stack/CheckBootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CheckBootstrapVersion"
+          }
+        ]
+      },
+      "displayName": "PipelineStack/prod/Amplify-Stack"
+    }
+  }
+}

@@ -9,5 +9,6 @@ export class PipelineAppStage extends cdk.Stage {
 
       // Stacks
       const amplify_stack = new amplifyStack(this, `Amplify-Stack`);
+
     }
 }
