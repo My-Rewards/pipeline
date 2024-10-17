@@ -2,7 +2,6 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { CodePipeline, CodePipelineSource, ManualApprovalStep, ShellStep } from 'aws-cdk-lib/pipelines';
 import { PipelineAppStage } from './app-stage';
-import * as iam from 'aws-cdk-lib/aws-iam';
 import { AWS_BETA_ACCOUNT, AWS_PROD_ACCOUNT, AWS_REGION } from '../global/constants';
 
 export class PipelineStack extends cdk.Stack {
@@ -27,7 +26,6 @@ export class PipelineStack extends cdk.Stack {
     }));
 
     // prod stage
-    // Add a Manual Approval Step before deploying to prod
     pipeline.addStage(new PipelineAppStage(this, "prod", {
       env: { account: AWS_PROD_ACCOUNT, region: AWS_REGION },
       stageName: 'prod',

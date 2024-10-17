@@ -3,8 +3,8 @@ import { Construct } from 'constructs';
 import * as amplify from 'aws-cdk-lib/aws-amplify';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
 import * as iam from 'aws-cdk-lib/aws-iam';
-import { COGNITO_DOMAIN_PREFIX } from '../global/constants';
-import { stackProps } from '../global/props';
+import { COGNITO_DOMAIN_PREFIX } from '../../global/constants';
+import { stackProps } from '../../global/props';
 
 export class amplifyStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props: stackProps) {
@@ -82,7 +82,6 @@ export class amplifyStack extends cdk.Stack {
               },
             ],
           });
-    
 
         // Create IAM roles for authenticated and unauthenticated users
         const unauthenticatedRole = new iam.Role(this, 'UnauthenticatedRole', {
@@ -113,7 +112,6 @@ export class amplifyStack extends cdk.Stack {
             }
         });
 
-        // Create an Amplify App
         const amplifyApp = new amplify.CfnApp(this, `myRewards-${props?.stackName}`, {
             name: 'myRewards',
             iamServiceRole: authenticatedRole.roleArn,
@@ -129,7 +127,6 @@ export class amplifyStack extends cdk.Stack {
               ],
         });
 
-        // Add outputs for easy reference
         new cdk.CfnOutput(this, 'UserPoolId', {
             value: userPool.userPoolId,
             description: 'The ID of the Cognito User Pool',
