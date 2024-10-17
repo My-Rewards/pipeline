@@ -4,9 +4,10 @@ import * as amplify from 'aws-cdk-lib/aws-amplify';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { COGNITO_DOMAIN_PREFIX } from '../global/constants';
+import { stackProps } from '../global/props';
 
 export class amplifyStack extends cdk.Stack {
-    constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+    constructor(scope: Construct, id: string, props: stackProps) {
         super(scope, id, props);
 
         // Create Cognito User Pool for authentication
@@ -30,7 +31,7 @@ export class amplifyStack extends cdk.Stack {
         const cognitoDomain = new cognito.UserPoolDomain(this, 'CognitoDomain', {
             userPool,
             cognitoDomain: {
-                domainPrefix: COGNITO_DOMAIN_PREFIX,
+                domainPrefix: `${COGNITO_DOMAIN_PREFIX}-${props.stageName}`,
             },
         });
 
