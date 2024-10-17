@@ -28,8 +28,8 @@ jobs:
       - name: ☁️ Configure AWS credentials BETA ☁️
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_BETA }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY_BETA }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_PIPELINE}}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY_PIPELINE }}
           aws-region: ${{ secrets.AWS_REGION }}
 
 
@@ -37,19 +37,4 @@ jobs:
         run: cdk synth
 
       - name: Deploying to Beta
-        run: cdk deploy "PipelineStack/beta/*" --require-approval never
-
-      - name: ☁️ Configure AWS credentials PROD ☁️
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY_PROD }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Synth stack
-        if: success()
-        run: cdk synth
-
-      - name: Deploying to Prod
-        if: success()
-        run: cdk deploy "PipelineStack/prod/*" --require-approval never
+        run: cdk deploy
