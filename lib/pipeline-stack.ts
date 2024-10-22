@@ -25,7 +25,6 @@ export class PipelineStack extends cdk.Stack {
       stageName:'beta',
     }));
 
-    // prod stage
     pipeline.addStage(new PipelineAppStage(this, "prod", {
       env: { account: AWS_PROD_ACCOUNT, region: AWS_REGION },
       stageName: 'prod',

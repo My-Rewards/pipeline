@@ -10,7 +10,6 @@ export class amplifyStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props: stackProps) {
         super(scope, id, props);
 
-        // Create Cognito User Pool for authentication
         const userPool = new cognito.UserPool(this, 'userPool', {
             userPoolName: 'myRewardsUsers',
             selfSignUpEnabled: true,
@@ -20,6 +19,9 @@ export class amplifyStack extends cdk.Stack {
             autoVerify: { email: true },
             standardAttributes: {
                 email: { required: true, mutable: false },
+            },
+            customAttributes: {
+              role: new cognito.StringAttribute({ mutable: true })
             },
             passwordPolicy: {
                 minLength: 8,
@@ -51,28 +53,31 @@ export class amplifyStack extends cdk.Stack {
             }
           });
 
-        const authenticatedPolicy = new iam.PolicyDocument({
+          const authenticatedPolicy = new iam.PolicyDocument({
             statements: [
               new iam.PolicyStatement({
-                actions: ['dynamodb:Query', 'dynamodb:Scan', 'dynamodb:GetItem'],
-                resources: ['arn:aws:dynamodb:us-east-1:123456789012:table/YourDynamoDBTable'], // Replace with your DynamoDB Table ARN
-              }),
-              new iam.PolicyStatement({
-                actions: ['*'],
-                resources: ['*'],
+                actions: [
+                  'execute-api:Invoke',
+                ],
+                resources: [`arn:aws:execute-api:${this.region}:${props.env?.account}:*`], 
               }),
             ],
           });
-
-        const unauthenticatedPolicy = new iam.PolicyDocument({
+          
+          const unauthenticatedPolicy = new iam.PolicyDocument({
             statements: [
               new iam.PolicyStatement({
-                actions: ['s3:GetObject'],
-                resources: ['arn:aws:s3:::your-public-bucket/*'],
+                actions: [
+                  'dynamodb:ListStreams',
+                  'dynamodb:DescribeStream',
+                  'dynamodb:GetRecords',
+                  'dynamodb:GetShardIterator',
+                ],
+                resources: [`arn:aws:dynamodb:${this.region}:${props.env?.account}:table/*`], 
               }),
             ],
           });
-
+          
           const identityPool = new cognito.CfnIdentityPool(this, 'myRewards_IdentityPool', {
             allowUnauthenticatedIdentities: true,
             cognitoIdentityProviders: [
@@ -83,7 +88,6 @@ export class amplifyStack extends cdk.Stack {
             ],
           });
 
-        // Create IAM roles for authenticated and unauthenticated users
         const unauthenticatedRole = new iam.Role(this, 'UnauthenticatedRole', {
             assumedBy: new iam.FederatedPrincipal('cognito-identity.amazonaws.com', {
               'StringEquals': { 'cognito-identity.amazonaws.com:aud': identityPool.ref },
@@ -111,6 +115,25 @@ export class amplifyStack extends cdk.Stack {
             'unauthenticated': unauthenticatedRole.roleArn,
             }
         });
+
+      const customerGroup = new cognito.CfnUserPoolGroup(this, 'CustomersGroup', {
+        groupName: 'Customers',
+        userPoolId: userPool.userPoolId,
+        description: 'Group for regular customers',
+        precedence: 1,
+        roleArn: authenticatedRole.roleArn,
+      });
+
+      const businessGroup = new cognito.CfnUserPoolGroup(this, 'BusinessGroup', {
+        groupName: 'Businesses',
+        userPoolId: userPool.userPoolId,
+        description: 'Group for business accounts',
+        precedence: 2,
+        roleArn: authenticatedRole.roleArn, 
+      });
+
+      // Create lambda trigger to add user to
+
 
         const amplifyApp = new amplify.CfnApp(this, `myRewards-${props?.stackName}`, {
             name: 'myRewards',
