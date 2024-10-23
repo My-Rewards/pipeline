@@ -5,34 +5,45 @@ import { DynamoStack } from './Stacks/dynamo-stack';
 import { ApiGatewayStack } from './Stacks/apiGateway-stack';
 import { userPoolStack } from './Stacks/userPool-stack';
 
+// .addDependency() - to ensure a stack is deployed in sequintial order
+
 export class PipelineAppStage extends cdk.Stage {
 
     constructor(scope: Construct, id: string, props: cdk.StageProps) {
       super(scope, id, props);
 
-      // route53 hosted Zone domain
       let hostedZoneProp = this.createDefaultProps(props, this.stageName);
+      /*
+       route53 hosted Zone domain HERE
+       REMOVE THIS COMMENT to get started
+      */
 
-      // setup SES for sending authentication emails
       let sesProp = this.createDefaultProps(props, this.stageName);
+      /* 
+       setup SES for sending authentication emails HERE
+       REMOVE THIS COMMENT to get started
+      */
 
       let dynamoDbProp = this.createDefaultProps(props, this.stageName);
       const dynamo_stack = new DynamoStack(this, 'Dynamo-Stack', dynamoDbProp);
 
       let userPoolProps = this.createDefaultProps(props, this.stageName);
-      const userPool_stack = new userPoolStack(this, 'userPool-Stack', userPoolProps);
+      const userPool_stack = new userPoolStack(this, 'UserPool-Stack', userPoolProps);
+      userPool_stack.addDependency(dynamo_stack);
 
-      let apiGatewayProps = this.createApiProps(props, this.stageName, dynamo_stack, userPool_stack);
+      let apiGatewayProps = this.createDefaultProps(props, this.stageName);
       const apiGateway_stack = new ApiGatewayStack(this, 'ApiGateway-Stack', apiGatewayProps);
+      apiGateway_stack.addDependency(userPool_stack);
 
-      let amplifyProp = this.createAmplifyProps(props, this.stageName, userPool_stack);
+      let amplifyProp = this.createDefaultProps(props, this.stageName);
       const amplify_stack = new amplifyStack(this, 'Amplify-Stack', amplifyProp);
+      amplify_stack.addDependency(apiGateway_stack);
 
-    // CloudWatch 
+    // Create CloudWatch Stack HERE
 
-    // codepipeline to serve build artifact to s3 bucket
+    // Create Codepipeline Stack to serve build artifact to s3 bucket HERE
 
-    // CloudFront for hosting website
+    // Create CloudFront Stack for hosting website HERE
     }
 
     createDefaultProps(props:cdk.StageProps, stage:string){
@@ -44,29 +55,4 @@ export class PipelineAppStage extends cdk.Stage {
           stageName: props.stageName
       }
   }
-
-    createAmplifyProps(props:cdk.StageProps, stage:string, userPool_stack:userPoolStack){
-        return{
-            env: {
-                account: props.env?.account,
-                region: props.env?.region
-            },
-            stageName: props.stageName,
-            authenticatedRole: userPool_stack.authenticatedRole
-          }
-    }
-
-    createApiProps(props:cdk.StageProps, stage:string, dynamo_stack:DynamoStack, userPool_stack:userPoolStack){
-      return{
-          env: {
-              account: props.env?.account,
-              region: props.env?.region
-          },
-          stageName: props.stageName,
-          database: dynamo_stack,
-          userPool: userPool_stack.userPool,
-          authenticatedRole: userPool_stack.authenticatedRole
-      }
-  }
-
 }

@@ -2,13 +2,18 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
-import { apiProps } from '../../global/props';
+import {stackProps } from '../../global/props';
+import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
+import * as cognito from 'aws-cdk-lib/aws-cognito';
 
 export class ApiGatewayStack extends cdk.Stack {
-    public api: cdk.aws_apigateway.RestApi; 
 
-    constructor(scope: Construct, id: string, props: apiProps) {
+    constructor(scope: Construct, id: string, props: stackProps) {
         super(scope, id, props);
+
+        // Import the User Pool
+        const userPoolId = cdk.Fn.importValue('userPoolID');
+        const userPool = cognito.UserPool.fromUserPoolId(this, 'ImportedUserPool', userPoolId);
 
         // set Lambda Function
         const getUserLambda = new lambda.Function(this, 'getUserLambda', {
@@ -23,16 +28,19 @@ export class ApiGatewayStack extends cdk.Stack {
             code: lambda.Code.fromAsset('lambda'),
         });
 
-        props.database?.usersTable.grantReadWriteData(getUserLambda);
-        props.database?.usersTable.grantReadWriteData(createUserLambda);
+        // Grant lambdas access to Dynamo Table
+        const usersTable = dynamodb.Table.fromTableArn(this, 'ImportedUsersTable', cdk.Fn.importValue('UserTableARN'));
+        const organizationTable = dynamodb.Table.fromTableArn(this, 'ImportedOrganizationTable', cdk.Fn.importValue('OrganizationTableARN'));
+        usersTable.grantReadWriteData(getUserLambda);
+        organizationTable.grantReadWriteData(createUserLambda);
 
         // Create a Cognito User Pool authorizer for API Gateway
         const authorizer = new apigateway.CognitoUserPoolsAuthorizer(this, 'CognitoAuthorizer', {
-            cognitoUserPools: [props.userPool],
+            cognitoUserPools: [userPool],
         });
 
         // Create API
-        this.api = new apigateway.RestApi(this, 'myRewardsApi', {
+        const api = new apigateway.RestApi(this, 'myRewardsApi', {
             restApiName: 'myRewards API',
             description: 'This is an API for Lambda functions.',
             deployOptions: {
@@ -42,7 +50,7 @@ export class ApiGatewayStack extends cdk.Stack {
 
         // resource, an api function ex: myrewards.com/users
         // create for different api functions
-        const usersApi = this.api.root.addResource('users'); 
+        const usersApi = api.root.addResource('users'); 
 
         const getUserIntegration = new apigateway.LambdaIntegration(getUserLambda);
         usersApi.addMethod('GET', getUserIntegration, {
@@ -57,7 +65,7 @@ export class ApiGatewayStack extends cdk.Stack {
         });
 
         new cdk.CfnOutput(this, 'ApiUrl', {
-            value: this.api.url,
+            value: api.url,
             description: 'The URL of the API Gateway',
         });
     }

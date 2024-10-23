@@ -11,7 +11,7 @@ export class Route53Stack extends cdk.Stack {
     super(scope, id, props);
 
     // Register a new domain using Route 53
-    // TBD on whether this is possible via cdk
+    // TBD on whether this is possible via CDK
 
     // Create Route 53 Hosted Zone
     this.hostedZone = new route53.HostedZone(this, 'HostedZone', {

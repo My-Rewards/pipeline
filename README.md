@@ -4,6 +4,9 @@
 
 ****DO NOT**** create resources in pipeline account
 
+****AVOID**** canceling during stack deployment, can corrupt the stack in AWS
+
+
 ##### Example of Resources
 - IAM Role/User
 - Databases

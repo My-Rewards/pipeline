@@ -6,10 +6,6 @@ import { COGNITO_DOMAIN_PREFIX } from '../../global/constants';
 import { stackProps } from '../../global/props';
 
 export class userPoolStack extends cdk.Stack {
-
-    public userPool: cdk.aws_cognito.UserPool;
-    public authenticatedRole:cdk.aws_iam.Role;
-
     constructor(scope: Construct, id: string, props: stackProps) {
         super(scope, id, props);
 
@@ -33,8 +29,6 @@ export class userPoolStack extends cdk.Stack {
                 requireUppercase: true,
             }
         });
-
-        this.userPool = userPool;
 
         // cognito Domain
         const cognitoDomain = new cognito.UserPoolDomain(this, 'CognitoDomain', {
@@ -107,7 +101,7 @@ export class userPoolStack extends cdk.Stack {
             },
         });
 
-        this.authenticatedRole = new iam.Role(this, 'AuthenticatedRole', {
+        const authenticatedRole = new iam.Role(this, 'AuthenticatedRole', {
             assumedBy: new iam.FederatedPrincipal('cognito-identity.amazonaws.com', {
               'StringEquals': { 'cognito-identity.amazonaws.com:aud': identityPool.ref },
               'ForAnyValue:StringLike': { 'cognito-identity.amazonaws.com:amr': 'authenticated' }
@@ -121,11 +115,10 @@ export class userPoolStack extends cdk.Stack {
         new cognito.CfnIdentityPoolRoleAttachment(this, 'IdentityPoolRoleAttachment', {
             identityPoolId: identityPool.ref,
             roles: {
-            'authenticated': this.authenticatedRole.roleArn,
+            'authenticated': authenticatedRole.roleArn,
             'unauthenticated': unauthenticatedRole.roleArn,
             }
         });
-
 
         // create customer and business groups
         new cognito.CfnUserPoolGroup(this, 'CustomersGroup', {
@@ -133,7 +126,7 @@ export class userPoolStack extends cdk.Stack {
             userPoolId: userPool.userPoolId,
             description: 'Group for regular customers',
             precedence: 1,
-            roleArn: this.authenticatedRole.roleArn,
+            roleArn: authenticatedRole.roleArn,
         });
 
         new cognito.CfnUserPoolGroup(this, 'BusinessGroup', {
@@ -141,28 +134,38 @@ export class userPoolStack extends cdk.Stack {
             userPoolId: userPool.userPoolId,
             description: 'Group for business accounts',
             precedence: 2,
-            roleArn: this.authenticatedRole.roleArn, 
+            roleArn: authenticatedRole.roleArn, 
         });
 
         // Output Resources
         new cdk.CfnOutput(this, 'UserPoolClient', {
             value: userPoolClient.userPoolClientId,
             description: 'The ID of the Cognito User Pool Client',
+            exportName:'UserPoolClient'
         });
 
         new cdk.CfnOutput(this, 'IdentityPool', {
             value: identityPool.attrId,
             description: 'The ID of the Cognito IdentityPool',
+            exportName:'IdentityPool'
         });
 
-        new cdk.CfnOutput(this, 'Cognito Domain', {
+        new cdk.CfnOutput(this, 'CognitoDomainName', {
             value: cognitoDomain.domainName,
             description: 'The Domain of the Cognito User Pool',
+            exportName:'CognitoDomainName'
         });
 
-        new cdk.CfnOutput(this, 'userPool ID', {
+        new cdk.CfnOutput(this, 'userPoolID', {
             value: userPool.userPoolId,
-            description: 'The Domain of the Cognito User Pool',
+            description: 'The ID of the User Pool',
+            exportName:'userPoolID'
+        });
+
+        new cdk.CfnOutput(this, 'AuthenticatedRoleARN', {
+            value: authenticatedRole.roleArn,
+            description: 'ARN of authenticated Role',
+            exportName:'AuthenticatedRoleARN'
         });
     }
 }
