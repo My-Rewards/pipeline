@@ -20,7 +20,7 @@ export class DynamoStack extends cdk.Stack {
 
     // business Table
     this.businessTable = new aws_dynamodb.Table(this, 'BusinessTable', {
-      partitionKey: { name: 'userId', type: aws_dynamodb.AttributeType.STRING }, 
+      partitionKey: { name: 'id', type: aws_dynamodb.AttributeType.STRING }, 
       tableName: "Organizations",
       billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.DESTROY,

@@ -1,5 +1,18 @@
 # Getting Started
 
+****AVOID**** creating resources directly in AWS account manually
+
+****DO NOT**** create resources in pipeline account
+
+##### Example of Resources
+- IAM Role/User
+- Databases
+- Amplify
+- Lambda Functions
+- APIs
+
+- ...
+
 Before you begin, ensure you have the following installed:
 
 - [AWS CLI](https://aws.amazon.com/cli/) (Ensure you are authenticated and have appropriate permissions)
@@ -45,11 +58,15 @@ A Stack is responisble for handling a resource in AWS
 
 You risk corrupting the prod environment doing so.
 
-###
-
 The goal is to deploy to beta, mess around with beta, then when cdk stacks are deploying properly in beta, push changes to repo.
 
 AWS automatically handles deploying to prod upon approval.
+
+### Deploying entire stage
+
+```
+npm run-script deploy
+```
 
 # Welcome to your CDK TypeScript project
 
