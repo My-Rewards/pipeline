@@ -18,9 +18,9 @@ Before you begin, ensure you have the following installed:
 - [AWS CLI](https://aws.amazon.com/cli/) (Ensure you are authenticated and have appropriate permissions)
 - [AWS CDK](https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html) 
 
-``
+```
   npm install -g aws-cdk@v2
-``
+```
 
 ## AWS Credentials
 
