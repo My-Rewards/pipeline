@@ -2,7 +2,14 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
 import * as iam from 'aws-cdk-lib/aws-iam';
-import { COGNITO_DOMAIN_PREFIX } from '../../global/constants';
+import { 
+    AUTHENTICATED_ROLE, 
+    COGNITO_DOMAIN_PREFIX, 
+    USER_POOL_CLIENT, 
+    USER_POOL_ID,
+    IDENTITY_POOL,
+    COGNITO_DOMAIN
+ } from '../../global/constants';
 import { stackProps } from '../../global/props';
 
 export class userPoolStack extends cdk.Stack {
@@ -138,34 +145,34 @@ export class userPoolStack extends cdk.Stack {
         });
 
         // Output Resources
-        new cdk.CfnOutput(this, 'UserPoolClientID', {
+        new cdk.CfnOutput(this, USER_POOL_CLIENT, {
             value: userPoolClient.userPoolClientId,
             description: 'The ID of the Cognito User Pool Client',
-            exportName:'UserPoolClientID'
+            exportName: USER_POOL_CLIENT
         });
 
-        new cdk.CfnOutput(this, 'IdentityPool', {
+        new cdk.CfnOutput(this, IDENTITY_POOL, {
             value: identityPool.attrId,
             description: 'The ID of the Cognito IdentityPool',
-            exportName:'IdentityPool'
+            exportName: IDENTITY_POOL
         });
 
-        new cdk.CfnOutput(this, 'CognitoDomainName', {
+        new cdk.CfnOutput(this, COGNITO_DOMAIN, {
             value: cognitoDomain.domainName,
             description: 'The Domain of the Cognito User Pool',
-            exportName:'CognitoDomainName'
+            exportName: COGNITO_DOMAIN
         });
 
-        new cdk.CfnOutput(this, 'userPoolID', {
+        new cdk.CfnOutput(this, USER_POOL_ID, {
             value: userPool.userPoolId,
             description: 'The ID of the User Pool',
-            exportName:'userPoolID'
+            exportName: USER_POOL_ID
         });
 
-        new cdk.CfnOutput(this, 'AuthenticatedRoleARN', {
+        new cdk.CfnOutput(this, AUTHENTICATED_ROLE, {
             value: authenticatedRole.roleArn,
             description: 'ARN of authenticated Role',
-            exportName:'AuthenticatedRoleARN'
+            exportName: AUTHENTICATED_ROLE
         });
     }
 }

@@ -4,6 +4,7 @@ import {amplifyStack} from './Stacks/amplify-stack'
 import { DynamoStack } from './Stacks/dynamo-stack';
 import { ApiGatewayStack } from './Stacks/apiGateway-stack';
 import { userPoolStack } from './Stacks/userPool-stack';
+import { SSMStack } from './Stacks/ssm-stack';
 
 // .addDependency() - to ensure a stack is deployed in sequintial order
 
@@ -44,6 +45,11 @@ export class PipelineAppStage extends cdk.Stage {
     // Create Codepipeline Stack to serve build artifact to s3 bucket HERE
 
     // Create CloudFront Stack for hosting website HERE
+
+      let ssmProps = this.createDefaultProps(props, this.stageName);
+      const ssm_Stack = new SSMStack(this, 'Ssm-Stack', ssmProps);
+      ssm_Stack.addDependency(amplify_stack);
+
     }
 
     createDefaultProps(props:cdk.StageProps, stage:string){
@@ -52,7 +58,7 @@ export class PipelineAppStage extends cdk.Stage {
               account: props.env?.account,
               region: props.env?.region
           },
-          stageName: props.stageName
+          stageName: stage
       }
   }
 }

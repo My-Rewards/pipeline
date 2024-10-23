@@ -12,7 +12,7 @@ export class ApiGatewayStack extends cdk.Stack {
         super(scope, id, props);
 
         // Import the User Pool
-        const userPoolId = cdk.Fn.importValue('userPoolID');
+        const userPoolId = cdk.Fn.importValue('myRewardsUserPoolID');
         const userPool = cognito.UserPool.fromUserPoolId(this, 'ImportedUserPool', userPoolId);
 
         // set Lambda Function
