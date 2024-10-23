@@ -138,10 +138,10 @@ export class userPoolStack extends cdk.Stack {
         });
 
         // Output Resources
-        new cdk.CfnOutput(this, 'UserPoolClient', {
+        new cdk.CfnOutput(this, 'UserPoolClientID', {
             value: userPoolClient.userPoolClientId,
             description: 'The ID of the Cognito User Pool Client',
-            exportName:'UserPoolClient'
+            exportName:'UserPoolClientID'
         });
 
         new cdk.CfnOutput(this, 'IdentityPool', {
