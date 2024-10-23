@@ -1,15 +1,19 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import * as amplify from 'aws-cdk-lib/aws-amplify';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { COGNITO_DOMAIN_PREFIX } from '../../global/constants';
 import { stackProps } from '../../global/props';
 
-export class amplifyStack extends cdk.Stack {
+export class userPoolStack extends cdk.Stack {
+
+    public userPool: cdk.aws_cognito.UserPool;
+    public authenticatedRole:cdk.aws_iam.Role;
+
     constructor(scope: Construct, id: string, props: stackProps) {
         super(scope, id, props);
 
+        // userPool
         const userPool = new cognito.UserPool(this, 'userPool', {
             userPoolName: 'myRewardsUsers',
             selfSignUpEnabled: true,
@@ -30,6 +34,9 @@ export class amplifyStack extends cdk.Stack {
             }
         });
 
+        this.userPool = userPool;
+
+        // cognito Domain
         const cognitoDomain = new cognito.UserPoolDomain(this, 'CognitoDomain', {
             userPool,
             cognitoDomain: {
@@ -37,6 +44,7 @@ export class amplifyStack extends cdk.Stack {
             },
         });
 
+        // userPool Client
         const userPoolClient = new cognito.UserPoolClient(this, 'userPoolClient', {
             userPool,
             generateSecret: false,
@@ -51,6 +59,17 @@ export class amplifyStack extends cdk.Stack {
               callbackUrls: ['exp://127.0.0.1:19000/--/'],
               logoutUrls: ['exp://127.0.0.1:19000/--/'],
             }
+          });
+
+        // Identity Pool
+          const identityPool = new cognito.CfnIdentityPool(this, 'myRewards_IdentityPool', {
+            allowUnauthenticatedIdentities: true,
+            cognitoIdentityProviders: [
+              {
+                clientId: userPoolClient.userPoolClientId,
+                providerName: userPool.userPoolProviderName,
+              },
+            ],
           });
 
           const authenticatedPolicy = new iam.PolicyDocument({
@@ -77,16 +96,6 @@ export class amplifyStack extends cdk.Stack {
               }),
             ],
           });
-          
-          const identityPool = new cognito.CfnIdentityPool(this, 'myRewards_IdentityPool', {
-            allowUnauthenticatedIdentities: true,
-            cognitoIdentityProviders: [
-              {
-                clientId: userPoolClient.userPoolClientId,
-                providerName: userPool.userPoolProviderName,
-              },
-            ],
-          });
 
         const unauthenticatedRole = new iam.Role(this, 'UnauthenticatedRole', {
             assumedBy: new iam.FederatedPrincipal('cognito-identity.amazonaws.com', {
@@ -98,7 +107,7 @@ export class amplifyStack extends cdk.Stack {
             },
         });
 
-        const authenticatedRole = new iam.Role(this, 'AuthenticatedRole', {
+        this.authenticatedRole = new iam.Role(this, 'AuthenticatedRole', {
             assumedBy: new iam.FederatedPrincipal('cognito-identity.amazonaws.com', {
               'StringEquals': { 'cognito-identity.amazonaws.com:aud': identityPool.ref },
               'ForAnyValue:StringLike': { 'cognito-identity.amazonaws.com:amr': 'authenticated' }
@@ -108,53 +117,34 @@ export class amplifyStack extends cdk.Stack {
             },
         });
 
+        // attach roles to cognito
         new cognito.CfnIdentityPoolRoleAttachment(this, 'IdentityPoolRoleAttachment', {
             identityPoolId: identityPool.ref,
             roles: {
-            'authenticated': authenticatedRole.roleArn,
+            'authenticated': this.authenticatedRole.roleArn,
             'unauthenticated': unauthenticatedRole.roleArn,
             }
         });
 
-      const customerGroup = new cognito.CfnUserPoolGroup(this, 'CustomersGroup', {
-        groupName: 'Customers',
-        userPoolId: userPool.userPoolId,
-        description: 'Group for regular customers',
-        precedence: 1,
-        roleArn: authenticatedRole.roleArn,
-      });
 
-      const businessGroup = new cognito.CfnUserPoolGroup(this, 'BusinessGroup', {
-        groupName: 'Businesses',
-        userPoolId: userPool.userPoolId,
-        description: 'Group for business accounts',
-        precedence: 2,
-        roleArn: authenticatedRole.roleArn, 
-      });
-
-      // Create lambda trigger to add user to
-
-
-        const amplifyApp = new amplify.CfnApp(this, `myRewards-${props?.stackName}`, {
-            name: 'myRewards',
-            iamServiceRole: authenticatedRole.roleArn,
-            environmentVariables: [
-                {
-                  name: 'USER_POOL_ID',
-                  value: userPool.userPoolId,
-                },
-                {
-                  name: 'USER_POOL_CLIENT_ID',
-                  value: userPoolClient.userPoolClientId,
-                }
-              ],
+        // create customer and business groups
+        new cognito.CfnUserPoolGroup(this, 'CustomersGroup', {
+            groupName: 'Customers',
+            userPoolId: userPool.userPoolId,
+            description: 'Group for regular customers',
+            precedence: 1,
+            roleArn: this.authenticatedRole.roleArn,
         });
 
-        new cdk.CfnOutput(this, 'UserPoolId', {
-            value: userPool.userPoolId,
-            description: 'The ID of the Cognito User Pool',
+        new cognito.CfnUserPoolGroup(this, 'BusinessGroup', {
+            groupName: 'Businesses',
+            userPoolId: userPool.userPoolId,
+            description: 'Group for business accounts',
+            precedence: 2,
+            roleArn: this.authenticatedRole.roleArn, 
         });
 
+        // Output Resources
         new cdk.CfnOutput(this, 'UserPoolClient', {
             value: userPoolClient.userPoolClientId,
             description: 'The ID of the Cognito User Pool Client',
@@ -170,9 +160,9 @@ export class amplifyStack extends cdk.Stack {
             description: 'The Domain of the Cognito User Pool',
         });
 
-        new cdk.CfnOutput(this, 'AmplifyAppId', {
-            value: amplifyApp.attrAppId,
-            description: 'The ID of the Amplify app',
+        new cdk.CfnOutput(this, 'userPool ID', {
+            value: userPool.userPoolId,
+            description: 'The Domain of the Cognito User Pool',
         });
     }
 }

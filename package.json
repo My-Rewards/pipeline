@@ -9,7 +9,8 @@
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk",
-    "synth": "cdk synth --output ./infrastructure/output"
+    "synth": "cdk synth --output ./infrastructure/output",
+    "deploy": "cdk deploy 'PipelineStack/beta/*'  "
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",
