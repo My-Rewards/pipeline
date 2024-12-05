@@ -20,19 +20,25 @@ export class ApiGatewayStack extends cdk.Stack {
             runtime: lambda.Runtime.NODEJS_20_X,
             handler: 'getUser.handler', 
             code: lambda.Code.fromAsset('lambda'),
+            environment:{
+                USERS_TABLE:'Users'
+            }
         });
 
         const createUserLambda = new lambda.Function(this, 'createUserLambda', {
             runtime: lambda.Runtime.NODEJS_20_X,
             handler: 'createUser.handler', 
             code: lambda.Code.fromAsset('lambda'),
+            environment:{
+                USERS_TABLE:'Users'
+            }
         });
 
         // Grant lambdas access to Dynamo Table
         const usersTable = dynamodb.Table.fromTableArn(this, 'ImportedUsersTable', cdk.Fn.importValue('UserTableARN'));
         const organizationTable = dynamodb.Table.fromTableArn(this, 'ImportedOrganizationTable', cdk.Fn.importValue('OrganizationTableARN'));
-        usersTable.grantReadWriteData(getUserLambda);
-        organizationTable.grantReadWriteData(createUserLambda);
+        usersTable.grantReadData(getUserLambda);
+        usersTable.grantWriteData(createUserLambda);
 
         // Create a Cognito User Pool authorizer for API Gateway
         const authorizer = new apigateway.CognitoUserPoolsAuthorizer(this, 'CognitoAuthorizer', {
@@ -63,6 +69,10 @@ export class ApiGatewayStack extends cdk.Stack {
             authorizer: authorizer,
             authorizationType: apigateway.AuthorizationType.COGNITO,
         });
+
+        usersTable.grantReadWriteData(createUserLambda);
+    usersTable.grantReadWriteData(getUserLambda);
+
 
         new cdk.CfnOutput(this, 'ApiUrl', {
             value: api.url,

@@ -26,7 +26,7 @@ export class PipelineAppStage extends cdk.Stage {
       userPool_stack.addDependency(dynamo_stack);
 
       // Create Texttract stack HERE
-
+      
       let apiGatewayProps = this.createDefaultProps(props, this.stageName);
       const apiGateway_stack = new ApiGatewayStack(this, 'ApiGateway-Stack', apiGatewayProps);
       apiGateway_stack.addDependency(userPool_stack);

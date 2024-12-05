@@ -9,31 +9,89 @@ export class DynamoStack extends cdk.Stack {
     super(scope, id, props);
 
     // users Table
-     const usersTable = new aws_dynamodb.Table(this, 'UsersTable', {
-      partitionKey: { name: 'userId', type: aws_dynamodb.AttributeType.STRING }, 
-      tableName: 'Users',
+     const userTable = new aws_dynamodb.Table(this, 'UsersTable', {
+      partitionKey: { name: 'id', type: aws_dynamodb.AttributeType.STRING }, 
+      tableName: `Users`,
       billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
     });
 
     // business Table
-    const businessTable = new aws_dynamodb.Table(this, 'BusinessTable', {
+    const organizationTable = new aws_dynamodb.Table(this, 'OrganizationTable', {
       partitionKey: { name: 'id', type: aws_dynamodb.AttributeType.STRING }, 
-      tableName: "Organizations",
+      tableName: `Organizations`,
       billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
     });
+
+    // shops Table
+    const shopTable = new aws_dynamodb.Table(this, 'ShopTable', {
+      partitionKey: { name: 'id', type: aws_dynamodb.AttributeType.STRING }, 
+      tableName: `Shops`,
+      billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
+    });
+
+    // plans Table
+    const planTable = new aws_dynamodb.Table(this, 'PlanTable', {
+      partitionKey: { name: 'id', type: aws_dynamodb.AttributeType.STRING }, 
+      tableName: `Plans`,
+      billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
+    });
+
+    // visits Table
+    const visitTable = new aws_dynamodb.Table(this, 'VisitTable', {
+      partitionKey: { name: 'id', type: aws_dynamodb.AttributeType.STRING }, 
+      tableName: `Visits`,
+      billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
+    });
+
+    // Visit Table
+    const likesTable = new aws_dynamodb.Table(this, 'LikesTable', {
+      partitionKey: { name: 'id', type: aws_dynamodb.AttributeType.STRING }, 
+      tableName: `Likes`,
+      billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
+    });
+
 
     new cdk.CfnOutput(this, 'OrganizationTableARN', {
-      value: usersTable.tableArn,
+      value: organizationTable.tableArn,
       description: 'The Organization Table ARN',
-      exportName:'OrganizationTableARN'
+      exportName: 'OrganizationTableARN',
     });
-
+    
     new cdk.CfnOutput(this, 'UserTableARN', {
-      value: usersTable.tableArn,
+      value: userTable.tableArn,
       description: 'The Users Table ARN',
-      exportName:'UserTableARN'
+      exportName: 'UserTableARN',
     });
+    
+    new cdk.CfnOutput(this, 'ShopTableARN', {
+      value: shopTable.tableArn,
+      description: 'The Shop Table ARN',
+      exportName: 'ShopTableARN',
+    });
+    
+    new cdk.CfnOutput(this, 'PlanTableARN', {
+      value: planTable.tableArn,
+      description: 'The Plan Table ARN',
+      exportName: 'PlanTableARN',
+    });
+    
+    new cdk.CfnOutput(this, 'VisitTableARN', {
+      value: visitTable.tableArn,
+      description: 'The Visit Table ARN',
+      exportName: 'VisitTableARN',
+    });
+    
+    new cdk.CfnOutput(this, 'LikesTableARN', {
+      value: likesTable.tableArn,
+      description: 'The Likes Table ARN',
+      exportName: 'LikesTableARN',
+    });
+    
   }
 }
