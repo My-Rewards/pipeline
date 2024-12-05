@@ -2,13 +2,14 @@
   "app": "npx ts-node --prefer-ts-exts bin/pipeline.ts",
   "watch": {
     "include": [
-      "**"
+      "**",
+      "lambda/*.js"
     ],
     "exclude": [
       "README.md",
       "cdk*.json",
       "**/*.d.ts",
-      "**/*.js",
+      "!lambda/*.js", 
       "tsconfig.json",
       "package*.json",
       "yarn.lock",
