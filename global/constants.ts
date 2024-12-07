@@ -7,8 +7,17 @@ export const AWS_REGION = 'us-east-1'
 export const DOMAIN_NAME = '<Domain>'
 
 // Resource export names
-export const USER_POOL_ID = 'myRewardsUserPoolID';
-export const USER_POOL_CLIENT = 'UserPoolClientID';
+export const UP_CUSTOMER_ID = 'customerUserPoolID';
+export const UPC_CUSTOMER = 'customerUserPoolClientID';
+export const CUSTOMER_DOMAIN = 'customerDomain';
+
+export const UP_BUSINESS_ID = 'businessUserPoolID';
+export const UPC_BUSINESS = 'businessUserPoolClientID';
+export const BUSINESS_DOMAIN = 'businessDomain';
+
+export const UP_ADMIN_ID = 'adminUserPoolID'
+export const UPC_ADMIN = 'adminUserPoolClientID';
+export const ADMIN_DOMAIN = 'adminDomain';
+
 export const IDENTITY_POOL = 'IdentityPool';
 export const AUTHENTICATED_ROLE = 'AuthenticatedRoleARN';
-export const COGNITO_DOMAIN = 'CognitoDomainName';

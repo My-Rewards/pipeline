@@ -5,17 +5,16 @@ import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import {stackProps } from '../../global/props';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
+import { UP_CUSTOMER_ID } from '../../global/constants';
 
 export class ApiGatewayStack extends cdk.Stack {
 
     constructor(scope: Construct, id: string, props: stackProps) {
         super(scope, id, props);
 
-        // Import the User Pool
-        const userPoolId = cdk.Fn.importValue('myRewardsUserPoolID');
+        const userPoolId = cdk.Fn.importValue(UP_CUSTOMER_ID);
         const userPool = cognito.UserPool.fromUserPoolId(this, 'ImportedUserPool', userPoolId);
 
-        // set Lambda Function
         const getUserLambda = new lambda.Function(this, 'getUserLambda', {
             runtime: lambda.Runtime.NODEJS_20_X,
             handler: 'getUser.handler', 
@@ -34,7 +33,6 @@ export class ApiGatewayStack extends cdk.Stack {
             }
         });
 
-        // Grant lambdas access to Dynamo Table
         const usersTable = dynamodb.Table.fromTableArn(this, 'ImportedUsersTable', cdk.Fn.importValue('UserTableARN'));
         const organizationTable = dynamodb.Table.fromTableArn(this, 'ImportedOrganizationTable', cdk.Fn.importValue('OrganizationTableARN'));
         usersTable.grantReadData(getUserLambda);
@@ -45,7 +43,6 @@ export class ApiGatewayStack extends cdk.Stack {
             cognitoUserPools: [userPool],
         });
 
-        // Create API
         const api = new apigateway.RestApi(this, 'myRewardsApi', {
             restApiName: 'myRewards API',
             description: 'This is an API for Lambda functions.',
