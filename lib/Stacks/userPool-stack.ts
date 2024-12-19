@@ -16,11 +16,11 @@ import {
     UP_ADMIN_ID,
     UPC_ADMIN
  } from '../../global/constants';
-import { stackProps } from '../../global/props';
+import { StackProps } from '../../global/props';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 
 export class userPoolStack extends cdk.Stack {
-    constructor(scope: Construct, id: string, props: stackProps) {
+    constructor(scope: Construct, id: string, props: StackProps) {
         super(scope, id, props);
 
         const postConfirmation = new lambda.Function(this, 'PostConfirmationFunction', {

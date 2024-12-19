@@ -2,14 +2,14 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
-import {stackProps } from '../../global/props';
+import { StackProps } from '../../global/props';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
 import { UP_CUSTOMER_ID } from '../../global/constants';
 
 export class ApiGatewayStack extends cdk.Stack {
 
-    constructor(scope: Construct, id: string, props: stackProps) {
+    constructor(scope: Construct, id: string, props: StackProps) {
         super(scope, id, props);
 
         const userPoolId = cdk.Fn.importValue(UP_CUSTOMER_ID);
