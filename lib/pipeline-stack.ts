@@ -21,6 +21,11 @@ export class PipelineStack extends cdk.Stack {
       })
     });
 
+    pipeline.addStage(new PipelineCentralStage(this, "central", {
+      env: { account: AWS_CENTRAL_ACCOUNT, region: AWS_REGION },
+      stageName: 'central'
+     }));
+
     pipeline.addStage(new PipelineAppStage(this, "beta", {
       env: { account: AWS_BETA_ACCOUNT, region: AWS_REGION },
       stageName: 'beta',
@@ -36,11 +41,6 @@ export class PipelineStack extends cdk.Stack {
         new ManualApprovalStep('ManualApprovalBeforeProd')
       ]
     });
-
-    pipeline.addStage(new PipelineCentralStage(this, "central", {
-      env: { account: AWS_CENTRAL_ACCOUNT, region: AWS_REGION },
-      stageName: 'central'
-     }));
 
     pipeline.buildPipeline();
   }

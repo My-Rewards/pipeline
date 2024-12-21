@@ -6,16 +6,13 @@ import * as codebuild from 'aws-cdk-lib/aws-codebuild';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 import { WebsiteStackProps } from '../../global/props';
-import {AWS_CENTRAL_ACCOUNT, DOMAIN } from '../../global/constants';
+import { DOMAIN } from '../../global/constants';
 import { BucketAccessControl } from 'aws-cdk-lib/aws-s3';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as targets from 'aws-cdk-lib/aws-route53-targets';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as custom from 'aws-cdk-lib/custom-resources';
-import * as ssm from 'aws-cdk-lib/aws-ssm';
-import * as ram from 'aws-cdk-lib/aws-ram';
-
 
 export class WebsiteStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: WebsiteStackProps) {
@@ -177,8 +174,10 @@ export class WebsiteStack extends cdk.Stack {
 
     const s3origin = new origins.S3StaticWebsiteOrigin(websiteBucket);
 
-    // Hosted Zone + Certification
-    const hostedZone = new route53.HostedZone(this, 'HostedZone', {
+    const hostedZoneId = cdk.Fn.importValue(`${props.stageName}-HostedZoneId`);
+
+    const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
+      hostedZoneId: hostedZoneId,
       zoneName: `${props.subDomain}.${DOMAIN}`,
     });
 
@@ -219,26 +218,6 @@ export class WebsiteStack extends cdk.Stack {
       zone: hostedZone,
       target: route53.RecordTarget.fromAlias(new targets.CloudFrontTarget(distribution)),
     }).applyRemovalPolicy(cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE);
-
-    for (let i = 0; i < 4; i++) {
-      const sharedParameter = new ssm.StringParameter(this,`centralHostedZone${i}`, {
-        parameterName: `/myRewards/ns-record/${props?.stageName}/${i}`,
-        stringValue: cdk.Fn.select(i, hostedZone.hostedZoneNameServers || []),
-        description: 'Centralized cross-account shared parameter for latest golden Linux AMI',
-        tier: ssm.ParameterTier.ADVANCED,
-      });
-  
-      const resourceShare = new ram.CfnResourceShare(this, `RAMSharedSSM${i}`, {
-        name: 'CrossAccountSSMShare',
-        allowExternalPrincipals: false,
-        resourceArns: [sharedParameter.parameterArn],
-        principals: [AWS_CENTRAL_ACCOUNT],
-        tags: [
-          { key: 'EnvironmentType', value: 'central' },
-          { key: 'Owner', value: 'MyRewardsTeam' },
-        ],
-      });
-    }
 
     new cdk.CfnOutput(this, 'WebsiteBucketName', {
       value: websiteBucket.bucketName,

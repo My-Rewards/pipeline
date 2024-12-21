@@ -5,12 +5,26 @@ import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import { StackProps } from '../../global/props';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
-import { UP_CUSTOMER_ID } from '../../global/constants';
+import { DOMAIN, UP_CUSTOMER_ID } from '../../global/constants';
+import * as route53 from 'aws-cdk-lib/aws-route53';
+import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 
 export class ApiGatewayStack extends cdk.Stack {
 
     constructor(scope: Construct, id: string, props: StackProps) {
         super(scope, id, props);
+
+        const hostedZoneId = cdk.Fn.importValue(`${props.stageName}-API-HostedZoneId`);
+
+        const parentHostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
+          hostedZoneId: hostedZoneId,
+          zoneName: `${props.subDomain}.${DOMAIN}`,
+        });
+
+        const certificate = new acm.Certificate(this, 'Certificate', {
+            domainName:`${props.stageName}-api.${DOMAIN}`,
+            validation: acm.CertificateValidation.fromDns(parentHostedZone),
+        });
 
         const userPoolId = cdk.Fn.importValue(UP_CUSTOMER_ID);
         const userPool = cognito.UserPool.fromUserPoolId(this, 'ImportedUserPool', userPoolId);
@@ -38,7 +52,6 @@ export class ApiGatewayStack extends cdk.Stack {
         usersTable.grantReadData(getUserLambda);
         usersTable.grantWriteData(createUserLambda);
 
-        // Create a Cognito User Pool authorizer for API Gateway
         const authorizer = new apigateway.CognitoUserPoolsAuthorizer(this, 'CognitoAuthorizer', {
             cognitoUserPools: [userPool],
         });
@@ -49,10 +62,14 @@ export class ApiGatewayStack extends cdk.Stack {
             deployOptions: {
                 stageName: `${props.stageName}`,
             },
+            domainName: {
+                domainName: `${props.stageName}-api.${DOMAIN}`,
+                certificate: certificate,
+                endpointType: apigateway.EndpointType.EDGE,
+                securityPolicy: apigateway.SecurityPolicy.TLS_1_2,
+              },
         });
 
-        // resource, an api function ex: myrewards.com/users
-        // create for different api functions
         const usersApi = api.root.addResource('users'); 
 
         const getUserIntegration = new apigateway.LambdaIntegration(getUserLambda);
@@ -68,8 +85,7 @@ export class ApiGatewayStack extends cdk.Stack {
         });
 
         usersTable.grantReadWriteData(createUserLambda);
-    usersTable.grantReadWriteData(getUserLambda);
-
+        usersTable.grantReadWriteData(getUserLambda);
 
         new cdk.CfnOutput(this, 'ApiUrl', {
             value: api.url,

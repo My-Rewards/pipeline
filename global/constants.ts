@@ -1,9 +1,10 @@
 export const COGNITO_DOMAIN_PREFIX = 'myrewardsapp'
 
-export const AWS_BETA_ACCOUNT = '417975668372';
+export const AWS_BETA_ACCOUNT = '050451385382';
 export const AWS_PROD_ACCOUNT = '396608803858'
-export const AWS_CENTRAL_ACCOUNT = '354918383428'
+export const AWS_CENTRAL_ACCOUNT = '417975668372'
 export const AWS_PIPELINE_ACCOUNT = '724772076019';
+export const ORGANIZATION = 'r-cj7q'
 
 export const AWS_REGION = 'us-east-1'
 

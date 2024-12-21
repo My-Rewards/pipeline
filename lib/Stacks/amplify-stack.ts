@@ -10,9 +10,6 @@ export class amplifyStack extends cdk.Stack {
 
       const authenticatedRoleARN = cdk.Fn.importValue('AuthenticatedRoleARN');
 
-      // Create lambda trigger to add user to right database (business or customer) based on attribute
-      // HERE
-
       const amplifyApp = new amplify.CfnApp(this, `myRewards-${props?.stackName}`, {
           name: 'myRewards',
           iamServiceRole: authenticatedRoleARN,
