@@ -6,53 +6,75 @@ import { ApiGatewayStack } from './Stacks/apiGateway-stack';
 import { UserPoolStack } from './Stacks/userPool-stack';
 import { SSMStack } from './Stacks/ssm-stack';
 import { WebsiteStack } from './Stacks/website-stack';
-import { StackProps, StageProps } from '../global/props';
+import { StackProps, StageProps, WebsiteStackProps } from '../global/props';
 import { HostedZoneStack } from './Stacks/hostedZone-stack';
 
 export class PipelineAppStage extends cdk.Stage {
     constructor(scope: Construct, id: string, props: StageProps) {
       super(scope, id, props);
 
-      let hostedZoneProps = this.createDefaultProps(props, this.stageName);
+      let businessDomain;
+      let apiDomain;
+      let authDomain;
+      let authDomainBusiness;
+
+      if(props.stageName === 'beta'){
+          businessDomain=`${props.stageName}.business`;
+          authDomain=`${props.stageName}.auth`;
+          authDomainBusiness=`${props.stageName}.business.auth`;
+          apiDomain=`${props.stageName}.api`;
+
+      }else{
+          businessDomain=`business`;
+          authDomain=`auth`;
+          authDomainBusiness=`business.auth`;
+          apiDomain=`api`;
+      }
+
+      let hostedZoneProps = this.createDefaultProps(props, this.stageName, authDomain, authDomainBusiness, businessDomain, apiDomain);
       const hostedZone_stack = new HostedZoneStack(this, 'HostedZone-Stack', hostedZoneProps);
 
-      let dynamoDbProp = this.createDefaultProps(props, this.stageName);
+      let dynamoDbProp = this.createDefaultProps(props, this.stageName, authDomain, authDomainBusiness, businessDomain, apiDomain);
       const dynamo_stack = new DynamoStack(this, 'Dynamo-Stack', dynamoDbProp);
 
-      let userPoolProps = this.createDefaultProps(props, this.stageName);
+      let userPoolProps = this.createDefaultProps(props, this.stageName, authDomain, authDomainBusiness, businessDomain, apiDomain);
       const userPool_stack = new UserPoolStack(this, 'UserPool-Stack', userPoolProps);
       userPool_stack.addDependency(dynamo_stack);
 
-      let apiGatewayProps = this.createDefaultProps(props, this.stageName);
+      let apiGatewayProps = this.createDefaultProps(props, this.stageName, authDomain, authDomainBusiness, businessDomain, apiDomain);
       const apiGateway_stack = new ApiGatewayStack(this, 'ApiGateway-Stack', apiGatewayProps);
       apiGateway_stack.addDependency(userPool_stack);
       apiGateway_stack.addDependency(hostedZone_stack);
 
-      let amplifyProp = this.createDefaultProps(props, this.stageName);
+      let amplifyProp = this.createDefaultProps(props, this.stageName, authDomain, authDomainBusiness, businessDomain, apiDomain);
       const amplify_stack = new amplifyStack(this, 'Amplify-Stack', amplifyProp);
       amplify_stack.addDependency(apiGateway_stack);
 
-      let ssmProps = this.createDefaultProps(props, this.stageName);
+      let ssmProps = this.createDefaultProps(props, this.stageName, authDomain, authDomainBusiness, businessDomain, apiDomain);
       const ssm_Stack = new SSMStack(this, 'Ssm-Stack', ssmProps);
       ssm_Stack.addDependency(amplify_stack);
 
-      let mainWebsiteProps = this.mainWebsiteProps(props, this.stageName);
+      let mainWebsiteProps = this.mainWebsiteProps(props, this.stageName, authDomain, authDomainBusiness);
       const website_stack = new WebsiteStack(this, "Website-Stack", mainWebsiteProps)
       website_stack.addDependency(ssm_Stack);
     }
 
-  createDefaultProps(props:StageProps, stage:string):StackProps{
+  createDefaultProps(props:StageProps, stage:string, authDomain:string, authDomainBusiness:string, businessDomain:string, apiDomain:string):StackProps{
     return{
         env: {
             account: props.env?.account,
             region: props.env?.region
         },
         stageName: stage,
-        subDomain:props.subDomain
+        subDomain:props.subDomain,
+        authDomain,
+        authDomainBusiness,
+        businessDomain,
+        apiDomain
     }
   }
 
-  mainWebsiteProps(props:StageProps, stage:string){
+  mainWebsiteProps(props:StageProps, stage:string, authDomain:string, authDomainBusiness:string):WebsiteStackProps{
     return{
       env: {
           account: props.env?.account,
@@ -63,7 +85,9 @@ export class PipelineAppStage extends cdk.Stage {
       githubOwner: 'My-Rewards',
       githubRepo: 'my-rewards-website',
       githubBranch: stage,
-      buildCommand: 'npm run build'
+      buildCommand: 'npm run build',
+      authDomain, 
+      authDomainBusiness
     }
   }
 }

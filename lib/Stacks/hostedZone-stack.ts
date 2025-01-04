@@ -11,13 +11,6 @@ export class HostedZoneStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props: StackProps) {
         super(scope, id, props);
 
-        let businessDomain;
-        if(props.stageName === 'beta'){
-            businessDomain=`${props.stageName}.business.${DOMAIN}`;
-        }else{
-            businessDomain=`business.${DOMAIN}`;
-        }
-
         const delegationRoleARN = ssm.StringParameter.fromStringParameterArn(this, 
             'HostedZoneARN', 
             `arn:aws:ssm:${AWS_REGION}:${AWS_CENTRAL_ACCOUNT}:parameter/myRewards/hostedZoneARN`).stringValue;
@@ -33,11 +26,15 @@ export class HostedZoneStack extends cdk.Stack {
         });
 
         const hostedZoneAPI = new route53.HostedZone(this, 'HostedZoneAPI', {
-            zoneName: `${props.subDomain}-api.${DOMAIN}`
+            zoneName: `${props.apiDomain}.${DOMAIN}`
         });
 
         const hostedZoneBusiness = new route53.HostedZone(this, 'HostedZoneBusiness', {
-            zoneName: businessDomain
+            zoneName: `${props.businessDomain}.${DOMAIN}`
+        });
+
+        const hostedZoneAuth = new route53.HostedZone(this, 'HostedZoneAuth', {
+            zoneName: `${props.authDomain}.${DOMAIN}`
         });
 
         new route53.CrossAccountZoneDelegationRecord(this, 'delegateHostedZone', {
@@ -58,6 +55,12 @@ export class HostedZoneStack extends cdk.Stack {
             delegationRole: delegationRole
         });
 
+        new route53.CrossAccountZoneDelegationRecord(this, 'delegateHostedZoneAuthentication', {
+            delegatedZone: hostedZoneAuth,
+            parentHostedZoneId: parentHostedZoneId,
+            delegationRole: delegationRole
+        });
+
         new cdk.CfnOutput(this, `${props.stageName}-HostedZoneId`, {
             value: hostedZone.hostedZoneId,
             description: 'Hosted Zone ID',
@@ -74,6 +77,12 @@ export class HostedZoneStack extends cdk.Stack {
             value: hostedZoneBusiness.hostedZoneId,
             description: 'Hosted Zone ID',
             exportName: `${props.stageName}-Business-HostedZoneId`,
+        });
+
+        new cdk.CfnOutput(this, `${props.stageName}-Auth-HostedZoneId`, {
+            value: hostedZoneAuth.hostedZoneId,
+            description: 'Hosted Zone ID',
+            exportName: `${props.stageName}-Auth-HostedZoneId`,
         });
     }
 }

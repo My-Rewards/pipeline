@@ -23,5 +23,6 @@ export const UP_ADMIN_ID = 'adminUserPoolID'
 export const UPC_ADMIN = 'adminUserPoolClientID';
 export const ADMIN_DOMAIN = 'adminDomain';
 
-export const IDENTITY_POOL = 'IdentityPool';
+export const IDENTITY_POOL_CUSTOMER = 'IdentityPoolUser';
+export const IDENTITY_POOL_BUSINESS = 'IdentityPoolBusiness';
 export const AUTHENTICATED_ROLE = 'AuthenticatedRoleARN';

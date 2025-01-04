@@ -169,7 +169,6 @@ export class WebsiteStack extends cdk.Stack {
         })
       ])
     });
-    
     triggerInitialBuild.node.addDependency(buildProject);
 
     const s3origin = new origins.S3StaticWebsiteOrigin(websiteBucket);

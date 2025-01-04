@@ -22,7 +22,7 @@ export class ApiGatewayStack extends cdk.Stack {
         });
 
         const certificate = new acm.Certificate(this, 'Certificate', {
-            domainName:`${props.stageName}-api.${DOMAIN}`,
+            domainName:`${props.apiDomain}.${DOMAIN}`,
             validation: acm.CertificateValidation.fromDns(parentHostedZone),
         });
 
@@ -49,6 +49,7 @@ export class ApiGatewayStack extends cdk.Stack {
 
         const usersTable = dynamodb.Table.fromTableArn(this, 'ImportedUsersTable', cdk.Fn.importValue('UserTableARN'));
         const organizationTable = dynamodb.Table.fromTableArn(this, 'ImportedOrganizationTable', cdk.Fn.importValue('OrganizationTableARN'));
+
         usersTable.grantReadData(getUserLambda);
         usersTable.grantWriteData(createUserLambda);
 
@@ -63,7 +64,7 @@ export class ApiGatewayStack extends cdk.Stack {
                 stageName: `${props.stageName}`,
             },
             domainName: {
-                domainName: `${props.stageName}-api.${DOMAIN}`,
+                domainName: `${props.apiDomain}.${DOMAIN}`,
                 certificate: certificate,
                 endpointType: apigateway.EndpointType.EDGE,
                 securityPolicy: apigateway.SecurityPolicy.TLS_1_2,

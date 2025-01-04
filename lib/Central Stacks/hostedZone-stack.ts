@@ -35,7 +35,7 @@ export class HostedZoneStack extends cdk.Stack {
       crossAccountZoneDelegationPrincipal: new iam.OrganizationPrincipal(ORGANIZATION)
     });
 
-    new acm.Certificate(this, 'Certificate', {
+    const certificate = new acm.Certificate(this, 'Certificate', {
       domainName: DOMAIN,
       subjectAlternativeNames: [
         `*.${DOMAIN}`,
@@ -49,6 +49,7 @@ export class HostedZoneStack extends cdk.Stack {
       description: 'Centralized cross-account shared parameter for latest golden Linux AMI',
       tier: ssm.ParameterTier.ADVANCED,
     });
+
 
     const sharedParameter2 = new ssm.StringParameter(this,`centralHostedZoneID`, {
       parameterName: `/myRewards/hostedZoneID`,

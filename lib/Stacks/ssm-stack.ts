@@ -12,7 +12,8 @@ import {
     UP_ADMIN_ID,
     UPC_ADMIN,
     ADMIN_DOMAIN,
-    IDENTITY_POOL
+    IDENTITY_POOL_CUSTOMER,
+    IDENTITY_POOL_BUSINESS
 } from '../../global/constants';
 
 export class SSMStack extends cdk.Stack {
@@ -67,10 +68,14 @@ export class SSMStack extends cdk.Stack {
       stringValue: cdk.Fn.importValue(ADMIN_DOMAIN),
     });
 
-    // Identity Pool
-    new ssm.StringParameter(this, 'IdentityPoolId', {
-      parameterName: `/myRewardsApp/${props.stageName}/identityPoolId`,
-      stringValue: cdk.Fn.importValue(IDENTITY_POOL),
+    // Identity Pool Customer + Business
+    new ssm.StringParameter(this, 'IdentityPoolIdCustomer', {
+      parameterName: `/myRewardsApp/${props.stageName}/identityPoolIdCustomer`,
+      stringValue: cdk.Fn.importValue(IDENTITY_POOL_CUSTOMER),
+    });
+    new ssm.StringParameter(this, 'IdentityPoolIdBusiness', {
+      parameterName: `/myRewardsApp/${props.stageName}/identityPoolIdBusiness`,
+      stringValue: cdk.Fn.importValue(IDENTITY_POOL_BUSINESS),
     });
   }
 }
