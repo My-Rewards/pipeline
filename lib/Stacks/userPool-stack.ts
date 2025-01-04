@@ -36,7 +36,7 @@ export class UserPoolStack extends cdk.Stack {
         },
         autoVerify: { email: true },
         standardAttributes: {
-            email: { required: true, mutable: false },
+            email: { required: true, mutable: true },
         },
         customAttributes: {
           role: new cognito.StringAttribute({ mutable: true })

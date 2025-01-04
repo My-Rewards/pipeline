@@ -71,6 +71,7 @@ export class ApiGatewayStack extends cdk.Stack {
               },
         });
 
+        
         const usersApi = api.root.addResource('users'); 
 
         const getUserIntegration = new apigateway.LambdaIntegration(getUserLambda);
