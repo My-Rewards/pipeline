@@ -1,6 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { StackProps } from '../../global/props';
+import { HostedZoneProps } from '../../global/props';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 import { AWS_CENTRAL_ACCOUNT, AWS_REGION, DOMAIN } from '../../global/constants';
 import * as iam from 'aws-cdk-lib/aws-iam';
@@ -8,7 +8,7 @@ import * as ssm from 'aws-cdk-lib/aws-ssm';
 
 export class HostedZoneStack extends cdk.Stack {
 
-    constructor(scope: Construct, id: string, props: StackProps) {
+    constructor(scope: Construct, id: string, props:HostedZoneProps) {
         super(scope, id, props);
 
         const delegationRoleARN = ssm.StringParameter.fromStringParameterArn(this, 
