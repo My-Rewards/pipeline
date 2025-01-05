@@ -8,7 +8,7 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ram from 'aws-cdk-lib/aws-ram';
 
 export class HostedZoneStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: cdk.StageProps) {
+  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
     const delegationRole = new iam.Role(this, 'DelegationRole', {

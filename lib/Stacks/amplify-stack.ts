@@ -1,16 +1,16 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as amplify from 'aws-cdk-lib/aws-amplify';
-import { StackProps } from '../../global/props';
+import { AmplifyStackProps } from '../../global/props';
 
-export class amplifyStack extends cdk.Stack {
+export class AmplifyStack extends cdk.Stack {
 
-    constructor(scope: Construct, id: string, props: StackProps) {
+    constructor(scope: Construct, id: string, props: AmplifyStackProps) {
       super(scope, id, props);
 
       const authenticatedRoleARN = cdk.Fn.importValue('AuthenticatedRoleARN');
 
-      const amplifyApp = new amplify.CfnApp(this, `myRewards-${props?.stackName}`, {
+      const amplifyApp = new amplify.CfnApp(this, `myRewards-${props?.stageName}`, {
           name: 'myRewards',
           iamServiceRole: authenticatedRoleARN,
       });

@@ -17,14 +17,14 @@ import {
     IDENTITY_POOL_CUSTOMER,
     IDENTITY_POOL_BUSINESS,
  } from '../../global/constants';
-import { StackProps } from '../../global/props';
+import { UserPoolStackProps } from '../../global/props';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import * as targets from 'aws-cdk-lib/aws-route53-targets';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 
 export class UserPoolStack extends cdk.Stack {
-    constructor(scope: Construct, id: string, props: StackProps) {
+    constructor(scope: Construct, id: string, props: UserPoolStackProps) {
       super(scope, id, props);
 
       // userPool - Customers
@@ -36,7 +36,7 @@ export class UserPoolStack extends cdk.Stack {
         },
         autoVerify: { email: true },
         standardAttributes: {
-            email: { required: true, mutable: false },
+            email: { required: true, mutable: true },
         },
         customAttributes: {
           role: new cognito.StringAttribute({ mutable: true })
@@ -58,7 +58,7 @@ export class UserPoolStack extends cdk.Stack {
         },
         autoVerify: { email: true },
         standardAttributes: {
-            email: { required: true, mutable: false },
+            email: { required: true, mutable: true },
         },
         customAttributes: {
           role: new cognito.StringAttribute({ mutable: true })
@@ -80,7 +80,7 @@ export class UserPoolStack extends cdk.Stack {
         },
         autoVerify: { email: true },
         standardAttributes: {
-            email: { required: true, mutable: false },
+            email: { required: true, mutable: true },
         },
         customAttributes: {
           role: new cognito.StringAttribute({ mutable: true })
@@ -324,7 +324,7 @@ export class UserPoolStack extends cdk.Stack {
         }
       });
 
-      // Custom Userpool Domain Configuration
+      // Custom Userpool Domain Configuration for Users
       const hostedZoneIdAuth = cdk.Fn.importValue(`${props.stageName}-Auth-HostedZoneId`);
       const hostedZoneAuth = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZoneAuth', {
         hostedZoneId: hostedZoneIdAuth,
@@ -336,28 +336,53 @@ export class UserPoolStack extends cdk.Stack {
         target: route53.RecordTarget.fromAlias(new targets.UserPoolDomainTarget(cognitoDomain_Customer)),
         deleteExisting: true,
       });
-      const aRecord2 = new route53.ARecord(this, `${props.stageName}-AuthARecord`, {
+      const aRecordUser = new route53.ARecord(this, `${props.stageName}-User-AuthARecord`, {
         zone: hostedZoneAuth,
         recordName:'user',
         target: route53.RecordTarget.fromAlias(new targets.UserPoolDomainTarget(cognitoDomain_Customer)),
         deleteExisting: true,
       });
-      aRecord2.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE);
+      const aRecordBusiness = new route53.ARecord(this, `${props.stageName}-Business-AuthARecord`, {
+        zone: hostedZoneAuth,
+        recordName:'business',
+        target: route53.RecordTarget.fromAlias(new targets.UserPoolDomainTarget(cognitoDomain_Business)),
+        deleteExisting: true,
+      });
+
+      aRecordUser.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE);
+      aRecordBusiness.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE);
 
       const certificateAuth = new acm.Certificate(this, 'AuthCertificate', {
         domainName: `${props.authDomain}.${DOMAIN}`,
-        subjectAlternativeNames:[`user.${props.authDomain}.${DOMAIN}`],
+        subjectAlternativeNames:[
+          `user.${props.authDomain}.${DOMAIN}`,
+          `business.${props.authDomain}.${DOMAIN}`
+        ],
         validation: acm.CertificateValidation.fromDns(hostedZoneAuth),
       });
   
-      const cognitoDomain = userPool_Customer.addDomain('addingCustomerDomain', {
+      const cognitoDomainUser = userPool_Customer.addDomain('addingCustomerDomain', {
         customDomain: {
           domainName: `user.${props.authDomain}.${DOMAIN}`,
           certificate: certificateAuth
         },
       });
-      cognitoDomain.node.addDependency(aRecord)
-      cognitoDomain.node.addDependency(aRecord2)
+      const cognitoDomainBusiness = userPool_Customer.addDomain('addingBusinessDomain', {
+        customDomain: {
+          domainName: `business.${props.authDomain}.${DOMAIN}`,
+          certificate: certificateAuth
+        },
+      });
+
+      cognitoDomainUser.node.addDependency(aRecord)
+      cognitoDomainUser.node.addDependency(aRecordUser)
+      cognitoDomainBusiness.node.addDependency(aRecord)
+      cognitoDomainBusiness.node.addDependency(aRecordBusiness)
+
+
+      // Custom Userpool Domain Configuration for Business
+      // TODO
+
 
       // ----- UserPools ------
       new cdk.CfnOutput(this, UPC_CUSTOMER, {

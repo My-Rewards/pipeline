@@ -1,11 +1,11 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { aws_dynamodb } from 'aws-cdk-lib';
-import { StackProps } from '../../global/props';
+import { DynamoStackProps } from '../../global/props';
 
 export class DynamoStack extends cdk.Stack {
 
-  constructor(scope: Construct, id: string, props: StackProps) {
+  constructor(scope: Construct, id: string, props: DynamoStackProps) {
     super(scope, id, props);
 
     // users Table

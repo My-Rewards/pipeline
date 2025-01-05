@@ -1,7 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
-import { StackProps } from '../../global/props';
+import { SSMStackProps } from '../../global/props';
 import { 
     UP_CUSTOMER_ID,
     UPC_CUSTOMER,
@@ -17,7 +17,7 @@ import {
 } from '../../global/constants';
 
 export class SSMStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props: StackProps) {
+  constructor(scope: Construct, id: string, props: SSMStackProps) {
     super(scope, id, props);
 
     // Customer User Pool Parameters
