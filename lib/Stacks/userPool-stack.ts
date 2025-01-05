@@ -22,29 +22,47 @@ import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import * as targets from 'aws-cdk-lib/aws-route53-targets';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 
 export class UserPoolStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props: UserPoolStackProps) {
       super(scope, id, props);
+
+      const usersTable = dynamodb.Table.fromTableArn(this, 'ImportedUsersTable', cdk.Fn.importValue('UserTableARN'));
+      
+      const postConfirmationHandler = new lambda.Function(this, 'PostConfirmationHandler', {
+        runtime: lambda.Runtime.NODEJS_20_X,
+        handler: 'createUser.handler',
+        code: lambda.Code.fromAsset('lambda'),
+        environment: {
+          USERS_TABLE: usersTable.tableName,
+        },
+      });
+      usersTable.grantWriteData(postConfirmationHandler);
 
       // userPool - Customers
       const userPool_Customer = new cognito.UserPool(this, 'userPool_Customer', {
         userPoolName: 'myRewardsUsers',
         selfSignUpEnabled: true,
         signInAliases: {
-            email: true,
+          email: true,
         },
         autoVerify: { email: true },
         standardAttributes: {
-            email: { required: true, mutable: true },
-        },
-        customAttributes: {
-          role: new cognito.StringAttribute({ mutable: true })
+          email: { required: true, mutable: true },
+          birthdate:{ required: false, mutable: true },
+          givenName:{ required: true, mutable: true },
+          familyName:{ required: true, mutable: true },
         },
         passwordPolicy: {
-            minLength: 8,
-            requireLowercase: true,
-            requireUppercase: true,
+          minLength: 8,
+          requireLowercase: true,
+          requireUppercase: true,
+        },
+        lambdaTriggers:{
+          postConfirmation: postConfirmationHandler
         },
         removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
       });
@@ -58,8 +76,11 @@ export class UserPoolStack extends cdk.Stack {
         },
         autoVerify: { email: true },
         standardAttributes: {
-            email: { required: true, mutable: true },
-        },
+          email: { required: true, mutable: true },
+          birthdate:{ required: false, mutable: true },
+          givenName:{ required: true, mutable: true },
+          familyName:{ required: true, mutable: true },
+      },
         customAttributes: {
           role: new cognito.StringAttribute({ mutable: true })
         },
@@ -299,6 +320,7 @@ export class UserPoolStack extends cdk.Stack {
           email: cognito.ProviderAttribute.GOOGLE_EMAIL,
           givenName: cognito.ProviderAttribute.GOOGLE_GIVEN_NAME,
           familyName: cognito.ProviderAttribute.GOOGLE_FAMILY_NAME,
+          birthdate: cognito.ProviderAttribute.GOOGLE_BIRTHDAYS
         },
       });
       
@@ -378,10 +400,6 @@ export class UserPoolStack extends cdk.Stack {
       cognitoDomainUser.node.addDependency(aRecordUser)
       cognitoDomainBusiness.node.addDependency(aRecord)
       cognitoDomainBusiness.node.addDependency(aRecordBusiness)
-
-
-      // Custom Userpool Domain Configuration for Business
-      // TODO
 
 
       // ----- UserPools ------
