@@ -32,15 +32,27 @@ export class UserPoolStack extends cdk.Stack {
 
       const usersTable = dynamodb.Table.fromTableArn(this, 'ImportedUsersTable', cdk.Fn.importValue('UserTableARN'));
       
-      const postConfirmationHandler = new lambda.Function(this, 'PostConfirmationHandler', {
+      const postConfirmationHandlerUser = new lambda.Function(this, 'PostConfirmationHandlerUser', {
         runtime: lambda.Runtime.NODEJS_20_X,
         handler: 'createUser.handler',
         code: lambda.Code.fromAsset('lambda'),
         environment: {
           USERS_TABLE: usersTable.tableName,
+          ROLE:'user'
         },
       });
-      usersTable.grantWriteData(postConfirmationHandler);
+      usersTable.grantWriteData(postConfirmationHandlerUser);
+
+      const postConfirmationHandlerBusiness = new lambda.Function(this, 'PostConfirmationHandlerBusiness', {
+        runtime: lambda.Runtime.NODEJS_20_X,
+        handler: 'createUser.handler',
+        code: lambda.Code.fromAsset('lambda'),
+        environment: {
+          USERS_TABLE: usersTable.tableName,
+          ROLE:'business'
+        },
+      });
+      usersTable.grantWriteData(postConfirmationHandlerBusiness);
 
       // userPool - Customers
       const userPool_Customer = new cognito.UserPool(this, 'userPool_Customer', {
@@ -62,7 +74,7 @@ export class UserPoolStack extends cdk.Stack {
           requireUppercase: true,
         },
         lambdaTriggers:{
-          postConfirmation: postConfirmationHandler
+          postConfirmation: postConfirmationHandlerBusiness
         },
         removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
       });
@@ -88,6 +100,9 @@ export class UserPoolStack extends cdk.Stack {
             minLength: 8,
             requireLowercase: true,
             requireUppercase: true,
+        },
+        lambdaTriggers:{
+          postConfirmation: postConfirmationHandlerUser
         },
         removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
       });
@@ -305,16 +320,15 @@ export class UserPoolStack extends cdk.Stack {
       });
 
       // Google Authentication option
-      const googleClientSecret = secretsmanager.Secret.fromSecretNameV2(this, 'GoogleClientSecret', 'googleSecret');
+      const googleClientSecret = secretsmanager.Secret.fromSecretNameV2(this, 'GoogleClientSecret', 'googleSecret').secretValue;
       const googleClient = secretsmanager.Secret.fromSecretNameV2(this, 'GoogleClientId', 'googleClient');
       
-      const clientSecretValue = googleClientSecret.secretValue.unsafeUnwrap();
       const clientValue = googleClient.secretValue.unsafeUnwrap(); 
       
       const googleProvider = new cognito.UserPoolIdentityProviderGoogle(this, 'GoogleProvider', {
         userPool: userPool_Customer,
         clientId:clientValue,
-        clientSecret: clientSecretValue,
+        clientSecretValue: googleClientSecret,
         scopes: ['openid', 'email', 'profile'],
         attributeMapping: {
           email: cognito.ProviderAttribute.GOOGLE_EMAIL,
