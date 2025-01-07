@@ -31,8 +31,9 @@ export class UserPoolStack extends cdk.Stack {
       super(scope, id, props);
 
       const usersTable = dynamodb.Table.fromTableArn(this, 'ImportedUsersTable', cdk.Fn.importValue('UserTableARN'));
-      
+     
       const postConfirmationHandlerUser = new lambda.Function(this, 'PostConfirmationHandlerUser', {
+
         runtime: lambda.Runtime.NODEJS_20_X,
         handler: 'createUser.handler',
         code: lambda.Code.fromAsset('lambda'),

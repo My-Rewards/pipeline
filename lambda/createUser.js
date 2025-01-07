@@ -5,8 +5,8 @@ const client = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(client);
 
 exports.handler = async (event) => {
-    const tableName = process.env.USERS_TABLE;
-    const role = process.env.ROLE;
+  const tableName = process.env.USERS_TABLE;
+  const role = process.env.ROLE;
 
     console.log('Event:', JSON.stringify(event, null, 2));
     console.log('User Attributes:', JSON.stringify(event.request.userAttributes, null, 2));
