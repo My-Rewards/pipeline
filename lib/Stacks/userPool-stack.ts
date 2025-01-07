@@ -45,7 +45,7 @@ export class UserPoolStack extends cdk.Stack {
 
       const postConfirmationHandlerBusiness = new lambda.Function(this, 'PostConfirmationHandlerBusiness', {
         runtime: lambda.Runtime.NODEJS_20_X,
-        handler: 'createUser.handler',
+        handler: 'createUserBusiness.handler',
         code: lambda.Code.fromAsset('lambda'),
         environment: {
           USERS_TABLE: usersTable.tableName,
@@ -403,7 +403,7 @@ export class UserPoolStack extends cdk.Stack {
           certificate: certificateAuth
         },
       });
-      const cognitoDomainBusiness = userPool_Customer.addDomain('addingBusinessDomain', {
+      const cognitoDomainBusiness = userPool_Business.addDomain('addingBusinessDomain', {
         customDomain: {
           domainName: `business.${props.authDomain}.${DOMAIN}`,
           certificate: certificateAuth

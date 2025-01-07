@@ -17,42 +17,21 @@ exports.handler = async (event) => {
         console.error('Missing required attributes');
         throw new Error('Missing required attributes');
         }
-        let userData;
-
-        if(role == 'business'){
-            userData = {
-                id: userAttributes.sub,
-                email: userAttributes.email,
-                birthdate: userAttributes.birthdate ? new Date(userAttributes.birthdate).toISOString() : null,
-                fullname: {
-                    firstName: userAttributes.given_name,
-                    lastName: userAttributes.family_name
-                },
-                date_created: new Date().toISOString(),
-                role:role,
-                newAccount: true,
-                preferences:{
-                    lightMode:true
-                },
-                orgIds:[]
-                };
-        }else{
-            userData = {
-                id: userAttributes.sub,
-                email: userAttributes.email,
-                birthdate: userAttributes.birthdate ? new Date(userAttributes.birthdate).toISOString() : null,
-                fullname: {
-                    firstName: userAttributes.given_name,
-                    lastName: userAttributes.family_name
-                },
-                date_created: new Date().toISOString(),
-                role:role,
-                newAccount: true,
-                preferences:{
-                    lightMode:true
-                }
-                };
-        }
+        const userData = {
+            id: userAttributes.sub,
+            email: userAttributes.email,
+            birthdate: userAttributes.birthdate ? new Date(userAttributes.birthdate).toISOString() : null,
+            fullname: {
+                firstName: userAttributes.given_name,
+                lastName: userAttributes.family_name
+            },
+            date_created: new Date().toISOString(),
+            role:role,
+            newAccount: true,
+            preferences:{
+                lightMode:true
+            }
+        };
 
         const params = {
         TableName: tableName,
