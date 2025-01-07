@@ -7,6 +7,7 @@ import { DOMAIN, UP_CUSTOMER_ID } from '../../global/constants';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import { UsersApiStack } from './APIs/UserApiStack';
+import { SquareApiStack } from './APIs/SquareApiStack';
 
 export class ApiGatewayStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: ApiStackProps) {
@@ -36,17 +37,22 @@ export class ApiGatewayStack extends cdk.Stack {
         restApiName: 'myRewards API',
         description: 'This is an API for Lambda functions.',
         deployOptions: {
-            stageName: `${props.stageName}`,
+          stageName: `${props.stageName}`,
         },
         domainName: {
-            domainName: `${props.apiDomain}.${DOMAIN}`,
-            certificate: certificate,
-            endpointType: apigateway.EndpointType.EDGE,
-            securityPolicy: apigateway.SecurityPolicy.TLS_1_2,
-            },
+          domainName: `${props.apiDomain}.${DOMAIN}`,
+          certificate: certificate,
+          endpointType: apigateway.EndpointType.EDGE,
+          securityPolicy: apigateway.SecurityPolicy.TLS_1_2,
+        },
     });
 
     new UsersApiStack(this, 'UsersApiStack', {
+      api: api,
+      authorizer
+    });
+
+    new SquareApiStack(this, 'UsersApiStack', {
       api: api,
       authorizer
     });
