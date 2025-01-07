@@ -52,7 +52,7 @@ export class ApiGatewayStack extends cdk.Stack {
       authorizer
     });
 
-    new SquareApiStack(this, 'UsersApiStack', {
+    new SquareApiStack(this, 'BusinessApiStack', {
       api: api,
       authorizer
     });
