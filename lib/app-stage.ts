@@ -6,6 +6,7 @@ import { ApiGatewayStack } from './Stacks/apiGateway-stack';
 import { UserPoolStack } from './Stacks/userPool-stack';
 import { SSMStack } from './Stacks/ssm-stack';
 import { WebsiteStack } from './Stacks/website-stack';
+import { BusinessWebsiteStack } from './Stacks/business-website-stack';
 import { 
   AmplifyStackProps,
   ApiStackProps,
@@ -14,7 +15,8 @@ import {
   SSMStackProps, 
   StageProps, 
   UserPoolStackProps, 
-  WebsiteStackProps 
+  WebsiteStackProps,
+    BusinessWebsiteStackProps
 } from '../global/props';
 import { HostedZoneStack } from './Stacks/hostedZone-stack';
 
@@ -66,8 +68,12 @@ export class PipelineAppStage extends cdk.Stage {
 
       // Add Bizz Website Here
       // business_Website_Stack.addDependency(ssm_Stack);
+        let mainBusinessWebsiteProps = this.mainWebsiteProps(props, this.stageName, authDomain);
+        const business_website_stack = new BusinessWebsiteStack(this, "Business-Website-Stack", mainBusinessWebsiteProps);
+        //business_website_stack.addDependency(ssm_Stack);
 
-      // Create new Prop Creater for Stack(ie createHostedZoneProps, createDynamoProps...)
+
+        // Create new Prop Creater for Stack(ie createHostedZoneProps, createDynamoProps...)
     }
 
   createHostedZoneProps(props:StageProps, stage:string, authDomain:string, businessDomain:string, apiDomain:string):HostedZoneProps{
@@ -152,4 +158,22 @@ export class PipelineAppStage extends cdk.Stage {
       authDomain, 
     }
   }
+
+    mainBusinessWebsiteProps(props:StageProps, stage:string, authDomain:string):BusinessWebsiteStackProps{
+        return{
+            env: {
+                account: props.env?.account,
+                region: props.env?.region
+            },
+            stageName: stage,
+            subDomain:'beta.business',
+            githubOwner: 'My-Rewards',
+            githubRepo: 'my-rewards-website',
+            githubBranch: stage,
+            buildCommand: 'npm run build',
+            authDomain,
+        }
+    }
+
+
 }

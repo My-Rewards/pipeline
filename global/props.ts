@@ -44,3 +44,13 @@ export interface WebsiteStackProps extends cdk.StackProps {
   subDomain:string;
   authDomain:string;
 }
+
+export interface BusinessWebsiteStackProps extends cdk.StackProps {
+  stageName: string;
+  githubOwner: string;
+  githubRepo: string;
+  githubBranch: string;
+  buildCommand: string;
+  subDomain:string;
+  authDomain:string;
+}
