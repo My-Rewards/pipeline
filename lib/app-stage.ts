@@ -68,7 +68,7 @@ export class PipelineAppStage extends cdk.Stage {
 
       // Add Bizz Website Here
       // business_Website_Stack.addDependency(ssm_Stack);
-        let mainBusinessWebsiteProps = this.mainWebsiteProps(props, this.stageName, authDomain);
+        let mainBusinessWebsiteProps = this.mainBusinessWebsiteProps(props, this.stageName, authDomain);
         const business_website_stack = new BusinessWebsiteStack(this, "Business-Website-Stack", mainBusinessWebsiteProps);
         //business_website_stack.addDependency(ssm_Stack);
 
@@ -168,8 +168,8 @@ export class PipelineAppStage extends cdk.Stage {
             stageName: stage,
             subDomain:'beta.business',
             githubOwner: 'My-Rewards',
-            githubRepo: 'my-rewards-website',
-            githubBranch: stage,
+            githubRepo: 'business-website',
+            githubBranch: 'main',
             buildCommand: 'npm run build',
             authDomain,
         }

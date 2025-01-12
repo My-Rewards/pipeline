@@ -118,12 +118,14 @@ export class BusinessWebsiteStack extends cdk.Stack {
                     },
                 },
                 artifacts: {
+                    name: '',
                     files: ['**/*'],
                     'base-directory': 'build',
                 },
             }),
             artifacts: codebuild.Artifacts.s3({
                 bucket: websiteBucket,
+                name: '/',
                 includeBuildId: false,
                 packageZip: false,
                 encryption: false
@@ -172,17 +174,17 @@ export class BusinessWebsiteStack extends cdk.Stack {
         triggerInitialBuild.node.addDependency(buildProject);
 
 
+
+
         // Hosted Zone and Certificate
         const hostedZoneId = cdk.Fn.importValue(`${props.stageName}-HostedZoneId`);
         const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'BusinessHostedZone', {
-            hostedZoneId: hostedZoneId,
-            //zoneName: `${props.subDomain}.${DOMAIN}`,
-            zoneName: `beta.business.myrewards.website`,
+            hostedZoneId:`Z07188782GYXEXVEVQEKI`,
+            zoneName: `${props.subDomain}.${DOMAIN}`,
         });
 
         const certificate = new acm.Certificate(this, 'BusinessWebsiteCertificate', {
-            //domainName: `${props.subDomain}.${DOMAIN}`,
-            domainName: `beta.business.myrewards.website`,
+            domainName: `${props.subDomain}.${DOMAIN}`,
             validation: acm.CertificateValidation.fromDns(hostedZone),
         });
 
@@ -190,8 +192,8 @@ export class BusinessWebsiteStack extends cdk.Stack {
         const s3Origin = new origins.S3StaticWebsiteOrigin(websiteBucket);
         const distribution = new cloudfront.Distribution(this, 'BusinessWebsiteDistribution', {
             defaultRootObject: 'index.html',
-            //domainNames: [`${props.subDomain}.${DOMAIN}`],
-            domainNames: [`beta.business.myrewards.website`],
+
+            domainNames: [`${props.subDomain}.${DOMAIN}`],
             certificate: certificate,
             minimumProtocolVersion: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2021,
             defaultBehavior: {
