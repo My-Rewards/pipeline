@@ -5,7 +5,7 @@ const client = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(client);
 
 exports.handler = async (event) => {
-  const tableName = process.env.USERS_TABLE;
+  const tableName = process.env.TABLE;
   const role = process.env.ROLE;
 
     console.log('Event:', JSON.stringify(event, null, 2));

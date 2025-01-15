@@ -216,6 +216,7 @@ export class WebsiteStack extends cdk.Stack {
     new route53.ARecord(this, `${props.stageName}AliasRecord`, {
       zone: hostedZone,
       target: route53.RecordTarget.fromAlias(new targets.CloudFrontTarget(distribution)),
+      deleteExisting:true
     }).applyRemovalPolicy(cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE);
 
     new cdk.CfnOutput(this, 'WebsiteBucketName', {

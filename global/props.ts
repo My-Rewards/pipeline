@@ -16,6 +16,11 @@ export interface DynamoStackProps extends cdk.StackProps {
   stageName: string|undefined;
 }
 
+export interface CustomEmailProps extends cdk.StackProps {
+  stageName: string|undefined;
+  authDomain:string;
+}
+
 export interface UserPoolStackProps extends cdk.StackProps {
   stageName: string|undefined;
   authDomain:string;
