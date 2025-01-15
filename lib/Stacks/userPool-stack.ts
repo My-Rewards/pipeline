@@ -22,23 +22,22 @@ import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import * as targets from 'aws-cdk-lib/aws-route53-targets';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
-import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
+import * as ses from 'aws-cdk-lib/aws-ses';
 
 export class UserPoolStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props: UserPoolStackProps) {
       super(scope, id, props);
 
       const usersTable = dynamodb.Table.fromTableArn(this, 'ImportedUsersTable', cdk.Fn.importValue('UserTableARN'));
-     
-      const postConfirmationHandlerUser = new lambda.Function(this, 'PostConfirmationHandlerUser', {
 
+      const postConfirmationHandlerUser = new lambda.Function(this, 'PostConfirmationHandlerUser', {
         runtime: lambda.Runtime.NODEJS_20_X,
         handler: 'createUser.handler',
         code: lambda.Code.fromAsset('lambda'),
         environment: {
-          USERS_TABLE: usersTable.tableName,
+          TABLE: usersTable.tableName,
           ROLE:'user'
         },
       });
@@ -46,14 +45,15 @@ export class UserPoolStack extends cdk.Stack {
 
       const postConfirmationHandlerBusiness = new lambda.Function(this, 'PostConfirmationHandlerBusiness', {
         runtime: lambda.Runtime.NODEJS_20_X,
-        handler: 'createUserBusiness.handler',
+        handler: 'createUser.handler',
         code: lambda.Code.fromAsset('lambda'),
         environment: {
-          USERS_TABLE: usersTable.tableName,
+          TABLE: usersTable.tableName,
           ROLE:'business'
         },
       });
       usersTable.grantWriteData(postConfirmationHandlerBusiness);
+
 
       // userPool - Customers
       const userPool_Customer = new cognito.UserPool(this, 'userPool_Customer', {
@@ -75,7 +75,53 @@ export class UserPoolStack extends cdk.Stack {
           requireUppercase: true,
         },
         lambdaTriggers:{
-          postConfirmation: postConfirmationHandlerBusiness
+          postConfirmation: postConfirmationHandlerUser
+        },
+        email: cognito.UserPoolEmail.withSES({
+          sesRegion: props.env?.region || 'us-east-1',
+          fromEmail: `no-reply@${props.authDomain}.${DOMAIN}`,
+          fromName: 'MyRewards Authentication',
+          sesVerifiedDomain: `${props.authDomain}.${DOMAIN}`,
+        }),
+        userVerification: {
+          emailSubject: 'MyRewards Verification',
+          emailBody: `
+          <html>
+            <head>
+              <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .verification-section {
+                  margin: 20px 0;
+                  padding: 15px;
+                  border: 1px solid #ddd;
+                  border-radius: 4px;
+                }
+                .footer { margin-top: 20px; font-size: 12px; color: #666; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <h1>Welcome to MyRewards!</h1>
+                <p>Hello {given_name} {family_name},</p>
+                <p>Thank you for signing up. You can verify your email address using either method below:</p>
+    
+                <div class="verification-section">
+                  <p>Enter this code on the verification page:</p>
+                  <p style="text-align: center; font-size: 24px; font-weight: bold;">{####}</p>
+                </div>
+    
+                <p>The code will expire in 24 hours.</p>
+                
+                <div class="footer">
+                  <p>If you didn't create this account, please ignore this email.</p>
+                  <p>Best regards,<br>The MyRewards Team</p>
+                </div>
+              </div>
+            </body>
+          </html>
+        `,
+        emailStyle: cognito.VerificationEmailStyle.CODE, 
         },
         removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
       });
@@ -103,7 +149,16 @@ export class UserPoolStack extends cdk.Stack {
             requireUppercase: true,
         },
         lambdaTriggers:{
-          postConfirmation: postConfirmationHandlerUser
+          postConfirmation: postConfirmationHandlerBusiness
+        },
+        email: cognito.UserPoolEmail.withSES({
+          sesRegion: props.env?.region || 'us-east-1',
+          fromEmail: `no-reply@${props.authDomain}.${DOMAIN}`,
+          fromName: 'MyRewards',
+          sesVerifiedDomain: `${props.authDomain}.${DOMAIN}`
+        }),
+        userVerification: {
+          emailSubject: 'MyRewards Business - Verify your email'
         },
         removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
       });
@@ -129,7 +184,7 @@ export class UserPoolStack extends cdk.Stack {
         },
         removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
       });
-
+      
       // cognito Domain - Customer
       const cognitoDomain_Customer = new cognito.UserPoolDomain(this, 'CognitoDomain_Customer', {
           userPool:userPool_Customer,
@@ -175,18 +230,20 @@ export class UserPoolStack extends cdk.Stack {
 
       // userPool Client - Business
       const userPoolClient_Business = new cognito.UserPoolClient(this, 'userPoolClient_Business', {
+        userPoolClientName:`${props.stageName}-BusinessUserPoolClient`,
         userPool:userPool_Business,
         generateSecret: false,
+        supportedIdentityProviders: [cognito.UserPoolClientIdentityProvider.GOOGLE],
         authFlows: {
           userPassword: true,
           userSrp: true,
         },
         oAuth: {
           flows: {
-            implicitCodeGrant: true,
+            authorizationCodeGrant: true,
           },
-          callbackUrls: ['exp://127.0.0.1:19000/--/'],
-          logoutUrls: ['exp://127.0.0.1:19000/--/'],
+          callbackUrls: ['http://localhost:3000/'],
+          logoutUrls: ['http://localhost:3000/'],
         }
       });
 
@@ -202,8 +259,8 @@ export class UserPoolStack extends cdk.Stack {
           flows: {
             implicitCodeGrant: true,
           },
-          callbackUrls: ['exp://127.0.0.1:19000/--/'],
-          logoutUrls: ['exp://127.0.0.1:19000/--/'],
+          callbackUrls: ['http://localhost:3000/'],
+          logoutUrls: ['http://localhost:3000/'],
         }
       });
 
@@ -222,8 +279,8 @@ export class UserPoolStack extends cdk.Stack {
         allowUnauthenticatedIdentities: true,
         cognitoIdentityProviders: [
           {
-            clientId: userPoolClient_Customer.userPoolClientId,
-            providerName: userPool_Customer.userPoolProviderName,
+            clientId: userPoolClient_Business.userPoolClientId,
+            providerName: userPool_Business.userPoolProviderName,
           }
         ],
       });
@@ -321,14 +378,28 @@ export class UserPoolStack extends cdk.Stack {
       });
 
       // Google Authentication option
-      const googleClientSecret = secretsmanager.Secret.fromSecretNameV2(this, 'GoogleClientSecret', 'googleSecret').secretValue;
-      const googleClient = secretsmanager.Secret.fromSecretNameV2(this, 'GoogleClientId', 'googleClient');
+      const secretData =  secretsmanager.Secret.fromSecretNameV2(this, 'GoogleAPI', 'google/api');
+
+      const googleClient = secretData.secretValueFromJson('client_id');
+      const googleClientSecret = secretData.secretValueFromJson('client_secret');
+      const clientValue = googleClient.unsafeUnwrap(); 
       
-      const clientValue = googleClient.secretValue.unsafeUnwrap(); 
-      
-      const googleProvider = new cognito.UserPoolIdentityProviderGoogle(this, 'GoogleProvider', {
+      const googleProviderCustomer = new cognito.UserPoolIdentityProviderGoogle(this, 'GoogleProvider', {
         userPool: userPool_Customer,
-        clientId:clientValue,
+        clientId: clientValue,
+        clientSecretValue: googleClientSecret,
+        scopes: ['openid', 'email', 'profile'],
+        attributeMapping: {
+          email: cognito.ProviderAttribute.GOOGLE_EMAIL,
+          givenName: cognito.ProviderAttribute.GOOGLE_GIVEN_NAME,
+          familyName: cognito.ProviderAttribute.GOOGLE_FAMILY_NAME,
+          birthdate: cognito.ProviderAttribute.GOOGLE_BIRTHDAYS
+        },
+      });
+
+      const googleProviderBusiness = new cognito.UserPoolIdentityProviderGoogle(this, 'GoogleProvider_Business', {
+        userPool: userPool_Business,
+        clientId: clientValue,
         clientSecretValue: googleClientSecret,
         scopes: ['openid', 'email', 'profile'],
         attributeMapping: {
@@ -340,10 +411,10 @@ export class UserPoolStack extends cdk.Stack {
       });
       
       // Register the identity provider with the user pool
-      userPoolClient_Customer.node.addDependency(googleProvider);
-      userPool_Customer.registerIdentityProvider(googleProvider);
-      userPoolClient_Business.node.addDependency(googleProvider);
-      userPool_Business.registerIdentityProvider(googleProvider);
+      userPoolClient_Customer.node.addDependency(googleProviderCustomer);
+      userPool_Customer.registerIdentityProvider(googleProviderCustomer);
+      userPoolClient_Business.node.addDependency(googleProviderBusiness);
+      userPool_Business.registerIdentityProvider(googleProviderBusiness);
 
       // attach roles to cognito User+Business
       new cognito.CfnIdentityPoolRoleAttachment(this, 'IdentityPoolRoleAttachment_User', {
@@ -367,7 +438,7 @@ export class UserPoolStack extends cdk.Stack {
         hostedZoneId: hostedZoneIdAuth,
         zoneName: `${props.authDomain}.${DOMAIN}`,
       });
-
+      
       const aRecord = new route53.ARecord(this, `${props.stageName}-AuthARecord-Parent`, {
         zone: hostedZoneAuth,
         target: route53.RecordTarget.fromAlias(new targets.UserPoolDomainTarget(cognitoDomain_Customer)),

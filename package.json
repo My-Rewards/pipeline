@@ -10,7 +10,7 @@
     "test": "jest",
     "cdk": "cdk",
     "synth": "cdk synth --output ./infrastructure/output",
-    "deploy-beta": "cdk deploy 'PipelineStack/beta/*' --require-approval never"
+    "beta": "cdk deploy 'PipelineStack/beta/*' --require-approval never"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",

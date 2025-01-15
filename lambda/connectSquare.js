@@ -1,15 +1,20 @@
-const AWS = require('aws-sdk');
+const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBDocumentClient, UpdateCommand } = require('@aws-sdk/lib-dynamodb');
 const axios = require('axios');
-const dynamoDB = new AWS.DynamoDB.DocumentClient();
+const AWS = require('aws-sdk');
 const secretsManager = new AWS.SecretsManager();
 
-async function getSecret(secretName) {
+const client = new DynamoDBClient({});
+const dynamoDb = DynamoDBDocumentClient.from(client);
+
+async function getSquareCredentials() {
     try {
-        const secretData = await secretsManager.getSecretValue({ SecretId: secretName }).promise();
-        return secretData;
+        const secretData = await secretsManager.getSecretValue({ SecretId: 'square/credentials' }).promise();
+        const { client_id, client_secret } = JSON.parse(secretData.SecretString);
+        return { client_id, client_secret };        
     } catch (error) {
-        console.error(`Error retrieving secret ${secretName}:`, error);
-        throw new Error(`Failed to retrieve secret: ${secretName}`);
+        console.error('Error retrieving credentials:', error);
+        throw new Error('Failed to retrieve Square credentials');
     }
 }
 
@@ -25,9 +30,10 @@ exports.handler = async (event) => {
     }
 
     try {
-        const client_id = await getSecret('square/client_id');
-        const client_secret = await getSecret('square/client_secret');
+        // Retrieve the client ID and secret from Secrets Manager
+        const { client_id, client_secret } = await getSquareCredentials();
 
+        // Exchange authCode for access_token and refresh_token using PKCE
         const response = await axios.post('https://connect.squareup.com/oauth2/token', {
             client_id,
             client_secret,
@@ -38,17 +44,21 @@ exports.handler = async (event) => {
 
         const { access_token, refresh_token } = response.data;
 
+        // Update or insert tokens in DynamoDB
         const params = {
             TableName: tableName,
-            Item: {
-                userId,
-                accessToken: access_token,
-                refreshToken: refresh_token,
-                updatedAt: new Date().toISOString(),
+            Key: { userId },
+            UpdateExpression: 'SET accessToken = :accessToken, refreshToken = :refreshToken, updatedAt = :updatedAt',
+            ExpressionAttributeValues: {
+                ':accessToken': access_token,
+                ':refreshToken': refresh_token,
+                ':updatedAt': new Date().toISOString(),
             },
+            ReturnValues: 'UPDATED_NEW',
         };
 
-        await dynamoDB.put(params).promise();
+        const result = await dynamoDb.send(new UpdateCommand(params));
+        console.log('Update Result:', result);
 
         return {
             statusCode: 200,
