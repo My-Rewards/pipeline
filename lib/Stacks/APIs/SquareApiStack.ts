@@ -22,7 +22,7 @@ export class SquareApiStack extends cdk.NestedStack {
 
     const setupSquareLambda = new nodejs.NodejsFunction(this, "my-handler",{
         runtime: lambda.Runtime.NODEJS_20_X,
-        entry: 'lambda/connectSquare.ts',
+        entry: 'lambda/connectSquare.mts',
         handler: 'connectSquare.handler',
         environment: {
             USERS_TABLE: usersTable.tableName,

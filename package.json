@@ -32,7 +32,6 @@
     "aws-sdk": "^2.1692.0",
     "constructs": "^10.0.0",
     "source-map-support": "^0.5.21",
-    "square": "^39.1.1",
-    "type": "module"
+    "square": "^39.1.1"
   }
 }

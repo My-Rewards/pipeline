@@ -103,7 +103,7 @@ export class UserPoolStack extends cdk.Stack {
               <div class="container">
                 <h1>Welcome to MyRewards!</h1>
                 <p>Hello {given_name} {family_name},</p>
-                <p>Thank you for signing up. You can verify your email address using either method below:</p>
+                <p>Thank you for signing up. You can verify your email address using the code below:</p>
     
                 <div class="verification-section">
                   <p>Enter this code on the verification page:</p>
