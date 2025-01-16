@@ -54,7 +54,6 @@ export class UserPoolStack extends cdk.Stack {
       });
       usersTable.grantWriteData(postConfirmationHandlerBusiness);
 
-
       // userPool - Customers
       const userPool_Customer = new cognito.UserPool(this, 'userPool_Customer', {
         userPoolName: 'myRewardsUsers',

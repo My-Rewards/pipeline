@@ -3,6 +3,7 @@ import { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
+import * as nodejs from 'aws-cdk-lib/aws-lambda-nodejs'
 
 interface SquareApiStackProps extends cdk.NestedStackProps {
   api: apigateway.RestApi;
@@ -15,14 +16,24 @@ export class SquareApiStack extends cdk.NestedStack {
 
     const usersTable = dynamodb.Table.fromTableArn(this, 'ImportedUsersTable', cdk.Fn.importValue('UserTableARN'));
 
-    const setupSquareLambda = new lambda.Function(this, 'CreateUserLambda', {
-      runtime: lambda.Runtime.NODEJS_20_X,
-      handler: 'SqaureApiStack.handler',
-      code: lambda.Code.fromAsset('lambda'),
-      environment: {
-        USERS_TABLE: usersTable.tableName,
-      },
-    });
+    // Get square credemtials
+    const secretData = cdk.SecretValue.secretsManager('square/credentials');
+    const { client_id, client_secret } = secretData.toJSON();
+
+    const setupSquareLambda = new nodejs.NodejsFunction(this, "my-handler",{
+        runtime: lambda.Runtime.NODEJS_20_X,
+        entry: 'lambda/connectSquare.ts',
+        handler: 'connectSquare.handler',
+        environment: {
+            USERS_TABLE: usersTable.tableName,
+            SQUARE_CLIENT:client_id,
+            SQUARE_SECRET:client_secret
+        },
+        bundling: {
+            externalModules: ['aws-sdk'],
+            nodeModules: ['square'],
+        },
+    })
 
     // Grant permissions
     usersTable.grantReadData(setupSquareLambda);
