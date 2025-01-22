@@ -169,7 +169,7 @@ export class PipelineAppStage extends cdk.Stage {
             subDomain:'beta.business',
             githubOwner: 'My-Rewards',
             githubRepo: 'business-website',
-            githubBranch: 'main',
+            githubBranch: stage,
             buildCommand: 'npm run build',
             authDomain,
         }

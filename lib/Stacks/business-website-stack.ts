@@ -10,9 +10,7 @@ import { DOMAIN } from '../../global/constants';
 import { BucketAccessControl } from 'aws-cdk-lib/aws-s3';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as targets from 'aws-cdk-lib/aws-route53-targets';
-import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
-import * as custom from 'aws-cdk-lib/custom-resources';
 
 export class BusinessWebsiteStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props: BusinessWebsiteStackProps) {
@@ -79,11 +77,6 @@ export class BusinessWebsiteStack extends cdk.Stack {
             }
         });
 
-
-        // new codebuild.GitHubSourceCredentials(this, 'BusinessCodeBuildGitHubCreds', {
-        //     accessToken: cdk.SecretValue.secretsManager('github-token'),
-        // });
-
         const buildProject = new codebuild.Project(this, 'BusinessWebsiteBuildProject', {
             role: codeBuildRole,
             source: codebuild.Source.gitHub({
@@ -120,7 +113,7 @@ export class BusinessWebsiteStack extends cdk.Stack {
                 artifacts: {
                     name: '',
                     files: ['**/*'],
-                    'base-directory': 'build',
+                    'base-directory': 'dist',
                 },
             }),
             artifacts: codebuild.Artifacts.s3({
@@ -131,50 +124,6 @@ export class BusinessWebsiteStack extends cdk.Stack {
                 encryption: false
             }),
         });
-
-        const triggerBuildFunction = new lambda.Function(this, 'TriggerBuildFunction', {
-            runtime: lambda.Runtime.NODEJS_18_X,
-            handler: 'index.handler',
-            code: lambda.Code.fromInline(`
-        const AWS = require('aws-sdk');
-        const codebuild = new AWS.CodeBuild();
-        exports.handler = async (event) => {
-          console.log('Triggering CodeBuild Project...');
-          const response = await codebuild.startBuild({ projectName: '${buildProject.projectName}' }).promise();
-          console.log('CodeBuild Response:', response);
-          return { PhysicalResourceId: response.build.id };
-        };
-      `),
-            initialPolicy: [
-                new iam.PolicyStatement({
-                    actions: ['codebuild:StartBuild'],
-                    resources: [buildProject.projectArn],
-                }),
-            ],
-        });
-
-        const triggerInitialBuild = new custom.AwsCustomResource(this, 'TriggerInitialBuild', {
-            onCreate: {
-                service: 'Lambda',
-                action: 'invoke',
-                parameters: {
-                    FunctionName: triggerBuildFunction.functionName,
-                    InvocationType: 'RequestResponse'
-                },
-                physicalResourceId: custom.PhysicalResourceId.of('TriggerInitialBuild')
-            },
-            policy: custom.AwsCustomResourcePolicy.fromStatements([
-                new iam.PolicyStatement({
-                    actions: ['lambda:InvokeFunction'],
-                    resources: [triggerBuildFunction.functionArn]
-                })
-            ])
-        });
-
-        triggerInitialBuild.node.addDependency(buildProject);
-
-
-
 
         // Hosted Zone and Certificate
         const hostedZoneId = cdk.Fn.importValue(`${props.stageName}-HostedZoneId`);
