@@ -140,7 +140,8 @@ export class UserPoolStack extends cdk.Stack {
           familyName:{ required: true, mutable: true },
       },
         customAttributes: {
-          role: new cognito.StringAttribute({ mutable: true })
+          role: new cognito.StringAttribute({ mutable: true }),
+          linked: new cognito.NumberAttribute({ mutable: true })
         },
         passwordPolicy: {
             minLength: 8,
