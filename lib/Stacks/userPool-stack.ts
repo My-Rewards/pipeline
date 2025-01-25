@@ -24,7 +24,6 @@ import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
-import * as ses from 'aws-cdk-lib/aws-ses';
 
 export class UserPoolStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props: UserPoolStackProps) {
@@ -35,7 +34,7 @@ export class UserPoolStack extends cdk.Stack {
       const postConfirmationHandlerUser = new lambda.Function(this, 'PostConfirmationHandlerUser', {
         runtime: lambda.Runtime.NODEJS_20_X,
         handler: 'createUser.handler',
-        code: lambda.Code.fromAsset('lambda'),
+        code: lambda.Code.fromAsset('lambda/user'),
         environment: {
           TABLE: usersTable.tableName,
           ROLE:'user'
@@ -45,8 +44,8 @@ export class UserPoolStack extends cdk.Stack {
 
       const postConfirmationHandlerBusiness = new lambda.Function(this, 'PostConfirmationHandlerBusiness', {
         runtime: lambda.Runtime.NODEJS_20_X,
-        handler: 'createUser.handler',
-        code: lambda.Code.fromAsset('lambda'),
+        handler: 'createUserBusiness.handler',
+        code: lambda.Code.fromAsset('lambda/user'),
         environment: {
           TABLE: usersTable.tableName,
           ROLE:'business'
@@ -130,7 +129,7 @@ export class UserPoolStack extends cdk.Stack {
         userPoolName: 'myRewardsBusiness',
         selfSignUpEnabled: true,
         signInAliases: {
-            email: true,
+          email: true,
         },
         autoVerify: { email: true },
         standardAttributes: {
@@ -149,7 +148,7 @@ export class UserPoolStack extends cdk.Stack {
             requireUppercase: true,
         },
         lambdaTriggers:{
-          postConfirmation: postConfirmationHandlerBusiness
+          postConfirmation: postConfirmationHandlerBusiness,
         },
         email: cognito.UserPoolEmail.withSES({
           sesRegion: props.env?.region || 'us-east-1',
@@ -406,7 +405,7 @@ export class UserPoolStack extends cdk.Stack {
           email: cognito.ProviderAttribute.GOOGLE_EMAIL,
           givenName: cognito.ProviderAttribute.GOOGLE_GIVEN_NAME,
           familyName: cognito.ProviderAttribute.GOOGLE_FAMILY_NAME,
-          birthdate: cognito.ProviderAttribute.GOOGLE_BIRTHDAYS
+          birthdate: cognito.ProviderAttribute.GOOGLE_BIRTHDAYS,
         },
       });
       
