@@ -241,8 +241,8 @@ export class UserPoolStack extends cdk.Stack {
           flows: {
             authorizationCodeGrant: true,
           },
-          callbackUrls: ['http://localhost:3000/'],
-          logoutUrls: ['http://localhost:3000/'],
+          callbackUrls: ['http://localhost:3000/callback', 'http://localhost:3000/'],
+          logoutUrls: ['http://localhost:3000/callback', 'http://localhost:3000/'],
         }
       });
 

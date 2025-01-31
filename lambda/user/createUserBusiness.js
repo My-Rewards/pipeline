@@ -1,10 +1,8 @@
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, PutCommand } = require('@aws-sdk/lib-dynamodb');
-const { CognitoIdentityProviderClient } = require('@aws-sdk/client-cognito-identity-provider');
 
 const client = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(client);
-const cognitoClient = new CognitoIdentityProviderClient({});
 
 exports.handler = async (event) => {
   const tableName = process.env.TABLE;
@@ -17,27 +15,6 @@ exports.handler = async (event) => {
         console.error('Missing required attributes');
         throw new Error('Missing required attributes');
         }
-
-        const updateUserAttributesParams = {
-            UserPoolId: userPoolId,
-            Username: userAttributes.sub,
-            UserAttributes: [
-                {
-                    Name: 'custom:linked',
-                    Value: 0
-                }
-            ]
-        };
-
-        await cognitoClient.send(new AdminUpdateUserAttributesCommand(updateUserAttributesParams));
-
-        event.response = {
-            claimsOverrideDetails: {
-                claimsToAddOrOverride: {
-                    'custom:linked': 0,
-                },
-            },
-        };
         
         const userData = {
             id: userAttributes.sub,
@@ -57,7 +34,7 @@ exports.handler = async (event) => {
             refreshToken:null,
             updatedAt:null,
             linked:false,
-            orgIds:[]
+            orgIds:null
         };
 
         const params = {
@@ -73,7 +50,7 @@ exports.handler = async (event) => {
         
     } catch (error) {
         if (error.name === 'ConditionalCheckFailedException') {
-        return event;
+            return event;
         }
         
         console.error('Error saving user to DynamoDB:', error);

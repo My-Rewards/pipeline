@@ -20,6 +20,13 @@ export class SSMStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: SSMStackProps) {
     super(scope, id, props);
 
+    const stripeData = cdk.aws_secretsmanager.Secret.fromSecretNameV2(this, 'fetchStripeCredentials', 'stripe/credentials');
+    const stripe_key = stripeData.secretValueFromJson('key').unsafeUnwrap();
+
+    const squareData = cdk.aws_secretsmanager.Secret.fromSecretNameV2(this, 'fetchSquareCredentials', 'square/credentials');
+    const square_clientId = squareData.secretValueFromJson('client_id').unsafeUnwrap();
+
+
     // Customer User Pool Parameters
     new ssm.StringParameter(this, 'CustomerUserPoolId', {
       parameterName: `/myRewardsApp/${props.stageName}/customerUserPoolId`,
@@ -76,6 +83,18 @@ export class SSMStack extends cdk.Stack {
     new ssm.StringParameter(this, 'IdentityPoolIdBusiness', {
       parameterName: `/myRewardsApp/${props.stageName}/identityPoolIdBusiness`,
       stringValue: cdk.Fn.importValue(IDENTITY_POOL_BUSINESS),
+    });
+
+    // Stripe
+    new ssm.StringParameter(this, 'StripeKey', {
+      parameterName: `/myRewardsApp/${props.stageName}/stripeKey`,
+      stringValue: stripe_key,
+    });
+
+    // Square
+    new ssm.StringParameter(this, 'SquareClientId', {
+      parameterName: `/myRewardsApp/${props.stageName}/squareClientId`,
+      stringValue: square_clientId,
     });
   }
 }
