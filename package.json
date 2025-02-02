@@ -10,7 +10,8 @@
     "test": "jest",
     "cdk": "cdk",
     "synth": "cdk synth --output ./infrastructure/output",
-    "beta": "cdk deploy 'PipelineStack/beta/*' --require-approval never"
+    "beta": "cdk deploy 'PipelineStack/beta/*' --require-approval never",
+    "clean": "rm -rf dist"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.147",
