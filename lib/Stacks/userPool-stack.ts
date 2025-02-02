@@ -37,9 +37,16 @@ export class UserPoolStack extends cdk.Stack {
         code: lambda.Code.fromAsset('lambda/user'),
         environment: {
           TABLE: usersTable.tableName,
-          ROLE:'user'
+          ROLE:'user',
+          EMAIL_SENDER:`no-reply@${props.authDomain}.${DOMAIN}`
         },
       });
+      postConfirmationHandlerUser.addToRolePolicy(
+        new iam.PolicyStatement({
+          actions: ['ses:SendEmail', 'ses:SendRawEmail'],
+          resources: ['*']
+        })
+      );
       usersTable.grantWriteData(postConfirmationHandlerUser);
 
       const postConfirmationHandlerBusiness = new lambda.Function(this, 'PostConfirmationHandlerBusiness', {
@@ -48,9 +55,16 @@ export class UserPoolStack extends cdk.Stack {
         code: lambda.Code.fromAsset('lambda/user'),
         environment: {
           TABLE: usersTable.tableName,
-          ROLE:'business'
+          ROLE:'business',
+          EMAIL_SENDER:`no-reply@${props.authDomain}.${DOMAIN}`
         },
       });
+      postConfirmationHandlerBusiness.addToRolePolicy(
+        new iam.PolicyStatement({
+          actions: ['ses:SendEmail', 'ses:SendRawEmail'],
+          resources: ['*']
+        })
+      );
       usersTable.grantWriteData(postConfirmationHandlerBusiness);
 
       // userPool - Customers
@@ -241,8 +255,8 @@ export class UserPoolStack extends cdk.Stack {
           flows: {
             authorizationCodeGrant: true,
           },
-          callbackUrls: ['http://localhost:3000/'],
-          logoutUrls: ['http://localhost:3000/'],
+          callbackUrls: ['http://localhost:3000/callback', 'http://localhost:3000/'],
+          logoutUrls: ['http://localhost:3000/callback', 'http://localhost:3000/'],
         }
       });
 

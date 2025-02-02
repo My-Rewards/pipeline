@@ -1,15 +1,16 @@
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, PutCommand } = require('@aws-sdk/lib-dynamodb');
-const { CognitoIdentityProviderClient } = require('@aws-sdk/client-cognito-identity-provider');
+const { SESClient, SendEmailCommand } = require('@aws-sdk/client-ses');
 
 const client = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(client);
-const cognitoClient = new CognitoIdentityProviderClient({});
+const ses = new SESClient({ region: 'us-east-1' }); 
 
 exports.handler = async (event) => {
   const tableName = process.env.TABLE;
   const role = process.env.ROLE;
-  
+  const emailSender = process.env.EMAIL_SENDER;
+
     try {
         const { request: { userAttributes } } = event;
         
@@ -17,27 +18,6 @@ exports.handler = async (event) => {
         console.error('Missing required attributes');
         throw new Error('Missing required attributes');
         }
-
-        const updateUserAttributesParams = {
-            UserPoolId: userPoolId,
-            Username: userAttributes.sub,
-            UserAttributes: [
-                {
-                    Name: 'custom:linked',
-                    Value: 0
-                }
-            ]
-        };
-
-        await cognitoClient.send(new AdminUpdateUserAttributesCommand(updateUserAttributesParams));
-
-        event.response = {
-            claimsOverrideDetails: {
-                claimsToAddOrOverride: {
-                    'custom:linked': 0,
-                },
-            },
-        };
         
         const userData = {
             id: userAttributes.sub,
@@ -57,23 +37,33 @@ exports.handler = async (event) => {
             refreshToken:null,
             updatedAt:null,
             linked:false,
-            orgIds:[]
+            orgIds:null
         };
 
         const params = {
-        TableName: tableName,
-        Item: userData,
-        ConditionExpression: 'attribute_not_exists(id)'
+            TableName: tableName,
+            Item: userData,
+            ConditionExpression: 'attribute_not_exists(id)'
+        };
+
+        const emailParams = {
+            Source: emailSender,
+            Destination: { ToAddresses: [userAttributes.email] },
+            Message: {
+                Subject: { Data: 'Welcome To MyRewards!' },
+                Body: { Text: { Data: 'Setup Your account and link with awuare if you havent! We have a feeling your gonna like it here.' } },
+            },
         };
 
         await dynamoDb.send(new PutCommand(params));
-        console.log('Successfully saved user:', userAttributes.sub);
-        
+
+        await ses.send(new SendEmailCommand(emailParams));
+
         return event;
         
     } catch (error) {
         if (error.name === 'ConditionalCheckFailedException') {
-        return event;
+            return event;
         }
         
         console.error('Error saving user to DynamoDB:', error);
