@@ -40,6 +40,10 @@ export interface SSMStackProps extends cdk.StackProps {
   stageName: string|undefined;
 }
 
+export interface AppConfigStackProps extends cdk.StackProps {
+  stageName: string;
+}
+
 export interface WebsiteStackProps extends cdk.StackProps {
   stageName: string;
   githubOwner: string;
