@@ -6,9 +6,9 @@ import * as fs from 'fs'
 import * as path from 'path'
 
 export class AppConfigStack extends cdk.Stack {
-    constructor(scope: Construct, id: string, props?: AppConfigStackProps){
+    constructor(scope: Construct, id: string, props: AppConfigStackProps){
         super(scope, id, props);
-        const stage_name = props?.stageName;
+        const stage_name = props.stageName;
         const config = getConfig(stage_name);
 
         //Create an AppConfig Application
@@ -17,9 +17,9 @@ export class AppConfigStack extends cdk.Stack {
         });
   
         //Create environment
-        const appConfigEnvironment = new appconfig.CfnEnvironment(this, 'dev', {
+        const appConfigEnvironment = new appconfig.CfnEnvironment(this, 'AppConfigEnvironment', {
             applicationId: appConfigApplication.ref,
-            name: 'dev',
+            name: stage_name,
         });
     
         //Create Configuration Profile
@@ -45,7 +45,7 @@ export class AppConfigStack extends cdk.Stack {
             growthFactor: 10,                  
             finalBakeTimeInMinutes: 1,
             replicateTo: "NONE"
-          });
+        });
 
         //Define a Configuration Version 
         const configVersion = new appconfig.CfnDeployment(this, 'AppConfigDeployment', {

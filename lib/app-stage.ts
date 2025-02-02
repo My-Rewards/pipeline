@@ -11,6 +11,7 @@ import { WebsiteStack } from './Stacks/website-stack';
 import { 
   AmplifyStackProps,
   ApiStackProps,
+  AppConfigStackProps,
   DynamoStackProps, 
   HostedZoneProps, 
   SSMStackProps, 
@@ -19,6 +20,7 @@ import {
   WebsiteStackProps 
 } from '../global/props';
 import { HostedZoneStack } from './Stacks/hostedZone-stack';
+import { AppConfigStack } from './Stacks/appConfigStack';
 
 export class PipelineAppStage extends cdk.Stage {
     constructor(scope: Construct, id: string, props: StageProps) {
@@ -38,13 +40,16 @@ export class PipelineAppStage extends cdk.Stage {
           authDomain=`auth`;
           apiDomain=`api`;
       }
-
+      
       let hostedZoneProps = this.createHostedZoneProps(props, this.stageName, authDomain, businessDomain, apiDomain);
       const hostedZone_stack = new HostedZoneStack(this, 'HostedZone-Stack', hostedZoneProps);
 
       let dynamoDbProp = this.createDynamoProps(props, this.stageName);
       const dynamo_stack = new DynamoStack(this, 'Dynamo-Stack', dynamoDbProp);
 
+      let appConfigProps = this.createAppConfigProps(props, this.stageName);
+      const appConfig_stack = new AppConfigStack(this, "AppConfig-Stack", appConfigProps);
+      
       let customEmailProps = this.createCustomEmailProps(props, this.stageName, authDomain);
       const customEmail_stack = new CustomEmailStack(this, 'CustomEmail-Stack', customEmailProps);
       customEmail_stack.addDependency(hostedZone_stack);
@@ -145,6 +150,16 @@ export class PipelineAppStage extends cdk.Stage {
   }
 
   createSSMProps(props:StageProps, stage:string):SSMStackProps{
+    return{
+        env: {
+            account: props.env?.account,
+            region: props.env?.region
+        },
+        stageName: stage
+    }
+  }
+
+  createAppConfigProps(props:StageProps, stage:string):AppConfigStackProps{
     return{
         env: {
             account: props.env?.account,

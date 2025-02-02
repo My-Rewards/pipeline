@@ -51,5 +51,5 @@ export interface WebsiteStackProps extends cdk.StackProps {
 }
 
 export interface AppConfigStackProps extends cdk.StackProps {
-  stageName: string | undefined;
+  stageName: string;
 }
