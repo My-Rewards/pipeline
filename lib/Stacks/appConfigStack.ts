@@ -5,46 +5,46 @@ import { AppConfigStackProps } from '../../global/props'
 import * as fs from 'fs'
 import * as path from 'path'
 
+
 export class AppConfigStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props: AppConfigStackProps){
+        
         super(scope, id, props);
-        const stage_name = props.stageName;
-        const config = getConfig(stage_name);
-
+        const APPCONFIG_CONSTANTS = getConstants(props.stageName);
+        
         //Create an AppConfig Application
-        const appConfigApplication = new appconfig.CfnApplication(this, 'AppConfigApplication', {
-            name: 'AppConfigApplication',
+        const appConfigApplication = new appconfig.CfnApplication(this,  APPCONFIG_CONSTANTS.application_name, {
+            name: APPCONFIG_CONSTANTS.application_name,
         });
   
         //Create environment
-        const appConfigEnvironment = new appconfig.CfnEnvironment(this, 'AppConfigEnvironment', {
+        const appConfigEnvironment = new appconfig.CfnEnvironment(this,APPCONFIG_CONSTANTS.application_name, {
             applicationId: appConfigApplication.ref,
-            name: stage_name,
+            name: APPCONFIG_CONSTANTS.application_name,
         });
     
         //Create Configuration Profile
-        const appConfigProfile = new appconfig.CfnConfigurationProfile(this, 'ConfigProfile', {
+        const appConfigProfile = new appconfig.CfnConfigurationProfile(this, APPCONFIG_CONSTANTS.configurationProfileName, {
             applicationId: appConfigApplication.ref,
-            name: 'ConfigProfile',
-            locationUri: 'hosted',
+            name: APPCONFIG_CONSTANTS.configurationProfileName,
+            locationUri: APPCONFIG_CONSTANTS.locationUri,
         });
 
-           //Create Hosted Configuration Version
-        const appConfigVersion = new appconfig.CfnHostedConfigurationVersion(this, 'Version 1', {
+        //Create Hosted Configuration Version
+        const appConfigVersion = new appconfig.CfnHostedConfigurationVersion(this, `Version-${Date.now()}`, {
         applicationId: appConfigApplication.ref,
         configurationProfileId: appConfigProfile.ref,
-        contentType: 'application/json',
-        //Create JSON for configuration values
-        content: config
+        contentType: APPCONFIG_CONSTANTS.contentType,
+        content: APPCONFIG_CONSTANTS.contentType
         });
         
-        const deploymentStrategy = new appconfig.CfnDeploymentStrategy(this, "CustomDeployment", {
-            name: "CustomDeployment", 
-            deploymentDurationInMinutes: 5,   
-            growthType: "LINEAR",               
-            growthFactor: 10,                  
-            finalBakeTimeInMinutes: 1,
-            replicateTo: "NONE"
+        const deploymentStrategy = new appconfig.CfnDeploymentStrategy(this, APPCONFIG_CONSTANTS.deployment_name, {
+            name: APPCONFIG_CONSTANTS.deployment_name,
+            deploymentDurationInMinutes: APPCONFIG_CONSTANTS.deploymentDurationInMinutes,   
+            growthType: APPCONFIG_CONSTANTS.growthType,               
+            growthFactor: APPCONFIG_CONSTANTS.growthFactor,                  
+            finalBakeTimeInMinutes: APPCONFIG_CONSTANTS.finalBakeTimeInMinutes,
+            replicateTo: APPCONFIG_CONSTANTS.replicateTo
         });
 
         //Define a Configuration Version 
@@ -58,10 +58,29 @@ export class AppConfigStack extends cdk.Stack {
     }
 }
 
-function getConfig(stageName: unknown){
+function getConfig(stageName: string){
     const betaConfig = fs.readFileSync(path.join(__dirname, '../../appConfig/beta.json'), 'utf-8');
     const prodConfig = fs.readFileSync(path.join(__dirname, '../../appConfig/prod.json'), 'utf-8');
     const envConfig = stageName === 'beta' ? betaConfig : prodConfig;
 
     return envConfig;
+}
+
+function getConstants(stageName: string){
+    const config = getConfig(stageName);
+    const configConstants = {
+        application_name: "MyRewardsAppConfig",
+        environment_name: config,
+        locationUri: "hosted",
+        configurationProfileName: "MyRewards_Profile",
+        contentType: "application/json",
+        deployment_name: "5Min50Percent",
+        growthType: "LINEAR",
+        replicateTo: "NONE",
+        deploymentDurationInMinutes: 5,
+        growthFactor: 10,
+        finalBakeTimeInMinutes: 1
+    };
+
+    return configConstants;
 }
