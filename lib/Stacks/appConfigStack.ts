@@ -13,20 +13,20 @@ export class AppConfigStack extends cdk.Stack {
         const APPCONFIG_CONSTANTS = getConstants(props.stageName);
         
         //Create an AppConfig Application
-        const appConfigApplication = new appconfig.CfnApplication(this,  APPCONFIG_CONSTANTS.application_name, {
+        const appConfigApplication = new appconfig.CfnApplication(this,  "MyRewards-AppConfig", {
             name: APPCONFIG_CONSTANTS.application_name,
         });
   
         //Create environment
-        const appConfigEnvironment = new appconfig.CfnEnvironment(this,APPCONFIG_CONSTANTS.application_name, {
+        const appConfigEnvironment = new appconfig.CfnEnvironment(this, APPCONFIG_CONSTANTS.environment_name, {
             applicationId: appConfigApplication.ref,
-            name: APPCONFIG_CONSTANTS.application_name,
+            name: APPCONFIG_CONSTANTS.environment_name,
         });
     
         //Create Configuration Profile
-        const appConfigProfile = new appconfig.CfnConfigurationProfile(this, APPCONFIG_CONSTANTS.configurationProfileName, {
+        const appConfigProfile = new appconfig.CfnConfigurationProfile(this, "MyRewards-Profile", {
             applicationId: appConfigApplication.ref,
-            name: APPCONFIG_CONSTANTS.configurationProfileName,
+            name: APPCONFIG_CONSTANTS.appConfigProfileName,
             locationUri: APPCONFIG_CONSTANTS.locationUri,
         });
 
@@ -35,10 +35,10 @@ export class AppConfigStack extends cdk.Stack {
         applicationId: appConfigApplication.ref,
         configurationProfileId: appConfigProfile.ref,
         contentType: APPCONFIG_CONSTANTS.contentType,
-        content: APPCONFIG_CONSTANTS.contentType
+        content: APPCONFIG_CONSTANTS.content
         });
         
-        const deploymentStrategy = new appconfig.CfnDeploymentStrategy(this, APPCONFIG_CONSTANTS.deployment_name, {
+        const deploymentStrategy = new appconfig.CfnDeploymentStrategy(this, "Custom-5Min50Percent", {
             name: APPCONFIG_CONSTANTS.deployment_name,
             deploymentDurationInMinutes: APPCONFIG_CONSTANTS.deploymentDurationInMinutes,   
             growthType: APPCONFIG_CONSTANTS.growthType,               
@@ -70,16 +70,17 @@ function getConstants(stageName: string){
     const config = getConfig(stageName);
     const configConstants = {
         application_name: "MyRewardsAppConfig",
-        environment_name: config,
+        environment_name: stageName,
         locationUri: "hosted",
-        configurationProfileName: "MyRewards_Profile",
+        appConfigProfileName: "MyRewards_Profile",
         contentType: "application/json",
         deployment_name: "5Min50Percent",
         growthType: "LINEAR",
         replicateTo: "NONE",
         deploymentDurationInMinutes: 5,
         growthFactor: 10,
-        finalBakeTimeInMinutes: 1
+        finalBakeTimeInMinutes: 1,
+        content: config
     };
 
     return configConstants;
