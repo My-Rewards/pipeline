@@ -49,7 +49,3 @@ export interface WebsiteStackProps extends cdk.StackProps {
   subDomain:string;
   authDomain:string;
 }
-
-export interface AppConfigStackProps extends cdk.StackProps {
-  stageName: string;
-}
