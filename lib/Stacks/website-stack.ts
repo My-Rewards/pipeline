@@ -118,7 +118,7 @@ export class WebsiteStack extends cdk.Stack {
         },
         artifacts: {
           files: [`**/*`],
-          'base-directory': 'build',
+          'base-directory': 'dist',
           name:'',
         },
       }),
