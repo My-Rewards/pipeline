@@ -24,14 +24,14 @@ export class AppConfigStack extends cdk.Stack {
         });
     
         //Create Configuration Profile
-        const appConfigProfile = new appconfig.CfnConfigurationProfile(this, "MyRewards-Profile", {
+        const appConfigProfile = new appconfig.CfnConfigurationProfile(this, "AppConfig-Profile", {
             applicationId: appConfigApplication.ref,
             name: APPCONFIG_CONSTANTS.appConfigProfileName,
             locationUri: APPCONFIG_CONSTANTS.locationUri,
         });
 
         //Create Hosted Configuration Version
-        const appConfigVersion = new appconfig.CfnHostedConfigurationVersion(this, `Version-${Date.now()}`, {
+        const appConfigVersion = new appconfig.CfnHostedConfigurationVersion(this, `AppConfig-Version`, {
         applicationId: appConfigApplication.ref,
         configurationProfileId: appConfigProfile.ref,
         contentType: APPCONFIG_CONSTANTS.contentType,
