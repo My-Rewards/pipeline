@@ -519,11 +519,6 @@ export class UserPoolStack extends cdk.Stack {
         description: 'The ID of the User Pool',
         exportName: UP_CUSTOMER_ID
       });
-      new cdk.CfnOutput(this, CUSTOMER_DOMAIN, {
-        value: cognitoDomain_Customer.cloudFrontDomainName,
-        description: 'The Domain of the Cognito User Pool',
-        exportName: CUSTOMER_DOMAIN
-      });
       new cdk.CfnOutput(this, UPC_BUSINESS, {
         value: userPoolClient_Business.userPoolClientId,
         description: 'The ID of the Cognito User Pool Client',
@@ -534,12 +529,6 @@ export class UserPoolStack extends cdk.Stack {
         description: 'The ID of the User Pool',
         exportName: UP_BUSINESS_ID
       });
-      new cdk.CfnOutput(this, BUSINESS_DOMAIN, {
-        value: cognitoDomain_Business.cloudFrontDomainName,
-        description: 'The Domain of the Cognito User Pool',
-        exportName: BUSINESS_DOMAIN
-      });
-
       new cdk.CfnOutput(this, UPC_ADMIN, {
         value: userPoolClient_Admin.userPoolClientId,
         description: 'The ID of the Cognito User Pool Client',
@@ -550,12 +539,6 @@ export class UserPoolStack extends cdk.Stack {
         description: 'The ID of the User Pool',
         exportName: UP_ADMIN_ID
       });
-      new cdk.CfnOutput(this, ADMIN_DOMAIN, {
-        value: cognitoDomain_Admin.cloudFrontDomainName,
-        description: 'The Domain of the Cognito User Pool',
-        exportName: ADMIN_DOMAIN
-      });
-
       new cdk.CfnOutput(this, IDENTITY_POOL_CUSTOMER, {
         value: identityPool_Users.attrId,
         description: 'The ID of the Cognito IdentityPool',
