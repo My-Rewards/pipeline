@@ -7,7 +7,6 @@ import { ApiGatewayStack } from './Stacks/apiGateway-stack';
 import { UserPoolStack } from './Stacks/userPool-stack';
 import { SSMStack } from './Stacks/ssm-stack';
 import { WebsiteStack } from './Stacks/website-stack';
-
 import { 
   AmplifyStackProps,
   ApiStackProps,
@@ -19,7 +18,8 @@ import {
   SSMStackProps, 
   StageProps, 
   UserPoolStackProps, 
-  WebsiteStackProps 
+  WebsiteStackProps,
+  BusinessWebsiteStackProps
 } from '../global/props';
 import { HostedZoneStack } from './Stacks/hostedZone-stack';
 import { AppConfigStack } from './Stacks/appConfigStack';
@@ -81,6 +81,7 @@ export class PipelineAppStage extends cdk.Stage {
       let mainBusinessWebsiteProps = this.mainBusinessWebsiteProps(props, this.stageName, businessDomain);
       const business_website_stack = new BusinessWebsiteStack(this, "Business-Website-Stack", mainBusinessWebsiteProps);
       business_website_stack.addDependency(ssm_Stack)
+
     }
 
   createHostedZoneProps(props:StageProps, stage:string, authDomain:string, businessDomain:string, apiDomain:string):HostedZoneProps{

@@ -1,1 +1,10 @@
-{}
+{
+  "hosted-zone:account=050451385382:domainName=myrewards.website:region=us-east-1": {
+    "Id": "/hostedzone/Z02529382UGUQYR71K83",
+    "Name": "myrewards.website."
+  },
+  "hosted-zone:account=050451385382:domainName=beta.business.myrewards.website:region=us-east-1": {
+    "Id": "/hostedzone/Z07188782GYXEXVEVQEKI",
+    "Name": "beta.business.myrewards.website."
+  }
+}
