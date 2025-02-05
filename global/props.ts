@@ -54,3 +54,14 @@ export interface BusinessWebsiteStackProps extends cdk.StackProps {
   subDomain:string;
   authDomain:string;
 }
+
+export interface AmplifyHostingStackProps extends cdk.StackProps {
+  githubOwner: string;
+  githubRepo: string;
+  githubBranch: string;
+  githubOauthTokenName: string;
+  userPoolId: string;
+  userPoolClientId: string;
+  apiUrl: string;
+  stripePublicKey: string;
+}
