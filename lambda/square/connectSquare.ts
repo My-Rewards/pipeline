@@ -1,3 +1,4 @@
+import { TimeoutInSeconds } from './../../node_modules/aws-sdk/clients/stepfunctions.d';
 import * as square from 'square';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, UpdateCommand, UpdateCommandInput } from '@aws-sdk/lib-dynamodb';
@@ -43,13 +44,11 @@ export const handler = async (event: any) => {
   }
 
   try {
-    const client = new square.Client({
-      environment: app_env === 'prod'? square.Environment.Production : square.Environment.Sandbox,
-      squareVersion:'2024-12-18',
-      timeout: 2000,
+    const client = new square.SquareClient({
+      environment: app_env === 'prod'? square.SquareEnvironment.Production : square.SquareEnvironment.Sandbox,
     });
 
-    const response = await client.oAuthApi.obtainToken({
+    const response = await client.oAuth.obtainToken({
       clientId: squareClient,
       clientSecret: squareSecret,
       code: authCode,
@@ -57,7 +56,7 @@ export const handler = async (event: any) => {
       shortLived:false
     });
 
-    const { accessToken, refreshToken, expiresAt } = response.result;
+    const { accessToken, refreshToken, expiresAt } = response;
 
     if(!accessToken || !refreshToken){
       return {
