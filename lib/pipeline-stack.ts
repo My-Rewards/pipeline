@@ -70,7 +70,13 @@ export class PipelineStack extends cdk.Stack {
           connectionArn: GITHUB_ARN,
           triggerOnPush: true,
         }),
-        commands: ['npm ci', 'npm run build', 'npx cdk synth']
+        commands: [
+          'npm install -g aws-cdk', 
+          'npm ci',
+          'npm run build',
+          'npm run test',
+          'cdk synth'
+       ],
       }),
       role:pipelineRole
     });
