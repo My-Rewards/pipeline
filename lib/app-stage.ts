@@ -12,6 +12,8 @@ import {
   AmplifyStackProps,
   ApiStackProps,
   AppConfigStackProps,
+  BusinessWebsiteStackProps,
+  CustomEmailProps,
   DynamoStackProps, 
   HostedZoneProps, 
   SSMStackProps, 
@@ -21,6 +23,7 @@ import {
 } from '../global/props';
 import { HostedZoneStack } from './Stacks/hostedZone-stack';
 import { AppConfigStack } from './Stacks/appConfigStack';
+import { BusinessWebsiteStack } from './Stacks/business-website-stack';
 
 export class PipelineAppStage extends cdk.Stage {
     constructor(scope: Construct, id: string, props: StageProps) {
@@ -54,7 +57,7 @@ export class PipelineAppStage extends cdk.Stage {
       const customEmail_stack = new CustomEmailStack(this, 'CustomEmail-Stack', customEmailProps);
       customEmail_stack.addDependency(hostedZone_stack);
 
-      let userPoolProps = this.createUserPoolProps(props, this.stageName, authDomain);
+      let userPoolProps = this.createUserPoolProps(props, this.stageName, authDomain, businessDomain);
       const userPool_stack = new UserPoolStack(this, 'UserPool-Stack', userPoolProps);
       userPool_stack.addDependency(customEmail_stack);
 
@@ -75,10 +78,9 @@ export class PipelineAppStage extends cdk.Stage {
       const website_stack = new WebsiteStack(this, "Website-Stack", mainWebsiteProps)
       website_stack.addDependency(ssm_Stack);
 
-      // Add Bizz Website Here
-      // business_Website_Stack.addDependency(ssm_Stack);
-
-      // Create new Prop Creater for Stack(ie createHostedZoneProps, createDynamoProps...)
+      let mainBusinessWebsiteProps = this.mainBusinessWebsiteProps(props, this.stageName, businessDomain);
+      const business_website_stack = new BusinessWebsiteStack(this, "Business-Website-Stack", mainBusinessWebsiteProps);
+      business_website_stack.addDependency(ssm_Stack)
     }
 
   createHostedZoneProps(props:StageProps, stage:string, authDomain:string, businessDomain:string, apiDomain:string):HostedZoneProps{
@@ -115,7 +117,7 @@ export class PipelineAppStage extends cdk.Stage {
     }
   }
 
-  createCustomEmailProps(props:StageProps, stage:string, authDomain:string):UserPoolStackProps{
+  createCustomEmailProps(props:StageProps, stage:string, authDomain:string):CustomEmailProps{
     return{
         env: {
             account: props.env?.account,
@@ -126,7 +128,7 @@ export class PipelineAppStage extends cdk.Stage {
     }
   }
 
-  createUserPoolProps(props:StageProps, stage:string, authDomain:string):UserPoolStackProps{
+  createUserPoolProps(props:StageProps, stage:string, authDomain:string, businessDomain:string):UserPoolStackProps{
     return{
         env: {
             account: props.env?.account,
@@ -134,6 +136,7 @@ export class PipelineAppStage extends cdk.Stage {
         },
         stageName: stage,
         authDomain,
+        businessDomain
     }
   }
 
@@ -182,6 +185,21 @@ export class PipelineAppStage extends cdk.Stage {
       githubBranch: stage,
       buildCommand: 'npm run build',
       authDomain, 
+    }
+  }
+
+  mainBusinessWebsiteProps(props:StageProps, stage:string, businessDomain:string):BusinessWebsiteStackProps{
+    return{
+        env: {
+            account: props.env?.account,
+            region: props.env?.region
+        },
+        stageName: stage,
+        subDomain: businessDomain,
+        githubOwner: 'My-Rewards',
+        githubRepo: 'bizz-website',
+        githubBranch: stage,
+        buildCommand: 'npm run build',
     }
   }
 }
