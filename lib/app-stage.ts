@@ -11,6 +11,8 @@ import {
   AmplifyStackProps,
   ApiStackProps,
   AppConfigStackProps,
+  BusinessWebsiteStackProps,
+  CustomEmailProps,
   DynamoStackProps, 
   HostedZoneProps, 
   SSMStackProps, 
@@ -21,6 +23,7 @@ import {
 } from '../global/props';
 import { HostedZoneStack } from './Stacks/hostedZone-stack';
 import { AppConfigStack } from './Stacks/appConfigStack';
+import { BusinessWebsiteStack } from './Stacks/business-website-stack';
 
 export class PipelineAppStage extends cdk.Stage {
     constructor(scope: Construct, id: string, props: StageProps) {
@@ -77,6 +80,7 @@ export class PipelineAppStage extends cdk.Stage {
 
       let mainBusinessWebsiteProps = this.mainBusinessWebsiteProps(props, this.stageName, businessDomain);
       const business_website_stack = new BusinessWebsiteStack(this, "Business-Website-Stack", mainBusinessWebsiteProps);
+      business_website_stack.addDependency(ssm_Stack)
 
     }
 
@@ -114,7 +118,7 @@ export class PipelineAppStage extends cdk.Stage {
     }
   }
 
-  createCustomEmailProps(props:StageProps, stage:string, authDomain:string):UserPoolStackProps{
+  createCustomEmailProps(props:StageProps, stage:string, authDomain:string):CustomEmailProps{
     return{
         env: {
             account: props.env?.account,
@@ -199,6 +203,4 @@ export class PipelineAppStage extends cdk.Stage {
         buildCommand: 'npm run build',
     }
   }
-
-
 }
