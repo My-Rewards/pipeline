@@ -7,9 +7,6 @@ import { UserPoolStack } from './Stacks/userPool-stack';
 import { SSMStack } from './Stacks/ssm-stack';
 import { WebsiteStack } from './Stacks/website-stack';
 import { BusinessWebsiteStack } from './Stacks/business-website-stack';
-import { AmplifyHostingStack } from './Stacks/amplify-hosting-stack';
-
-
 import { 
   AmplifyStackProps,
   ApiStackProps,
@@ -19,8 +16,7 @@ import {
   StageProps, 
   UserPoolStackProps, 
   WebsiteStackProps,
-    AmplifyHostingStackProps,
-    BusinessWebsiteStackProps
+  BusinessWebsiteStackProps
 } from '../global/props';
 import { HostedZoneStack } from './Stacks/hostedZone-stack';
 
@@ -31,23 +27,6 @@ export class PipelineAppStage extends cdk.Stage {
       let businessDomain;
       let apiDomain;
       let authDomain;
-
-        let amplifyHostingProps: AmplifyHostingStackProps = {
-            env: {
-                account: props.env?.account,
-                region: props.env?.region
-            },
-            githubOwner: 'My-Rewards',
-            githubRepo: 'bizz-website',
-            githubBranch: 'beta',
-            githubOauthTokenName: 'github-token',
-            userPoolId: cdk.Fn.importValue('businessUserPoolID'),
-            userPoolClientId: cdk.Fn.importValue('businessUserPoolClientID'),
-            apiUrl: 'https://your-api-url.com',
-            stripePublicKey: 'pk_live_xxxxxxxxxx'
-        };
-
-        const amplifyHostingStack = new AmplifyHostingStack(this, 'BusinessWebsiteHosting', amplifyHostingProps);
 
       if(props.stageName === 'beta'){
           businessDomain=`${props.stageName}.business`;
@@ -87,14 +66,9 @@ export class PipelineAppStage extends cdk.Stage {
       const website_stack = new WebsiteStack(this, "Website-Stack", mainWebsiteProps)
       website_stack.addDependency(ssm_Stack);
 
-      // Add Bizz Website Here
-      // business_Website_Stack.addDependency(ssm_Stack);
-        let mainBusinessWebsiteProps = this.mainBusinessWebsiteProps(props, this.stageName, authDomain);
-        const business_website_stack = new BusinessWebsiteStack(this, "Business-Website-Stack", mainBusinessWebsiteProps);
-        //business_website_stack.addDependency(ssm_Stack);
+      let mainBusinessWebsiteProps = this.mainBusinessWebsiteProps(props, this.stageName, businessDomain);
+      const business_website_stack = new BusinessWebsiteStack(this, "Business-Website-Stack", mainBusinessWebsiteProps);
 
-
-        // Create new Prop Creater for Stack(ie createHostedZoneProps, createDynamoProps...)
     }
 
   createHostedZoneProps(props:StageProps, stage:string, authDomain:string, businessDomain:string, apiDomain:string):HostedZoneProps{
@@ -180,21 +154,20 @@ export class PipelineAppStage extends cdk.Stage {
     }
   }
 
-    mainBusinessWebsiteProps(props:StageProps, stage:string, authDomain:string):BusinessWebsiteStackProps{
-        return{
-            env: {
-                account: props.env?.account,
-                region: props.env?.region
-            },
-            stageName: stage,
-            subDomain:'beta.business',
-            githubOwner: 'My-Rewards',
-            githubRepo: 'business-website',
-            githubBranch: stage,
-            buildCommand: 'npm run build',
-            authDomain,
-        }
+  mainBusinessWebsiteProps(props:StageProps, stage:string, businessDomain:string):BusinessWebsiteStackProps{
+    return{
+        env: {
+            account: props.env?.account,
+            region: props.env?.region
+        },
+        stageName: stage,
+        subDomain: businessDomain,
+        githubOwner: 'My-Rewards',
+        githubRepo: 'bizz-website',
+        githubBranch: stage,
+        buildCommand: 'npm run build',
     }
+  }
 
 
 }

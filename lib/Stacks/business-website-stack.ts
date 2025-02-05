@@ -1,187 +1,89 @@
+import { version } from './../../node_modules/@types/babel__core/index.d';
 import * as cdk from 'aws-cdk-lib';
-import * as s3 from 'aws-cdk-lib/aws-s3';
-import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
-import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
-import * as codebuild from 'aws-cdk-lib/aws-codebuild';
-import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 import { BusinessWebsiteStackProps } from '../../global/props';
+import * as codebuild from 'aws-cdk-lib/aws-codebuild';
+import { App, Branch, Domain, GitHubSourceCodeProvider, Platform, RedirectStatus } from '@aws-cdk/aws-amplify-alpha';
 import { DOMAIN } from '../../global/constants';
-import { BucketAccessControl } from 'aws-cdk-lib/aws-s3';
-import * as route53 from 'aws-cdk-lib/aws-route53';
-import * as targets from 'aws-cdk-lib/aws-route53-targets';
-import * as acm from 'aws-cdk-lib/aws-certificatemanager';
-
 
 
 export class BusinessWebsiteStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props: BusinessWebsiteStackProps) {
         super(scope, id, props);
 
-        // S3 Bucket for Website Assets
-        const websiteBucket = new s3.Bucket(this, 'BusinessWebsiteBucket', {
-            bucketName: `${DOMAIN}-${props.stageName}-business-assets`,
-            versioned: true,
-            accessControl: BucketAccessControl.BUCKET_OWNER_FULL_CONTROL,
-            removalPolicy: cdk.RemovalPolicy.DESTROY,
-            encryption: s3.BucketEncryption.S3_MANAGED,
-            autoDeleteObjects: true,
-            websiteIndexDocument: 'index.html',
-            websiteErrorDocument: 'index.html',
-            publicReadAccess: true,
-            blockPublicAccess: new s3.BlockPublicAccess({
-                blockPublicAcls: false,
-                ignorePublicAcls: false,
-                blockPublicPolicy: false,
-                restrictPublicBuckets: false,
-            }),
-        });
+        const githubToken = cdk.SecretValue.secretsManager('github-token');
 
-        // Bucket Policy
-        const bucketPolicy = new s3.BucketPolicy(this, 'BusinessBucketPolicy', {
-            bucket: websiteBucket,
-        });
-        bucketPolicy.document.addStatements(
-            new iam.PolicyStatement({
-                sid: 'PublicReadGetObject',
-                effect: iam.Effect.ALLOW,
-                principals: [new iam.AnyPrincipal()],
-                actions: ['s3:GetObject'],
-                resources: [`${websiteBucket.bucketArn}/*`],
-            })
-        );
-
-        // CodeBuild Configuration
-        const codeBuildRole = new iam.Role(this, 'WebsiteBuildRole', {
-            assumedBy: new iam.ServicePrincipal('codebuild.amazonaws.com'),
-            managedPolicies: [
-                iam.ManagedPolicy.fromAwsManagedPolicyName('AWSCodeBuildAdminAccess'),
-                iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonS3FullAccess')
-            ],
-            inlinePolicies: {
-                'github-access': new iam.PolicyDocument({
-                    statements: [
-                        new iam.PolicyStatement({
-                            actions: [
-                                'codecommit:GetBranch',
-                                'codecommit:GetCommit',
-                                'codecommit:GetRepository',
-                                'codecommit:ListRepositories',
-                                's3:GetObject',
-                                's3:PutObject',
-                                's3:GetBucketLocation',
-                                'secretsmanager:GetSecretValue'
-                            ],
-                            resources: ['*'],
-                        })
-                    ]
-                })
-            }
-        });
-
-        const buildProject = new codebuild.Project(this, 'BusinessWebsiteBuildProject', {
-            role: codeBuildRole,
-            source: codebuild.Source.gitHub({
+        const amplifyApp = new App(this, 'BusinessWebsiteAmplifyApp', {
+            appName: 'Business-Website',
+            sourceCodeProvider: new GitHubSourceCodeProvider({
                 owner: props.githubOwner,
-                repo: props.githubRepo,
-                branchOrRef: props.githubBranch,
-                reportBuildStatus: true,
-                webhook: true,
-                webhookFilters: [
-                    codebuild.FilterGroup.inEventOf(codebuild.EventAction.PUSH).andBranchIs(props.githubBranch),
-                ],
+                repository: props.githubRepo,
+                oauthToken: githubToken
+
             }),
-            environment: {
-                buildImage: codebuild.LinuxBuildImage.STANDARD_7_0,
-                computeType: codebuild.ComputeType.SMALL,
-                // environmentVariables: {
-                //     USER_POOL_ID: { value: props.userPoolId },
-                //     USER_POOL_CLIENT_ID: { value: props.userPoolClientId },
-                // },
+            platform: Platform.WEB_COMPUTE,
+            environmentVariables: {
+                FRAMEWORK: "Next.js",
+                AMPLIFY_NEXT_JS_VERSION: "14",
+                NEXT_PUBLIC_USERPOOL_ID:'',
+                NEXT_PUBLIC_WEB_CLIENT_ID:'',
+                NEXT_PUBLIC_COGNITO_DOMAIN:'',
+                NEXT_PUBLIC_IDENTITY_POOL_ID:'',
+                NEXT_PUBLIC_AWS_REGION:'',
+                NEXT_PUBLIC_APP_ENV:props.stageName,
+                NEXT_PUBLIC_STRIPE_KEY:'',
+                NEXT_PUBLIC_SQUARE_CLIENT:''
             },
-            buildSpec: codebuild.BuildSpec.fromObject({
-                version: '0.2',
-                phases: {
-                    install: {
-                        'runtime-versions': {
-                            nodejs: '22',
-                        },
-                        commands: ['npm install'],
-                    },
-                    build: {
-                        commands: [props.buildCommand],
-                    },
-                },
-                artifacts: {
-                    name: '',
-                    files: ['**/*'],
-                    'base-directory': 'dist',
-                },
-            }),
-            artifacts: codebuild.Artifacts.s3({
-                bucket: websiteBucket,
-                name: '/',
-                includeBuildId: false,
-                packageZip: false,
-                encryption: false
-            }),
-        });
-
-        // Hosted Zone and Certificate
-        const hostedZoneId = cdk.Fn.importValue(`${props.stageName}-HostedZoneId`);
-        const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'BusinessHostedZone', {
-            hostedZoneId:`Z07188782GYXEXVEVQEKI`,
-            zoneName: `${props.subDomain}.${DOMAIN}`,
-        });
-
-        const certificate = new acm.Certificate(this, 'BusinessWebsiteCertificate', {
-            domainName: `${props.subDomain}.${DOMAIN}`,
-            validation: acm.CertificateValidation.fromDns(hostedZone),
-        });
-
-        // CloudFront Distribution
-        const s3Origin = new origins.S3StaticWebsiteOrigin(websiteBucket);
-        const distribution = new cloudfront.Distribution(this, 'BusinessWebsiteDistribution', {
-            defaultRootObject: 'index.html',
-
-            domainNames: [`${props.subDomain}.${DOMAIN}`],
-            certificate: certificate,
-            minimumProtocolVersion: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2021,
-            defaultBehavior: {
-                origin: s3Origin,
-                viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-            },
-            errorResponses: [
-                {
-                    httpStatus: 403,
-                    responseHttpStatus: 200,
-                    responsePagePath:`/index.html`,
-                },
-                {
-                    httpStatus: 404,
-                    responseHttpStatus: 200,
-                    responsePagePath:`/index.html`,
-                }
+            customRules: [
+                { source: "/<*>", target: "/index.html", status: RedirectStatus.NOT_FOUND_REWRITE },
             ],
+            buildSpec: codebuild.BuildSpec.fromObjectToYaml({
+                version: 1,
+                frontend: {
+                    phases: {
+                        preBuild: { commands: ["npm ci --cache .npm --prefer-offline"]},
+                        build: { commands: ["npm run build"] }
+                    },
+                    artifacts: {
+                        baseDirectory: ".next",
+                        files: ["**/*"]
+                    },
+                    cache: {
+                        paths: ["node_modules/**/*", ".next/cache/**/*"]
+                    }
+                }
+            })
         });
 
-        // Route53 Alias Record
-        new route53.ARecord(this, 'BusinessWebsiteAliasRecord', {
-            zone: hostedZone,
-            target: route53.RecordTarget.fromAlias(new targets.CloudFrontTarget(distribution)),
+        amplifyApp.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE)
+
+        const workingBranch = new Branch(this, 'Branch', {
+            app: amplifyApp,
+            branchName: props.githubBranch,
+            autoBuild: true
+        })
+
+        workingBranch.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE);
+
+        const domain = new Domain(this, 'Main-Website-Domain', {
+            app: amplifyApp,
+            domainName: `${props.subDomain}.${DOMAIN}`,
+            subDomains: [
+                {
+                    branch: workingBranch,
+                    prefix: ''
+                }
+            ]
         });
 
-        // Outputs
-        new cdk.CfnOutput(this, 'BusinessWebsiteBucketName', {
-            value: websiteBucket.bucketName,
-            description: 'Business Website S3 Bucket Name',
+        new cdk.CfnOutput(this, 'AmplifyAppId', {
+            value: amplifyApp.appId,
+            description: 'The ID of the Amplify app'
         });
 
-        new cdk.CfnOutput(this, 'BusinessWebsiteDistributionDomainName', {
-            value: distribution.distributionDomainName,
-            description: 'CloudFront Distribution Domain Name for Business Website',
+        new cdk.CfnOutput(this, 'AmplifyBranchUrl', {
+            value: `https://${amplifyApp.defaultDomain}`,
+            description: 'Amplify Hosted Website URL'
         });
-
-
     }
 }
