@@ -1,3 +1,4 @@
+import { CustomEmailStack } from './Stacks/customEmail-stack';
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from "constructs";
 import { AmplifyStack } from './Stacks/amplify-stack'
@@ -6,10 +7,10 @@ import { ApiGatewayStack } from './Stacks/apiGateway-stack';
 import { UserPoolStack } from './Stacks/userPool-stack';
 import { SSMStack } from './Stacks/ssm-stack';
 import { WebsiteStack } from './Stacks/website-stack';
-import { BusinessWebsiteStack } from './Stacks/business-website-stack';
 import { 
   AmplifyStackProps,
   ApiStackProps,
+  AppConfigStackProps,
   DynamoStackProps, 
   HostedZoneProps, 
   SSMStackProps, 
@@ -19,6 +20,7 @@ import {
   BusinessWebsiteStackProps
 } from '../global/props';
 import { HostedZoneStack } from './Stacks/hostedZone-stack';
+import { AppConfigStack } from './Stacks/appConfigStack';
 
 export class PipelineAppStage extends cdk.Stage {
     constructor(scope: Construct, id: string, props: StageProps) {
@@ -45,9 +47,16 @@ export class PipelineAppStage extends cdk.Stage {
       let dynamoDbProp = this.createDynamoProps(props, this.stageName);
       const dynamo_stack = new DynamoStack(this, 'Dynamo-Stack', dynamoDbProp);
 
+      let appConfigProps = this.createAppConfig(props, this.stageName);
+      const appConfigStack = new AppConfigStack(this, 'AppConfig-Stack', appConfigProps);
+
+      let customEmailProps = this.createCustomEmailProps(props, this.stageName, authDomain);
+      const customEmail_stack = new CustomEmailStack(this, 'CustomEmail-Stack', customEmailProps);
+      customEmail_stack.addDependency(hostedZone_stack);
+
       let userPoolProps = this.createUserPoolProps(props, this.stageName, authDomain, businessDomain);
       const userPool_stack = new UserPoolStack(this, 'UserPool-Stack', userPoolProps);
-      userPool_stack.addDependency(dynamo_stack);
+      userPool_stack.addDependency(customEmail_stack);
 
       let apiGatewayProps = this.createApiProps(props, this.stageName, apiDomain);
       const apiGateway_stack = new ApiGatewayStack(this, 'ApiGateway-Stack', apiGatewayProps);
@@ -92,6 +101,27 @@ export class PipelineAppStage extends cdk.Stage {
             region: props.env?.region
         },
         stageName: stage
+    }
+  }
+
+  createAppConfig(props:StageProps, stage:string):AppConfigStackProps{
+    return{
+        env: {
+            account: props.env?.account,
+            region: props.env?.region
+        },
+        stageName: stage
+    }
+  }
+
+  createCustomEmailProps(props:StageProps, stage:string, authDomain:string):UserPoolStackProps{
+    return{
+        env: {
+            account: props.env?.account,
+            region: props.env?.region
+        },
+        stageName: stage,
+        authDomain,
     }
   }
 

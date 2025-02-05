@@ -118,7 +118,7 @@ export class WebsiteStack extends cdk.Stack {
         },
         artifacts: {
           files: [`**/*`],
-          'base-directory': 'build',
+          'base-directory': 'dist',
           name:'',
         },
       }),
@@ -130,46 +130,6 @@ export class WebsiteStack extends cdk.Stack {
         encryption:false
       })
     });
-
-    const triggerBuildFunction = new lambda.Function(this, 'TriggerBuildFunction', {
-      runtime: lambda.Runtime.NODEJS_18_X,
-      handler: 'index.handler',
-      code: lambda.Code.fromInline(`
-        const AWS = require('aws-sdk');
-        const codebuild = new AWS.CodeBuild();
-        exports.handler = async (event) => {
-          console.log('Triggering CodeBuild Project...');
-          const response = await codebuild.startBuild({ projectName: '${buildProject.projectName}' }).promise();
-          console.log('CodeBuild Response:', response);
-          return { PhysicalResourceId: response.build.id };
-        };
-      `),
-      initialPolicy: [
-        new iam.PolicyStatement({
-          actions: ['codebuild:StartBuild'],
-          resources: [buildProject.projectArn],
-        }),
-      ],
-    });
-    
-    const triggerInitialBuild = new custom.AwsCustomResource(this, 'TriggerInitialBuild', {
-      onCreate: {
-        service: 'Lambda',
-        action: 'invoke',
-        parameters: {
-          FunctionName: triggerBuildFunction.functionName,
-          InvocationType: 'RequestResponse'
-        },
-        physicalResourceId: custom.PhysicalResourceId.of('TriggerInitialBuild')
-      },
-      policy: custom.AwsCustomResourcePolicy.fromStatements([
-        new iam.PolicyStatement({
-          actions: ['lambda:InvokeFunction'],
-          resources: [triggerBuildFunction.functionArn]
-        })
-      ])
-    });
-    triggerInitialBuild.node.addDependency(buildProject);
 
     const s3origin = new origins.S3StaticWebsiteOrigin(websiteBucket);
 
@@ -216,6 +176,7 @@ export class WebsiteStack extends cdk.Stack {
     new route53.ARecord(this, `${props.stageName}AliasRecord`, {
       zone: hostedZone,
       target: route53.RecordTarget.fromAlias(new targets.CloudFrontTarget(distribution)),
+      deleteExisting:true
     }).applyRemovalPolicy(cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE);
 
     new cdk.CfnOutput(this, 'WebsiteBucketName', {

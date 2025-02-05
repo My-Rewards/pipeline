@@ -3,10 +3,14 @@ import { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
+import * as nodejs from 'aws-cdk-lib/aws-lambda-nodejs'
+import * as kms from 'aws-cdk-lib/aws-kms';
 
 interface SquareApiStackProps extends cdk.NestedStackProps {
   api: apigateway.RestApi;
   authorizer: cdk.aws_apigateway.CognitoUserPoolsAuthorizer
+  encryptionKey: kms.Key;
+  stage: string;
 }
 
 export class SquareApiStack extends cdk.NestedStack {
@@ -15,18 +19,37 @@ export class SquareApiStack extends cdk.NestedStack {
 
     const usersTable = dynamodb.Table.fromTableArn(this, 'ImportedUsersTable', cdk.Fn.importValue('UserTableARN'));
 
-    const setupSquareLambda = new lambda.Function(this, 'CreateUserLambda', {
+    // Get square credemtials
+    const secretData = cdk.aws_secretsmanager.Secret.fromSecretNameV2(this, 'fetchSquareSecret', 'square/credentials');
+    const client_id = secretData.secretValueFromJson('client_id').unsafeUnwrap();
+    const client_secret = secretData.secretValueFromJson('client_secret').unsafeUnwrap();
+    
+    if(!client_id || !client_secret){
+      throw Error('Missing client secret or Id')
+    }
+
+    const setupSquareLambda = new nodejs.NodejsFunction(this, "my-handler",{
       runtime: lambda.Runtime.NODEJS_20_X,
-      handler: 'SqaureApiStack.handler',
-      code: lambda.Code.fromAsset('lambda'),
+      entry: 'lambda/square/connectSquare.ts',
+      handler: 'handler',
       environment: {
         USERS_TABLE: usersTable.tableName,
+        SQUARE_CLIENT:client_id,
+        SQUARE_SECRET:client_secret,
+        KMS_KEY_ID: props.encryptionKey.keyId,
+        ENV:props.stage
       },
-    });
+      bundling: {
+        externalModules: ['aws-sdk'],
+        nodeModules: ['square'],
+      },
+      timeout: cdk.Duration.seconds(10),
+    })
 
     // Grant permissions
     usersTable.grantReadData(setupSquareLambda);
     usersTable.grantWriteData(setupSquareLambda);
+    props.encryptionKey.grantEncryptDecrypt(setupSquareLambda);
 
     // API Gateway integration
     const squareApi = props.api.root.addResource('square'); 

@@ -1,10 +1,11 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { GetCommand, DynamoDBDocumentClient } = require("@aws-sdk/lib-dynamodb");
+import { APIGatewayProxyEvent } from "aws-lambda";
 
 const client = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(client);
 
-exports.handler = async (event) => {
+exports.handler = async (event:APIGatewayProxyEvent) => {
     console.log("Received Event: ", JSON.stringify(event, null, 2));
 
     const tableName = process.env.USERS_TABLE;

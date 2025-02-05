@@ -26,6 +26,8 @@ export class HostedZoneStack extends cdk.Stack {
         'route53:ChangeResourceRecordSets',
         'route53:ListResourceRecordSets',
         'route53:GetHostedZone',
+        "route53:ListHostedZones",
+        "route53:GetChange"
       ],
       resources: ['*'],
     }));
