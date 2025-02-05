@@ -4,7 +4,7 @@ import { Construct } from 'constructs';
 import { BusinessWebsiteStackProps } from '../../global/props';
 import * as codebuild from 'aws-cdk-lib/aws-codebuild';
 import { App, Branch, Domain, GitHubSourceCodeProvider, Platform, RedirectStatus } from '@aws-cdk/aws-amplify-alpha';
-import { DOMAIN } from '../../global/constants';
+import { DOMAIN, UP_BUSINESS_ID, UPC_BUSINESS, IDENTITY_POOL_BUSINESS} from '../../global/constants';
 
 
 export class BusinessWebsiteStack extends cdk.Stack {
@@ -13,26 +13,30 @@ export class BusinessWebsiteStack extends cdk.Stack {
 
         const githubToken = cdk.SecretValue.secretsManager('github-token');
 
+        const stripeData = cdk.aws_secretsmanager.Secret.fromSecretNameV2(this, 'fetchStripeCredentials', 'stripe/credentials');
+        const stripe_key = stripeData.secretValueFromJson('key')
+    
+        const squareData = cdk.aws_secretsmanager.Secret.fromSecretNameV2(this, 'fetchSquareCredentials', 'square/credentials');
+        const square_clientId = squareData.secretValueFromJson('client_id')
+
         const amplifyApp = new App(this, 'BusinessWebsiteAmplifyApp', {
             appName: 'Business-Website',
             sourceCodeProvider: new GitHubSourceCodeProvider({
                 owner: props.githubOwner,
                 repository: props.githubRepo,
                 oauthToken: githubToken
-
             }),
             platform: Platform.WEB_COMPUTE,
             environmentVariables: {
                 FRAMEWORK: "Next.js",
                 AMPLIFY_NEXT_JS_VERSION: "14",
-                NEXT_PUBLIC_USERPOOL_ID:'',
-                NEXT_PUBLIC_WEB_CLIENT_ID:'',
-                NEXT_PUBLIC_COGNITO_DOMAIN:'',
-                NEXT_PUBLIC_IDENTITY_POOL_ID:'',
-                NEXT_PUBLIC_AWS_REGION:'',
-                NEXT_PUBLIC_APP_ENV:props.stageName,
-                NEXT_PUBLIC_STRIPE_KEY:'',
-                NEXT_PUBLIC_SQUARE_CLIENT:''
+                NEXT_PUBLIC_USERPOOL_ID: cdk.Fn.importValue(UP_BUSINESS_ID),
+                NEXT_PUBLIC_WEB_CLIENT_ID: cdk.Fn.importValue(UPC_BUSINESS),
+                NEXT_PUBLIC_IDENTITY_POOL_ID: cdk.Fn.importValue(IDENTITY_POOL_BUSINESS),
+                NEXT_PUBLIC_AWS_REGION: props.env?.region || 'us-east-1',
+                NEXT_PUBLIC_APP_ENV: props.stageName,
+                NEXT_PUBLIC_STRIPE_KEY: stripe_key.unsafeUnwrap(),
+                NEXT_PUBLIC_SQUARE_CLIENT: square_clientId.unsafeUnwrap()
             },
             customRules: [
                 { source: "/<*>", target: "/index.html", status: RedirectStatus.NOT_FOUND_REWRITE },
@@ -65,7 +69,7 @@ export class BusinessWebsiteStack extends cdk.Stack {
 
         workingBranch.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE);
 
-        const domain = new Domain(this, 'Main-Website-Domain', {
+        new Domain(this, 'Main-Website-Domain', {
             app: amplifyApp,
             domainName: `${props.subDomain}.${DOMAIN}`,
             subDomains: [

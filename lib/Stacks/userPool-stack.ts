@@ -185,8 +185,8 @@ export class UserPoolStack extends cdk.Stack {
           flows: {
             implicitCodeGrant: true,
           },
-          callbackUrls: ['exp://127.0.0.1:19000/--/'],
-          logoutUrls: ['exp://127.0.0.1:19000/--/'],
+          callbackUrls: ['https://localhost:3000/', `https://${props.businessDomain}.${DOMAIN}`],
+          logoutUrls: ['https://localhost:3000/', `https://${props.businessDomain}.${DOMAIN}`],
         }
       });
 
@@ -202,8 +202,8 @@ export class UserPoolStack extends cdk.Stack {
           flows: {
             implicitCodeGrant: true,
           },
-          callbackUrls: ['exp://127.0.0.1:19000/--/'],
-          logoutUrls: ['exp://127.0.0.1:19000/--/'],
+          callbackUrls: ['https://localhost:3000/'],
+          logoutUrls: ['https://localhost:3000/'],
         }
       });
 
@@ -429,7 +429,7 @@ export class UserPoolStack extends cdk.Stack {
         exportName: UP_CUSTOMER_ID
       });
       new cdk.CfnOutput(this, CUSTOMER_DOMAIN, {
-        value: cognitoDomain_Customer.domainName,
+        value: cognitoDomain_Customer.cloudFrontEndpoint,
         description: 'The Domain of the Cognito User Pool',
         exportName: CUSTOMER_DOMAIN
       });
@@ -444,7 +444,7 @@ export class UserPoolStack extends cdk.Stack {
         exportName: UP_BUSINESS_ID
       });
       new cdk.CfnOutput(this, BUSINESS_DOMAIN, {
-        value: cognitoDomain_Business.domainName,
+        value: cognitoDomain_Business.cloudFrontEndpoint,
         description: 'The Domain of the Cognito User Pool',
         exportName: BUSINESS_DOMAIN
       });
@@ -460,7 +460,7 @@ export class UserPoolStack extends cdk.Stack {
         exportName: UP_ADMIN_ID
       });
       new cdk.CfnOutput(this, ADMIN_DOMAIN, {
-        value: cognitoDomain_Admin.domainName,
+        value: cognitoDomain_Admin.cloudFrontEndpoint,
         description: 'The Domain of the Cognito User Pool',
         exportName: ADMIN_DOMAIN
       });

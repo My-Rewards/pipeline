@@ -19,6 +19,7 @@ export interface DynamoStackProps extends cdk.StackProps {
 export interface UserPoolStackProps extends cdk.StackProps {
   stageName: string|undefined;
   authDomain:string;
+  businessDomain:string;
 }
 
 export interface ApiStackProps extends cdk.StackProps {
@@ -52,7 +53,6 @@ export interface BusinessWebsiteStackProps extends cdk.StackProps {
   githubBranch: string;
   buildCommand: string;
   subDomain:string;
-  authDomain:string;
 }
 
 export interface AmplifyHostingStackProps extends cdk.StackProps {

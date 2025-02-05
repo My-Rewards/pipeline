@@ -45,7 +45,7 @@ export class PipelineAppStage extends cdk.Stage {
       let dynamoDbProp = this.createDynamoProps(props, this.stageName);
       const dynamo_stack = new DynamoStack(this, 'Dynamo-Stack', dynamoDbProp);
 
-      let userPoolProps = this.createUserPoolProps(props, this.stageName, authDomain);
+      let userPoolProps = this.createUserPoolProps(props, this.stageName, authDomain, businessDomain);
       const userPool_stack = new UserPoolStack(this, 'UserPool-Stack', userPoolProps);
       userPool_stack.addDependency(dynamo_stack);
 
@@ -95,7 +95,7 @@ export class PipelineAppStage extends cdk.Stage {
     }
   }
 
-  createUserPoolProps(props:StageProps, stage:string, authDomain:string):UserPoolStackProps{
+  createUserPoolProps(props:StageProps, stage:string, authDomain:string, businessDomain:string):UserPoolStackProps{
     return{
         env: {
             account: props.env?.account,
@@ -103,6 +103,7 @@ export class PipelineAppStage extends cdk.Stage {
         },
         stageName: stage,
         authDomain,
+        businessDomain
     }
   }
 
