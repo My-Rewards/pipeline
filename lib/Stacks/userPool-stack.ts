@@ -24,6 +24,7 @@ import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
+import * as nodejs from 'aws-cdk-lib/aws-lambda-nodejs'
 
 export class UserPoolStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props: UserPoolStackProps) {
@@ -31,16 +32,19 @@ export class UserPoolStack extends cdk.Stack {
 
       const usersTable = dynamodb.Table.fromTableArn(this, 'ImportedUsersTable', cdk.Fn.importValue('UserTableARN'));
 
-      const postConfirmationHandlerUser = new lambda.Function(this, 'PostConfirmationHandlerUser', {
+      const postConfirmationHandlerUser = new nodejs.NodejsFunction(this, "my-user-handler",{
         runtime: lambda.Runtime.NODEJS_20_X,
-        handler: 'createUser.handler',
-        code: lambda.Code.fromAsset('lambda/user'),
+        entry: 'lambda/user/createUser.ts',
+        handler: 'handler',
         environment: {
           TABLE: usersTable.tableName,
           ROLE:'user',
           EMAIL_SENDER:`no-reply@${props.authDomain}.${DOMAIN}`
         },
-      });
+        bundling: {
+          externalModules: ['aws-sdk']
+        }
+      })
       postConfirmationHandlerUser.addToRolePolicy(
         new iam.PolicyStatement({
           actions: ['ses:SendEmail', 'ses:SendRawEmail'],
@@ -49,16 +53,19 @@ export class UserPoolStack extends cdk.Stack {
       );
       usersTable.grantWriteData(postConfirmationHandlerUser);
 
-      const postConfirmationHandlerBusiness = new lambda.Function(this, 'PostConfirmationHandlerBusiness', {
+      const postConfirmationHandlerBusiness = new nodejs.NodejsFunction(this, "my-business-handler",{
         runtime: lambda.Runtime.NODEJS_20_X,
-        handler: 'createUserBusiness.handler',
-        code: lambda.Code.fromAsset('lambda/user'),
+        entry: 'lambda/user/createUserBusiness.ts',
+        handler: 'handler',
         environment: {
           TABLE: usersTable.tableName,
           ROLE:'business',
           EMAIL_SENDER:`no-reply@${props.authDomain}.${DOMAIN}`
         },
-      });
+        bundling: {
+          externalModules: ['aws-sdk']
+        }
+      })
       postConfirmationHandlerBusiness.addToRolePolicy(
         new iam.PolicyStatement({
           actions: ['ses:SendEmail', 'ses:SendRawEmail'],
@@ -255,8 +262,8 @@ export class UserPoolStack extends cdk.Stack {
           flows: {
             authorizationCodeGrant: true,
           },
-          callbackUrls: ['http://localhost:3000/callback', 'http://localhost:3000/'],
-          logoutUrls: ['http://localhost:3000/callback', 'http://localhost:3000/'],
+          callbackUrls: [`https://${props.businessDomain}.${DOMAIN}/`, 'http://localhost:3000/'],
+          logoutUrls: [`https://${props.businessDomain}.${DOMAIN}/`, 'http://localhost:3000/'],
         }
       });
 
@@ -513,7 +520,7 @@ export class UserPoolStack extends cdk.Stack {
         exportName: UP_CUSTOMER_ID
       });
       new cdk.CfnOutput(this, CUSTOMER_DOMAIN, {
-        value: cognitoDomain_Customer.domainName,
+        value: cognitoDomain_Customer.cloudFrontDomainName,
         description: 'The Domain of the Cognito User Pool',
         exportName: CUSTOMER_DOMAIN
       });
@@ -528,7 +535,7 @@ export class UserPoolStack extends cdk.Stack {
         exportName: UP_BUSINESS_ID
       });
       new cdk.CfnOutput(this, BUSINESS_DOMAIN, {
-        value: cognitoDomain_Business.domainName,
+        value: cognitoDomain_Business.cloudFrontDomainName,
         description: 'The Domain of the Cognito User Pool',
         exportName: BUSINESS_DOMAIN
       });
@@ -544,7 +551,7 @@ export class UserPoolStack extends cdk.Stack {
         exportName: UP_ADMIN_ID
       });
       new cdk.CfnOutput(this, ADMIN_DOMAIN, {
-        value: cognitoDomain_Admin.domainName,
+        value: cognitoDomain_Admin.cloudFrontDomainName,
         description: 'The Domain of the Cognito User Pool',
         exportName: ADMIN_DOMAIN
       });

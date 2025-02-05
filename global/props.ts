@@ -24,6 +24,7 @@ export interface CustomEmailProps extends cdk.StackProps {
 export interface UserPoolStackProps extends cdk.StackProps {
   stageName: string|undefined;
   authDomain:string;
+  businessDomain:string;
 }
 
 export interface ApiStackProps extends cdk.StackProps {
@@ -52,4 +53,13 @@ export interface WebsiteStackProps extends cdk.StackProps {
   buildCommand: string;
   subDomain:string;
   authDomain:string;
+}
+
+export interface BusinessWebsiteStackProps extends cdk.StackProps {
+  stageName: string;
+  githubOwner: string;
+  githubRepo: string;
+  githubBranch: string;
+  buildCommand: string;
+  subDomain:string;
 }
