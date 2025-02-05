@@ -46,6 +46,7 @@ export const handler = async (event: any) => {
   try {
     const client = new square.SquareClient({
       environment: app_env === 'prod'? square.SquareEnvironment.Production : square.SquareEnvironment.Sandbox,
+      version:'2025-01-23'
     });
 
     const response = await client.oAuth.obtainToken({
