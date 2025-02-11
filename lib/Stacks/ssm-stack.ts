@@ -105,6 +105,5 @@ export class SSMStack extends cdk.Stack {
         configProfileId: '9pmpwp2',
       })
     });
-    });
   }
 }
