@@ -352,7 +352,7 @@ export class UserPoolStack extends cdk.Stack {
           'appconfig:GetLatestConfiguration'
         ],
         resources: [
-        '*'
+        "arn:aws:appconfig:us-east-1:050451385382:application/6hq9cal/environment/1yh2vb8/configuration/9pmpwp2",
         ]
       });
       
