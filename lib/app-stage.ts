@@ -18,11 +18,13 @@ import {
   StageProps, 
   UserPoolStackProps, 
   WebsiteStackProps,
-  BusinessWebsiteStackProps
+  BusinessWebsiteStackProps,
+  ImageBucketProps
 } from '../global/props';
 import { HostedZoneStack } from './Stacks/hostedZone-stack';
 import { AppConfigStack } from './Stacks/appConfigStack';
 import { BusinessWebsiteStack } from './Stacks/business-website-stack';
+import { ImageBucketStack } from './Stacks/ImageBucket-stack';
 
 export class PipelineAppStage extends cdk.Stage {
     constructor(scope: Construct, id: string, props: StageProps) {
@@ -31,25 +33,31 @@ export class PipelineAppStage extends cdk.Stage {
       let businessDomain;
       let apiDomain;
       let authDomain;
+      let imageDomain;
 
       if(props.stageName === 'beta'){
           businessDomain=`${props.stageName}.business`;
           authDomain=`${props.stageName}.auth`;
           apiDomain=`${props.stageName}.api`;
-
+          imageDomain=`${props.stageName}.assets`;
       }else{
           businessDomain=`business`;
           authDomain=`auth`;
           apiDomain=`api`;
+          imageDomain='assets'
       }
 
-      let hostedZoneProps = this.createHostedZoneProps(props, this.stageName, authDomain, businessDomain, apiDomain);
+      let hostedZoneProps = this.createHostedZoneProps(props, this.stageName, authDomain, businessDomain, apiDomain, imageDomain);
       const hostedZone_stack = new HostedZoneStack(this, 'HostedZone-Stack', hostedZoneProps);
 
       let dynamoDbProp = this.createDynamoProps(props, this.stageName);
       const dynamo_stack = new DynamoStack(this, 'Dynamo-Stack', dynamoDbProp);
 
-      let appConfigProps = this.createAppConfig(props, this.stageName);
+      let imageBucketProps = this.createImageBucketProps(props, this.stageName, imageDomain);
+      const imageBucket_stack = new ImageBucketStack(this, 'ImageBucket-Stack', imageBucketProps);
+      imageBucket_stack.addDependency(hostedZone_stack);
+
+      let appConfigProps = this.createAppConfigProps(props, this.stageName);
       const appConfigStack = new AppConfigStack(this, 'AppConfig-Stack', appConfigProps);
 
       let customEmailProps = this.createCustomEmailProps(props, this.stageName, authDomain);
@@ -83,7 +91,7 @@ export class PipelineAppStage extends cdk.Stage {
 
     }
 
-  createHostedZoneProps(props:StageProps, stage:string, authDomain:string, businessDomain:string, apiDomain:string):HostedZoneProps{
+  createHostedZoneProps(props:StageProps, stage:string, authDomain:string, businessDomain:string, apiDomain:string, imageDomain:string):HostedZoneProps{
     return{
       env: {
           account: props.env?.account,
@@ -93,7 +101,8 @@ export class PipelineAppStage extends cdk.Stage {
       subDomain:props.subDomain,
       authDomain,
       businessDomain,
-      apiDomain
+      apiDomain,
+      imageDomain
     }
   }
 
@@ -107,13 +116,24 @@ export class PipelineAppStage extends cdk.Stage {
     }
   }
 
-  createAppConfig(props:StageProps, stage:string):AppConfigStackProps{
+  createAppConfigProps(props:StageProps, stage:string):AppConfigStackProps{
     return{
         env: {
             account: props.env?.account,
             region: props.env?.region
         },
         stageName: stage
+    }
+  }
+
+  createImageBucketProps(props:StageProps, stage:string, imageDomain:string):ImageBucketProps{
+    return{
+        env: {
+            account: props.env?.account,
+            region: props.env?.region
+        },
+        stageName: stage,
+        subDomain:imageDomain
     }
   }
 
