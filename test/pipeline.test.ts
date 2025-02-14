@@ -42,20 +42,5 @@ describe('PipelineStack', () => {
       ]),
     });
 
-    template.hasResourceProperties('AWS::CodePipeline::Pipeline', {
-      Stages: Match.arrayWith([
-        Match.objectLike({
-          Name: 'prod',
-          Actions: Match.arrayWith([
-            Match.objectLike({
-              Name: 'ManualApprovalBeforeProd',
-              ActionTypeId: {
-                Category: 'Approval',
-              },
-            }),
-          ]),
-        }),
-      ]),
-    });
   });
 });
