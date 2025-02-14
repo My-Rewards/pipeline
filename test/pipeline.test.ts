@@ -1,17 +1,61 @@
-// import * as cdk from 'aws-cdk-lib';
-// import { Template } from 'aws-cdk-lib/assertions';
-// import * as Pipeline from '../lib/pipeline-stack';
+import * as cdk from 'aws-cdk-lib';
+import { Template, Match } from 'aws-cdk-lib/assertions';
+import { PipelineStack } from '../lib/pipeline-stack';
 
-// example test. To run these tests, uncomment this file along with the
-// example resource in lib/pipeline-stack.ts
-test('SQS Queue Created', () => {
-//   const app = new cdk.App();
-//     // WHEN
-//   const stack = new Pipeline.PipelineStack(app, 'MyTestStack');
-//     // THEN
-//   const template = Template.fromStack(stack);
+describe('PipelineStack', () => {
+  test('Stack should have a pipeline and associated resources', () => {
+    const app = new cdk.App();
 
-//   template.hasResourceProperties('AWS::SQS::Queue', {
-//     VisibilityTimeout: 300
-//   });
+    const stack = new PipelineStack(app, 'PipelineStackTest', {
+      env: {
+        account: '123456789012',
+        region: 'us-east-1',
+      },
+    });
+
+    app.synth();
+
+    const template = Template.fromStack(stack);
+
+    template.hasResourceProperties('AWS::CodePipeline::Pipeline', {
+      Name: 'MyRewards',
+    });
+
+    template.hasResourceProperties('AWS::IAM::Role', {
+      AssumeRolePolicyDocument: {
+        Statement: Match.arrayWith([
+          Match.objectLike({
+            Action: 'sts:AssumeRole',
+            Principal: {
+              Service: 'codepipeline.amazonaws.com',
+            },
+          }),
+        ]),
+      },
+    });
+
+    template.hasResourceProperties('AWS::CodePipeline::Pipeline', {
+      Stages: Match.arrayWith([
+        Match.objectLike({ Name: 'central' }),
+        Match.objectLike({ Name: 'beta' }),
+        Match.objectLike({ Name: 'prod' }),
+      ]),
+    });
+
+    template.hasResourceProperties('AWS::CodePipeline::Pipeline', {
+      Stages: Match.arrayWith([
+        Match.objectLike({
+          Name: 'prod',
+          Actions: Match.arrayWith([
+            Match.objectLike({
+              Name: 'ManualApprovalBeforeProd',
+              ActionTypeId: {
+                Category: 'Approval',
+              },
+            }),
+          ]),
+        }),
+      ]),
+    });
+  });
 });

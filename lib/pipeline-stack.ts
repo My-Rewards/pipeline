@@ -11,12 +11,12 @@ import {
   GITHUB_ARN 
 } from '../global/constants';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import { Variable } from 'aws-cdk-lib/aws-codepipeline';
 
 export class PipelineStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    // modify permissions for the pipeline to use codeconnection
     const pipelineRole = new iam.Role(this, 'PipelineRole', {
       assumedBy: new iam.ServicePrincipal('codepipeline.amazonaws.com'),
     });
@@ -60,11 +60,12 @@ export class PipelineStack extends cdk.Stack {
         'arn:aws:us-east-1:724772076019:*',
       ],
     }));
-    
+
     const pipeline = new CodePipeline(this, 'Pipeline', {
       pipelineName: 'MyRewards',
       crossAccountKeys: true, 
       selfMutation:true,
+      role:pipelineRole,
       synth: new ShellStep('Synth', {
         input: CodePipelineSource.connection('My-Rewards/pipeline', 'main', {
           connectionArn: GITHUB_ARN,
@@ -76,11 +77,7 @@ export class PipelineStack extends cdk.Stack {
           'npm run test',
           'cdk synth'
         ],
-        env:{
-          NODE_OPTIONS: '--max-old-space-size=8192'
-        }
-      }),
-      role:pipelineRole
+      })
     });
 
     pipeline.addStage(new PipelineCentralStage(this, "central", {
@@ -103,7 +100,5 @@ export class PipelineStack extends cdk.Stack {
         new ManualApprovalStep('ManualApprovalBeforeProd')
       ]
     });
-
-    pipeline.buildPipeline();
   }
 }
