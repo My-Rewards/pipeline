@@ -75,7 +75,7 @@ export class PipelineStack extends cdk.Stack {
           'npm ci',
           'npm run build',
           'npm run test',
-          'cdk synth'
+          'npx cdk synth'
         ],
       })
     });
