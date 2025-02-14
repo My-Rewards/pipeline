@@ -37,6 +37,10 @@ export class HostedZoneStack extends cdk.Stack {
             zoneName: `${props.authDomain}.${DOMAIN}`
         });
 
+        const hostedZoneImages = new route53.HostedZone(this, 'HostedZoneImages', {
+            zoneName: `${props.imageDomain}.${DOMAIN}`
+        });
+
         new route53.CrossAccountZoneDelegationRecord(this, 'delegateHostedZone', {
             delegatedZone: hostedZone,
             parentHostedZoneId: parentHostedZoneId,
@@ -57,6 +61,12 @@ export class HostedZoneStack extends cdk.Stack {
 
         new route53.CrossAccountZoneDelegationRecord(this, 'delegateHostedZoneAuthentication', {
             delegatedZone: hostedZoneAuth,
+            parentHostedZoneId: parentHostedZoneId,
+            delegationRole: delegationRole
+        });
+
+        new route53.CrossAccountZoneDelegationRecord(this, 'delegateHostedZoneImages', {
+            delegatedZone: hostedZoneImages,
             parentHostedZoneId: parentHostedZoneId,
             delegationRole: delegationRole
         });
@@ -83,6 +93,12 @@ export class HostedZoneStack extends cdk.Stack {
             value: hostedZoneAuth.hostedZoneId,
             description: 'Hosted Zone ID',
             exportName: `${props.stageName}-Auth-HostedZoneId`,
+        });
+
+        new cdk.CfnOutput(this, `${props.stageName}-Image-HostedZoneId`, {
+            value: hostedZoneImages.hostedZoneId,
+            description: 'Hosted Zone ID',
+            exportName: `${props.stageName}-Image-HostedZoneId`,
         });
     }
 }

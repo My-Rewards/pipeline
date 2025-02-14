@@ -5,44 +5,50 @@ export interface StageProps extends cdk.StageProps {
 }
 
 export interface HostedZoneProps extends cdk.StackProps {
-  stageName: string|undefined;
+  stageName: string;
   subDomain:string;
   authDomain:string;
   businessDomain:string;
   apiDomain:string;
+  imageDomain:string;
 }
 
 export interface DynamoStackProps extends cdk.StackProps {
-  stageName: string|undefined;
+  stageName: string;
 }
 
 export interface CustomEmailProps extends cdk.StackProps {
-  stageName: string|undefined;
+  stageName: string;
   authDomain:string;
 }
 
 export interface UserPoolStackProps extends cdk.StackProps {
-  stageName: string|undefined;
+  stageName: string;
   authDomain:string;
   businessDomain:string;
 }
 
 export interface ApiStackProps extends cdk.StackProps {
-  stageName: string|undefined;
+  stageName: string;
   subDomain:string;
   apiDomain:string;
 }
 
 export interface AmplifyStackProps extends cdk.StackProps {
-  stageName: string|undefined;
+  stageName: string;
 }
 
 export interface SSMStackProps extends cdk.StackProps {
-  stageName: string|undefined;
+  stageName: string;
 }
 
 export interface AppConfigStackProps extends cdk.StackProps {
   stageName: string;
+}
+
+export interface ImageBucketProps extends cdk.StackProps {
+  stageName: string;
+  subDomain: string;
 }
 
 export interface WebsiteStackProps extends cdk.StackProps {
@@ -62,6 +68,17 @@ export interface BusinessWebsiteStackProps extends cdk.StackProps {
   githubBranch: string;
   buildCommand: string;
   subDomain:string;
+}
+
+export interface AmplifyHostingStackProps extends cdk.StackProps {
+  githubOwner: string;
+  githubRepo: string;
+  githubBranch: string;
+  githubOauthTokenName: string;
+  userPoolId: string;
+  userPoolClientId: string;
+  apiUrl: string;
+  stripePublicKey: string;
 }
 
 export interface AmplifyHostingStackProps extends cdk.StackProps {

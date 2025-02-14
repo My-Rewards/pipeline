@@ -1,11 +1,11 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
-import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 import { PostConfirmationTriggerEvent } from 'aws-lambda';
+import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 
 const client = new DynamoDBClient({});
-const dynamoDb = DynamoDBDocumentClient.from(client);
 const ses = new SESClient({ region: 'us-east-1' }); 
+const dynamoDb = DynamoDBDocumentClient.from(client);
 
 exports.handler = async (event:PostConfirmationTriggerEvent) => {
   const tableName = process.env.TABLE;
@@ -16,8 +16,8 @@ exports.handler = async (event:PostConfirmationTriggerEvent) => {
         const { request: { userAttributes } } = event;
         
         if (!userAttributes.email || !userAttributes.given_name || !userAttributes.family_name || !userAttributes.sub || !role || !tableName) {
-        console.error('Missing required attributes');
-        throw new Error('Missing required attributes');
+            console.error('Missing required attributes');
+            throw new Error('Missing required attributes');
         }
         
         const userData = {
@@ -50,11 +50,11 @@ exports.handler = async (event:PostConfirmationTriggerEvent) => {
         await dynamoDb.send(new PutCommand(params));
 
         const emailParams = {
-            Source: emailSender,
+            Source: `MyRewards <${emailSender}>`,
             Destination: { ToAddresses: [userAttributes.email] },
             Message: {
                 Subject: { Data: 'Welcome To MyRewards!' },
-                Body: { Text: { Data: 'Setup Your account and link with awuare if you havent! We have a feeling your gonna like it here.' } },
+                Body: { Text: { Data: 'Setup Your account and link with square if you havent! We have a feeling your gonna like it here.' } },
             },
         };
 
@@ -63,6 +63,7 @@ exports.handler = async (event:PostConfirmationTriggerEvent) => {
         return event;
         
     } catch (error) {        
+        
         console.error('Error creating User:', error);
         throw error;
     }

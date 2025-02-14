@@ -8,9 +8,6 @@ import {
     UPC_CUSTOMER,
     UP_BUSINESS_ID,
     UPC_BUSINESS,
-    CUSTOMER_DOMAIN,
-    BUSINESS_DOMAIN,
-    ADMIN_DOMAIN,
     UP_ADMIN_ID,
     UPC_ADMIN,
     DOMAIN,
@@ -45,12 +42,6 @@ export class UserPoolStack extends cdk.Stack {
           externalModules: ['aws-sdk']
         }
       })
-      postConfirmationHandlerUser.addToRolePolicy(
-        new iam.PolicyStatement({
-          actions: ['ses:SendEmail', 'ses:SendRawEmail'],
-          resources: ['*']
-        })
-      );
       usersTable.grantWriteData(postConfirmationHandlerUser);
 
       const postConfirmationHandlerBusiness = new nodejs.NodejsFunction(this, "my-business-handler",{
@@ -66,13 +57,13 @@ export class UserPoolStack extends cdk.Stack {
           externalModules: ['aws-sdk']
         }
       })
+      usersTable.grantWriteData(postConfirmationHandlerBusiness);
       postConfirmationHandlerBusiness.addToRolePolicy(
         new iam.PolicyStatement({
           actions: ['ses:SendEmail', 'ses:SendRawEmail'],
           resources: ['*']
         })
       );
-      usersTable.grantWriteData(postConfirmationHandlerBusiness);
 
       // userPool - Customers
       const userPool_Customer = new cognito.UserPool(this, 'userPool_Customer', {
@@ -413,7 +404,8 @@ export class UserPoolStack extends cdk.Stack {
           email: cognito.ProviderAttribute.GOOGLE_EMAIL,
           givenName: cognito.ProviderAttribute.GOOGLE_GIVEN_NAME,
           familyName: cognito.ProviderAttribute.GOOGLE_FAMILY_NAME,
-          birthdate: cognito.ProviderAttribute.GOOGLE_BIRTHDAYS
+          birthdate: cognito.ProviderAttribute.GOOGLE_BIRTHDAYS,
+          emailVerified: cognito.ProviderAttribute.GOOGLE_EMAIL_VERIFIED
         },
       });
 
@@ -427,6 +419,7 @@ export class UserPoolStack extends cdk.Stack {
           givenName: cognito.ProviderAttribute.GOOGLE_GIVEN_NAME,
           familyName: cognito.ProviderAttribute.GOOGLE_FAMILY_NAME,
           birthdate: cognito.ProviderAttribute.GOOGLE_BIRTHDAYS,
+          emailVerified: cognito.ProviderAttribute.GOOGLE_EMAIL_VERIFIED
         },
       });
       

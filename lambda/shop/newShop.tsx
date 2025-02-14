@@ -1,5 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, PutCommand, PutCommandInput } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { randomUUID } from "crypto";
 
@@ -28,20 +28,21 @@ exports.handler = (event: APIGatewayProxyEvent): APIGatewayProxyResult => {
 
         const shopId = randomUUID();
 
-        const shopAttributes = {
-            id: shopId,
-            organization_id,
-            square_id,
-            latitude,
-            longitude,
-            shop_hours,
-            active: false,
+        const shopAttributes:PutCommandInput = {
+            TableName: shopsTable,
+            Item:
+                {
+                    id: shopId,
+                    organization_id,
+                    square_id,
+                    latitude,
+                    longitude,
+                    shop_hours,
+                    active: false,
+                }
         };
 
-        dynamoDb.send(new PutCommand({
-            TableName: shopsTable,
-            Item: shopAttributes
-        }));
+        dynamoDb.send(new PutCommand(shopAttributes));
 
         return {
             statusCode: 201,
