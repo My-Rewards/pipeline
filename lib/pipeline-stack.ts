@@ -71,11 +71,11 @@ export class PipelineStack extends cdk.Stack {
           triggerOnPush: true,
         }),
         commands: [
-          'npm install -g aws-cdk', 
           'npm ci',
           'npm run build',
           'npm run test',
-          'node --max-old-space-size=8192 $(which cdk) synth',
+          'node --max-old-space-size=8192 cdk synth',
+          'cdk synth'
         ],
       }),
       role:pipelineRole
