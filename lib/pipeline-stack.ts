@@ -73,7 +73,7 @@ export class PipelineStack extends cdk.Stack {
         commands: [
           'npm ci',
           'npm run build',
-          'cdk synth'
+          'cdk synth',
         ],
       }),
       role:pipelineRole
