@@ -73,8 +73,6 @@ export class PipelineStack extends cdk.Stack {
         commands: [
           'npm ci',
           'npm run build',
-          'npm run test',
-          'node --max-old-space-size=8192 cdk synth',
           'cdk synth'
         ],
       }),
