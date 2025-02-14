@@ -342,6 +342,21 @@ export class UserPoolStack extends cdk.Stack {
           },
       });
 
+      const appConfigPolicy = new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: [
+          'appconfig:GetConfiguration',
+          'appconfig:StartConfigurationSession',
+          'appconfig:GetLatestConfiguration'
+        ],
+        resources: [
+        "arn:aws:appconfig:us-east-1:050451385382:application/6hq9cal/environment/1yh2vb8/configuration/9pmpwp2",
+        ]
+      });
+      
+      authenticatedRole_User.addToPolicy(appConfigPolicy);
+      unauthenticatedRole_User.addToPolicy(appConfigPolicy); 
+
       // Authenticated Role for Business
       const authenticatedPolicy_Business = new iam.PolicyDocument({
         statements: [

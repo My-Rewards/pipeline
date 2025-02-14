@@ -77,5 +77,14 @@ export class SSMStack extends cdk.Stack {
       parameterName: `/myRewardsApp/${props.stageName}/squareClientId`,
       stringValue: square_clientId,
     });
+    
+    new ssm.StringParameter(this, 'AppConfig', {
+      parameterName: `/myRewardsApp/${props.stageName}/appConfig`,
+      stringValue: JSON.stringify({
+        applicationId: '6hq9cal',
+        environmentId: '1yh2vb8',
+        configProfileId: '9pmpwp2',
+      })
+    });
   }
 }
