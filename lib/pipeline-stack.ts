@@ -75,7 +75,7 @@ export class PipelineStack extends cdk.Stack {
           'npm ci',
           'npm run build',
           'npm run test',
-          'node --max-old-space-size=4096 $(which cdk) synth'
+          'node --max-old-space-size=8192 $(which cdk) synth',
         ],
       }),
       role:pipelineRole
