@@ -33,9 +33,11 @@ export class HostedZoneStack extends cdk.Stack {
     }));
 
     const hostedZone = new route53.PublicHostedZone(this, 'HostedZone', {
-      zoneName: DOMAIN,
-      crossAccountZoneDelegationPrincipal: new iam.OrganizationPrincipal(ORGANIZATION)
+      zoneName: DOMAIN
     });
+    
+    const orgPrincipal = new iam.OrganizationPrincipal(ORGANIZATION);
+    hostedZone.grantDelegation(orgPrincipal);
 
     const certificate = new acm.Certificate(this, 'Certificate', {
       domainName: DOMAIN,

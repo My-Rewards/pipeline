@@ -22,12 +22,25 @@ import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as nodejs from 'aws-cdk-lib/aws-lambda-nodejs'
+import * as fs from 'fs';
+import * as path from 'path';
 
 export class UserPoolStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props: UserPoolStackProps) {
       super(scope, id, props);
 
       const usersTable = dynamodb.Table.fromTableArn(this, 'ImportedUsersTable', cdk.Fn.importValue('UserTableARN'));
+
+      const sesStatement = new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: [
+          'ses:SendEmail',
+          'ses:SendRawEmail'
+        ],
+        resources: ['*']
+      });      
+
+      const verifyEmailBody = fs.readFileSync(path.join(__dirname, '../../EmailTemplate/verify-email-template.html'),'utf8');
 
       const postConfirmationHandlerUser = new nodejs.NodejsFunction(this, "my-user-handler",{
         runtime: lambda.Runtime.NODEJS_20_X,
@@ -43,6 +56,7 @@ export class UserPoolStack extends cdk.Stack {
         }
       })
       usersTable.grantWriteData(postConfirmationHandlerUser);
+      postConfirmationHandlerUser.addToRolePolicy(sesStatement);
 
       const postConfirmationHandlerBusiness = new nodejs.NodejsFunction(this, "my-business-handler",{
         runtime: lambda.Runtime.NODEJS_20_X,
@@ -58,20 +72,13 @@ export class UserPoolStack extends cdk.Stack {
         }
       })
       usersTable.grantWriteData(postConfirmationHandlerBusiness);
-      postConfirmationHandlerBusiness.addToRolePolicy(
-        new iam.PolicyStatement({
-          actions: ['ses:SendEmail', 'ses:SendRawEmail'],
-          resources: ['*']
-        })
-      );
+      postConfirmationHandlerBusiness.addToRolePolicy(sesStatement);
 
       // userPool - Customers
       const userPool_Customer = new cognito.UserPool(this, 'userPool_Customer', {
         userPoolName: 'myRewardsUsers',
         selfSignUpEnabled: true,
-        signInAliases: {
-          email: true,
-        },
+        signInAliases: {email: true,},
         autoVerify: { email: true },
         standardAttributes: {
           email: { required: true, mutable: true },
@@ -90,66 +97,30 @@ export class UserPoolStack extends cdk.Stack {
         email: cognito.UserPoolEmail.withSES({
           sesRegion: props.env?.region || 'us-east-1',
           fromEmail: `no-reply@${props.authDomain}.${DOMAIN}`,
-          fromName: 'MyRewards Authentication',
+          fromName: 'MyRewards',
           sesVerifiedDomain: `${props.authDomain}.${DOMAIN}`,
         }),
         userVerification: {
           emailSubject: 'MyRewards Verification',
-          emailBody: `
-          <html>
-            <head>
-              <style>
-                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                .verification-section {
-                  margin: 20px 0;
-                  padding: 15px;
-                  border: 1px solid #ddd;
-                  border-radius: 4px;
-                }
-                .footer { margin-top: 20px; font-size: 12px; color: #666; }
-              </style>
-            </head>
-            <body>
-              <div class="container">
-                <h1>Welcome to MyRewards!</h1>
-                <p>Hello {given_name} {family_name},</p>
-                <p>Thank you for signing up. You can verify your email address using the code below:</p>
-    
-                <div class="verification-section">
-                  <p>Enter this code on the verification page:</p>
-                  <p style="text-align: center; font-size: 24px; font-weight: bold;">{####}</p>
-                </div>
-    
-                <p>The code will expire in 24 hours.</p>
-                
-                <div class="footer">
-                  <p>If you didn't create this account, please ignore this email.</p>
-                  <p>Best regards,<br>The MyRewards Team</p>
-                </div>
-              </div>
-            </body>
-          </html>
-        `,
+          emailBody: verifyEmailBody,
         emailStyle: cognito.VerificationEmailStyle.CODE, 
         },
         removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
       });
+
       
       // userPool - Business
       const userPool_Business = new cognito.UserPool(this, 'userPool_Business', {
         userPoolName: 'myRewardsBusiness',
         selfSignUpEnabled: true,
-        signInAliases: {
-          email: true,
-        },
-        autoVerify: { email: true },
+        signInAliases: {email: true,},
+        autoVerify:{email:true},
         standardAttributes: {
           email: { required: true, mutable: true },
           birthdate:{ required: false, mutable: true },
           givenName:{ required: true, mutable: true },
           familyName:{ required: true, mutable: true },
-      },
+        },
         customAttributes: {
           role: new cognito.StringAttribute({ mutable: true }),
           linked: new cognito.NumberAttribute({ mutable: true })
@@ -166,10 +137,12 @@ export class UserPoolStack extends cdk.Stack {
           sesRegion: props.env?.region || 'us-east-1',
           fromEmail: `no-reply@${props.authDomain}.${DOMAIN}`,
           fromName: 'MyRewards',
-          sesVerifiedDomain: `${props.authDomain}.${DOMAIN}`
+          sesVerifiedDomain: `${props.authDomain}.${DOMAIN}`,
         }),
         userVerification: {
-          emailSubject: 'MyRewards Business - Verify your email'
+          emailSubject: 'MyRewards Verification',
+          emailBody: verifyEmailBody,
+        emailStyle: cognito.VerificationEmailStyle.CODE, 
         },
         removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
       });

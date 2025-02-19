@@ -14,28 +14,31 @@ export class ShopApiStack extends cdk.NestedStack {
   constructor(scope: Construct, id: string, props: UsersApiStackProps) {
     super(scope, id, props);
 
-    const shopTable = dynamodb.Table.fromTableArn(this, 'ImportedShopTableARN', cdk.Fn.importValue('ShopTableARN'));
-    
-    const createShopLambda = new nodejs.NodejsFunction(this, "my-handler",{
+    const orgTable = dynamodb.Table.fromTableArn(this, 'ImportedOrganizationTableARN', cdk.Fn.importValue('OrganizationTableARN'));
+    const ImageDomain = cdk.Fn.importValue('ImageDomain');
+    const ImageBucketName = cdk.Fn.importValue('OrganizationImageBucket');
+
+    const createOrgLambda = new nodejs.NodejsFunction(this, "my-handler",{
       runtime: lambda.Runtime.NODEJS_20_X,
-      entry: 'lambda/shop/newShop.ts',
+      entry: 'lambda/organization/newOrganization.ts',
       handler: 'handler',
       environment: {
-        SHOPS_TABLE: shopTable.tableName,
-      },
+        TABLE_NAME: orgTable.tableName,
+        BUCKET_NAME: ImageBucketName,
+        CUSTOM_DOMAIN: ImageDomain,
+    },
       bundling: {
-        externalModules: ['aws-sdk'],
+        externalModules: ['aws-sdk', 'stripe'],
       },
     })
 
-    shopTable.grantReadData(createShopLambda);
+    orgTable.grantReadData(createOrgLambda);
 
-    // API Gateway integration
     const shopApi = props.api.root.addResource('shop'); 
 
-    const createShop = new apigateway.LambdaIntegration(createShopLambda);
+    const createOrg = new apigateway.LambdaIntegration(createOrgLambda);
 
-    shopApi.addMethod('POST', createShop, {
+    shopApi.addMethod('POST', createOrg, {
         authorizer: props.authorizer,
         authorizationType: apigateway.AuthorizationType.COGNITO,
     });

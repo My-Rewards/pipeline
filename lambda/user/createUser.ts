@@ -2,6 +2,8 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
 import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 import { PostConfirmationTriggerEvent } from 'aws-lambda';
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
 
 const client = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(client);
@@ -38,17 +40,23 @@ exports.handler = async (event:PostConfirmationTriggerEvent) => {
         };
 
         const params = {
-        TableName: tableName,
-        Item: userData,
-        ConditionExpression: 'attribute_not_exists(id)'
+            TableName: tableName,
+            Item: userData,
+            ConditionExpression: 'attribute_not_exists(id)'
         };
 
+        const emailHtmlPath = resolve(__dirname, 'EmailTemplate', 'welcome-email-customer.html');
+        const emailHtmlContent = readFileSync(emailHtmlPath, 'utf-8');
+
         const emailParams = {
-            Source: emailSender,
+            Source: `MyRewards <${emailSender}>`,
             Destination: { ToAddresses: [userAttributes.email] },
             Message: {
                 Subject: { Data: 'Welcome To MyRewards!' },
-                Body: { Text: { Data: 'Cheers to some Rewards!' } },
+                Body: {
+                    Html: { Data: emailHtmlContent },
+                    Text: { Data: 'Setup your account and link with Square if you haven’t! We have a feeling you’re going to like it here.' },
+                },
             },
         };
 

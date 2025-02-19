@@ -10,6 +10,8 @@ const dynamoDb = DynamoDBDocumentClient.from(client);
 
 exports.handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     const TABLE_NAME = process.env.TABLE_NAME || "";
+    const BUCKET_NAME = process.env.BUCKET_NAME || "";
+    const CUSTOM_DOMAIN = process.env.CUSTOM_DOMAIN || "";
 
     if (!event.body) {
         return {
@@ -19,21 +21,17 @@ exports.handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyRe
     }
 
     try {
-        const { 
-            user_id, 
-            org_name, 
-            description, 
-            rewards_roadmap, 
+        const {
+            user_id,
+            org_name,
+            description,
+            rewards_roadmap,
             rewards_expenditure,
             reward_planAvail,
             exp_rewardsAvail,
         } = JSON.parse(event.body);
 
-        const organization_id =  randomUUID();
-
-        const BUCKET_NAME = `${organization_id}-assets`;
-
-        await createS3Bucket(BUCKET_NAME);
+        const organization_id = randomUUID();
 
         if (!organization_id) {
             return {
@@ -43,33 +41,32 @@ exports.handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyRe
         }
 
         const fileKeys = [
-            `${organization_id}/logo`,
+            `${organization_id}/logo`,  
             `${organization_id}/preview`,
             `${organization_id}/banner`,
         ];
 
         const publicUrls = fileKeys.map(
-            (fileKey) => `https://${BUCKET_NAME}.s3.amazonaws.com/${fileKey}`
+            (fileKey) => `https://${CUSTOM_DOMAIN}/${fileKey}`
         );
 
-        const dynamoDbItem:PutCommandInput = {
+        const dynamoDbItem: PutCommandInput = {
             TableName: TABLE_NAME,
             Item: {
                 organization_id: organization_id,
-                owner_id:user_id,
+                owner_id: user_id,
                 date_registered: new Date().toISOString(),
                 org_name,
                 description,
-                available:false,
+                available: false,
                 images: {
                     logo: publicUrls[0],
                     preview: publicUrls[1],
                     banner: publicUrls[2],
-                }
+                },
             },
         };
-
-        dynamoDb.send(new PutCommand(dynamoDbItem));
+        await dynamoDb.send(new PutCommand(dynamoDbItem));
 
         const preSignedUrls = await Promise.all(
             fileKeys.map(async (fileKey) => {
@@ -91,51 +88,14 @@ exports.handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyRe
                 preSignedUrls,
             }),
         };
-
     } catch (error) {
         console.error("Error:", error);
         return {
             statusCode: 500,
             body: JSON.stringify({
-                message: "Error generating upload URLs",
+                message: "Error setting up organization",
                 error: error instanceof Error ? error.message : error,
             }),
         };
     }
 };
-
-const createS3Bucket = async (BUCKET_NAME:string) =>{
-    await s3.createBucket({ Bucket: BUCKET_NAME }).promise();
-  
-    const bucketPolicy = {
-      Version: "2012-10-17",
-      Statement: [
-        {
-          Sid: "PublicReadGetObject",
-          Effect: "Allow",
-          Principal: "*",
-          Action: "s3:GetObject",
-          Resource: `arn:aws:s3:::${BUCKET_NAME}/*`,
-        },
-      ],
-    };
-
-    await s3
-    .putBucketPolicy({
-      Bucket: BUCKET_NAME,
-      Policy: JSON.stringify(bucketPolicy),
-    })
-    .promise();
-
-    await s3
-    .putPublicAccessBlock({
-      Bucket: BUCKET_NAME,
-      PublicAccessBlockConfiguration: {
-        BlockPublicAcls: false,
-        IgnorePublicAcls: false,
-        BlockPublicPolicy: false,
-        RestrictPublicBuckets: false,
-      },
-    })
-    .promise();
-}
