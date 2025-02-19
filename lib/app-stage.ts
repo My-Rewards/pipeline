@@ -53,7 +53,7 @@ export class PipelineAppStage extends cdk.Stage {
       let dynamoDbProp = this.createDynamoProps(props, this.stageName);
       const dynamo_stack = new DynamoStack(this, 'Dynamo-Stack', dynamoDbProp);
 
-      let imageBucketProps = this.createImageBucketProps(props, this.stageName, imageDomain);
+      let imageBucketProps = this.createImageBucketProps(props, this.stageName, imageDomain, businessDomain);
       const imageBucket_stack = new ImageBucketStack(this, 'ImageBucket-Stack', imageBucketProps);
       imageBucket_stack.addDependency(hostedZone_stack);
 
@@ -71,7 +71,7 @@ export class PipelineAppStage extends cdk.Stage {
       let apiGatewayProps = this.createApiProps(props, this.stageName, apiDomain);
       const apiGateway_stack = new ApiGatewayStack(this, 'ApiGateway-Stack', apiGatewayProps);
       apiGateway_stack.addDependency(userPool_stack);
-      apiGateway_stack.addDependency(hostedZone_stack);
+      apiGateway_stack.addDependency(imageBucket_stack);
 
       let amplifyProp = this.createAmplifyProps(props, this.stageName);
       const amplify_stack = new AmplifyStack(this, 'Amplify-Stack', amplifyProp);
@@ -126,14 +126,16 @@ export class PipelineAppStage extends cdk.Stage {
     }
   }
 
-  createImageBucketProps(props:StageProps, stage:string, imageDomain:string):ImageBucketProps{
+  createImageBucketProps(props:StageProps, stage:string, imageDomain:string, businessDomain:string):ImageBucketProps{
     return{
         env: {
             account: props.env?.account,
             region: props.env?.region
         },
         stageName: stage,
-        subDomain:imageDomain
+        imageDomain,
+        businessDomain
+
     }
   }
 

@@ -48,7 +48,8 @@ export interface AppConfigStackProps extends cdk.StackProps {
 
 export interface ImageBucketProps extends cdk.StackProps {
   stageName: string;
-  subDomain: string;
+  imageDomain: string;
+  businessDomain: string;
 }
 
 export interface WebsiteStackProps extends cdk.StackProps {

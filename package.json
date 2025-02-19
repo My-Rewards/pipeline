@@ -39,6 +39,7 @@
     "cdk-assets": "^2.155.106",
     "constructs": "^10.0.0",
     "source-map-support": "^0.5.21",
-    "square": "^40.0.0"
+    "square": "^40.0.0",
+    "stripe": "^17.6.0"
   }
 }
