@@ -8,8 +8,8 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 export class FargateStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
-    const repository = new ecr.Repository(this, 'PipelineRepo', {
-        repositoryName: 'pipeline-repo',
+    const repository = new ecr.Repository(this, 'CentralRepo', {
+        repositoryName: 'central-repo',
         removalPolicy: cdk.RemovalPolicy.RETAIN,
       });
   

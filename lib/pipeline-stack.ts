@@ -72,8 +72,7 @@ export class PipelineStack extends cdk.Stack {
           triggerOnPush: true,
         }),
         commands: [
-          'npm ci',
-          'npm run build',
+          './pull.sh',
           'npx cdk synth'
         ],
       })
