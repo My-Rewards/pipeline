@@ -1,56 +1,50 @@
 import * as cdk from 'aws-cdk-lib';
+import { Construct } from 'constructs';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as ecr from 'aws-cdk-lib/aws-ecr';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 
-export class CdkPipelineStack extends cdk.Stack {
-  constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
+export class FargateStack extends cdk.Stack {
+  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
-    const repository = new ecr.Repository(this, 'CdkPipelineRepo', {
-        repositoryName: 'cdk-pipeline-repo',
-        removalPolicy: cdk.RemovalPolicy.RETAIN, // Keep the repository even if the stack is deleted
+    const repository = new ecr.Repository(this, 'PipelineRepo', {
+        repositoryName: 'pipeline-repo',
+        removalPolicy: cdk.RemovalPolicy.RETAIN,
       });
   
-      // Create a VPC for the ECS cluster
       const vpc = new ec2.Vpc(this, 'CdkPipelineVpc', {
-        maxAzs: 2 // Deploy across 2 Availability Zones
+        maxAzs: 2
       });
   
-      // Create an ECS Cluster
-      const cluster = new ecs.Cluster(this, 'CdkPipelineCluster', {
+      const cluster = new ecs.Cluster(this, 'PipelineCluster', {
         vpc: vpc
       });
   
-      // Define an IAM Role for the ECS Task Execution
-      const executionRole = new iam.Role(this, 'CdkPipelineExecutionRole', {
+      const executionRole = new iam.Role(this, 'EcsExecutionRole', {
         assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
         managedPolicies: [
           iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AmazonECSTaskExecutionRolePolicy')
         ]
       });
   
-      // Define the ECS Task Definition for Fargate
-      const taskDefinition = new ecs.FargateTaskDefinition(this, 'CdkPipelineTaskDefinition', {
-        memoryLimitMiB: 1024, // 1 GB RAM
-        cpu: 512, // 0.5 vCPU
+      const taskDefinition = new ecs.FargateTaskDefinition(this, 'PipelineTaskDefinition', {
+        memoryLimitMiB: 1024,
+        cpu: 512,
         executionRole: executionRole
       });
   
-      // Add a container to the task definition
-      const container = taskDefinition.addContainer('CdkPipelineContainer', {
+      const container = taskDefinition.addContainer('PipelineContainer', {
         image: ecs.ContainerImage.fromEcrRepository(repository, 'latest'),
         logging: ecs.LogDrivers.awsLogs({ streamPrefix: 'cdk-pipeline' }),
       });
   
-      // Define a Fargate Service to run the task
-      new ecs.FargateService(this, 'CdkPipelineService', {
+      new ecs.FargateService(this, 'FargatePipelineService', {
         cluster,
         taskDefinition,
-        desiredCount: 0, // No containers running by default, only triggered on demand
+        desiredCount: 0,
       });
   
-      // Output the ECR repository URI for reference
       new cdk.CfnOutput(this, 'EcrRepoUri', {
         value: repository.repositoryUri,
         description: 'ECR repository URI for storing the CDK pipeline container'

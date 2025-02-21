@@ -1,13 +1,13 @@
-FROM amazon/aws-cli:latest
-
-RUN npm install -g aws-cdk
+FROM node:20-alpine
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
+RUN npm install -g aws-cdk typescript
 
-RUN npm install
+COPY package*.json ./
 
-COPY . . 
+RUN npm ci
 
-ENTRYPOINT ["cdk"]
+COPY . .
+
+CMD ["tail", "-f", "/dev/null"]

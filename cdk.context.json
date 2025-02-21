@@ -6,5 +6,21 @@
   "hosted-zone:account=050451385382:domainName=beta.business.myrewards.website:region=us-east-1": {
     "Id": "/hostedzone/Z07188782GYXEXVEVQEKI",
     "Name": "beta.business.myrewards.website."
-  }
+  },
+  "availability-zones:account=050451385382:region=us-east-1": [
+    "us-east-1a",
+    "us-east-1b",
+    "us-east-1c",
+    "us-east-1d",
+    "us-east-1e",
+    "us-east-1f"
+  ],
+  "availability-zones:account=396608803858:region=us-east-1": [
+    "us-east-1a",
+    "us-east-1b",
+    "us-east-1c",
+    "us-east-1d",
+    "us-east-1e",
+    "us-east-1f"
+  ]
 }

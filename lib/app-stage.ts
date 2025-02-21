@@ -19,7 +19,7 @@ import {
   UserPoolStackProps, 
   WebsiteStackProps,
   BusinessWebsiteStackProps,
-  ImageBucketProps
+  ImageBucketProps,
 } from '../global/props';
 import { HostedZoneStack } from './Stacks/hostedZone-stack';
 import { AppConfigStack } from './Stacks/appConfigStack';
