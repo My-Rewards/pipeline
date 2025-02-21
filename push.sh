@@ -8,11 +8,10 @@ ECR_URL="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME}"
 
 aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_URL
 
-docker pull $ECR_URL:latest
+docker build -t $ECR_REPO_NAME .
 
-docker stop my-cdk-container || true
-docker rm my-cdk-container || true
+docker tag $ECR_REPO_NAME:latest $ECR_URL:latest
+docker push $ECR_URL:latest
 
-docker run -d --name my-cdk-container -v $(pwd):/app $ECR_URL:latest
+echo "Image pushed successfully to $ECR_URL:latest"
 
-echo "✅ Container started successfully from $ECR_URL:latest"
