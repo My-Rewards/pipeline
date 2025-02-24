@@ -108,7 +108,6 @@ export class UserPoolStack extends cdk.Stack {
         removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
       });
 
-      
       // userPool - Business
       const userPool_Business = new cognito.UserPool(this, 'userPool_Business', {
         userPoolName: 'myRewardsBusiness',
@@ -169,30 +168,6 @@ export class UserPoolStack extends cdk.Stack {
         removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
       });
       
-      // cognito Domain - Customer
-      const cognitoDomain_Customer = new cognito.UserPoolDomain(this, 'CognitoDomain_Customer', {
-          userPool:userPool_Customer,
-          cognitoDomain: {
-            domainPrefix: `${props.stageName}-customer`,
-          },
-      });
-
-      // cognito Domain - Business
-      const cognitoDomain_Business = new cognito.UserPoolDomain(this, 'CognitoDomain_Business', {
-        userPool:userPool_Business,
-        cognitoDomain: {
-          domainPrefix: `${props.stageName}-business`,
-        },
-      });
-
-      // cognito Domain - Admin
-      const cognitoDomain_Admin = new cognito.UserPoolDomain(this, 'CognitoDomain_Admin', {
-        userPool:userPool_Admin,
-        cognitoDomain: {
-          domainPrefix: `${props.stageName}-admin`,
-        },
-      });
-
       // userPool Client - Customers
       const userPoolClient_Customer = new cognito.UserPoolClient(this, 'userPoolClient_Customer', {
           userPoolClientName:`${props.stageName}-mobileUserPoolClient`,
@@ -439,27 +414,6 @@ export class UserPoolStack extends cdk.Stack {
         hostedZoneId: hostedZoneIdAuth,
         zoneName: `${props.authDomain}.${DOMAIN}`,
       });
-      
-      const aRecord = new route53.ARecord(this, `${props.stageName}-AuthARecord-Parent`, {
-        zone: hostedZoneAuth,
-        target: route53.RecordTarget.fromAlias(new targets.UserPoolDomainTarget(cognitoDomain_Customer)),
-        deleteExisting: true,
-      });
-      const aRecordUser = new route53.ARecord(this, `${props.stageName}-User-AuthARecord`, {
-        zone: hostedZoneAuth,
-        recordName:'user',
-        target: route53.RecordTarget.fromAlias(new targets.UserPoolDomainTarget(cognitoDomain_Customer)),
-        deleteExisting: true,
-      });
-      const aRecordBusiness = new route53.ARecord(this, `${props.stageName}-Business-AuthARecord`, {
-        zone: hostedZoneAuth,
-        recordName:'business',
-        target: route53.RecordTarget.fromAlias(new targets.UserPoolDomainTarget(cognitoDomain_Business)),
-        deleteExisting: true,
-      });
-
-      aRecordUser.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE);
-      aRecordBusiness.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE);
 
       const certificateAuth = new acm.Certificate(this, 'AuthCertificate', {
         domainName: `${props.authDomain}.${DOMAIN}`,
@@ -482,12 +436,6 @@ export class UserPoolStack extends cdk.Stack {
           certificate: certificateAuth
         },
       });
-
-      cognitoDomainUser.node.addDependency(aRecord)
-      cognitoDomainUser.node.addDependency(aRecordUser)
-      cognitoDomainBusiness.node.addDependency(aRecord)
-      cognitoDomainBusiness.node.addDependency(aRecordBusiness)
-
 
       // ----- UserPools ------
       new cdk.CfnOutput(this, UPC_CUSTOMER, {

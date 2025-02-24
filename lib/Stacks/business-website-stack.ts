@@ -1,4 +1,3 @@
-import { version } from './../../node_modules/@types/babel__core/index.d';
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { BusinessWebsiteStackProps } from '../../global/props';
