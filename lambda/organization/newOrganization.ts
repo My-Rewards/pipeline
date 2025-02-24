@@ -31,28 +31,26 @@ const getStripeSecret = async (): Promise<string | null> => {
     }
 
     const secret = JSON.parse(data.SecretString);
-    return secret.key;
+    return secret.secretKey;
 };
 
 const getUserEmailFromDynamoDB = async (userId: string): Promise<string | null> => {
     try {
         const params: GetCommandInput = {
             TableName: process.env.USER_TABLE,
-            Key: { user_id: userId },
+            Key: { id: userId },
             ProjectionExpression: "email",
         };
         const response = await dynamoDb.send(new GetCommand(params));
 
         if (!response || !response.Item) {
-            console.error(`User not found in DynamoDB for user_id: ${userId}`);
-            return null;
+            throw new Error(`User not found in DynamoDB for user_id: ${userId}`);
         }
 
         return response.Item.email || null;
         
     } catch (error) {
-        console.error("Error fetching user email from DynamoDB:", error);
-        return null;
+        throw new Error(`Error fetching user email from DynamoDB: ${error}`);
     }
 };
 
@@ -137,13 +135,14 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const dynamoDbItem:PutCommandInput = {
             TableName: process.env.ORG_TABLE,
             Item: {
-                organization_id,
+                id:organization_id,
                 owner_id: user_id,
                 stripe_id: stripeCustomer.id,
                 date_registered: new Date().toISOString(),
                 lastUpdate: new Date().toISOString(),
                 rewards_loyalty,
                 rewards_milestone,
+                payment_setup:false,
                 org_name,
                 description,
                 rl_active,

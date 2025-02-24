@@ -13,7 +13,7 @@ export class BusinessWebsiteStack extends cdk.Stack {
         const githubToken = cdk.SecretValue.secretsManager('github-token');
 
         const stripeData = cdk.aws_secretsmanager.Secret.fromSecretNameV2(this, 'fetchStripeCredentials', 'stripe/credentials');
-        const stripe_key = stripeData.secretValueFromJson('key')
+        const stripe_key = stripeData.secretValueFromJson('secretKey')
     
         const squareData = cdk.aws_secretsmanager.Secret.fromSecretNameV2(this, 'fetchSquareCredentials', 'square/credentials');
         const square_clientId = squareData.secretValueFromJson('client_id')

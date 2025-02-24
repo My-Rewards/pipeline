@@ -27,6 +27,7 @@ export class OrgApiStack extends cdk.NestedStack {
     const createOrgLambda = new nodejs.NodejsFunction(this, "my-handler",{
       runtime: lambda.Runtime.NODEJS_20_X,
       entry: 'lambda/organization/newOrganization.ts',
+      timeout:cdk.Duration.seconds(5),
       handler: 'handler',
       environment: {
         ORG_TABLE: orgTable.tableName,
@@ -36,18 +37,21 @@ export class OrgApiStack extends cdk.NestedStack {
         STRIPE_ARN: stripeData.secretArn
     },
       bundling: {
-        externalModules: ['aws-sdk', 'stripe'],
+        externalModules: ['aws-sdk'],
+        nodeModules: ['stripe'],
       },
     })
 
-    orgTable.grantReadData(createOrgLambda);
+    userTable.grantReadWriteData(createOrgLambda);
+    orgTable.grantReadWriteData(createOrgLambda);
     stripeData.grantRead(createOrgLambda)
 
-    const orgApi = props.api.root.addResource('shop'); 
+    const orgApi = props.api.root.addResource('orgs'); 
+    const createOrg = orgApi.addResource('create'); 
 
-    const createOrg = new apigateway.LambdaIntegration(createOrgLambda);
+    const createOrgMethod = new apigateway.LambdaIntegration(createOrgLambda);
 
-    orgApi.addMethod('POST', createOrg, {
+    createOrg.addMethod('POST', createOrgMethod, {
         authorizer: props.authorizer,
         authorizationType: apigateway.AuthorizationType.COGNITO,
     });
