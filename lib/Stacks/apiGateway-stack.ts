@@ -12,6 +12,7 @@ import * as kms from 'aws-cdk-lib/aws-kms';
 import * as targets from 'aws-cdk-lib/aws-route53-targets';
 import { BusinessApiStack } from './APIs/BusinessApiStack';
 import { OrgApiStack } from './APIs/OrganizationApiStack';
+import { ShopApiStack } from './APIs/ShopsApiStack';
 
 export class ApiGatewayStack extends cdk.Stack {
   public readonly encryptionKey: kms.Key;
@@ -96,6 +97,14 @@ export class ApiGatewayStack extends cdk.Stack {
       authorizer:authorizerBizz,
       encryptionKey:this.encryptionKey,
     });
+
+    new ShopApiStack(this, 'OrgApiStack', {
+      api: api,
+      authorizer:authorizerBizz,
+      encryptionKey:this.encryptionKey,
+    });
+
+
 
 
     // Additional API resources (e.g., Shops, Organizations) can follow the same pattern

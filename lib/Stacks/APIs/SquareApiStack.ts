@@ -46,21 +46,47 @@ export class SquareApiStack extends cdk.NestedStack {
       timeout: cdk.Duration.seconds(10),
     })
 
-    // Grant permissions
     usersTable.grantReadData(setupSquareLambda);
     usersTable.grantWriteData(setupSquareLambda);
     props.encryptionKey.grantEncryptDecrypt(setupSquareLambda);
 
-    // API Gateway integration
+    const listMerchantsLambda = new nodejs.NodejsFunction(this, "my-handler",{
+      runtime: lambda.Runtime.NODEJS_20_X,
+      entry: 'lambda/square/listMerchants.ts',
+      handler: 'handler',
+      environment: {
+        USERS_TABLE: usersTable.tableName,
+        SQUARE_CLIENT:client_id,
+        SQUARE_SECRET:client_secret,
+        KMS_KEY_ID: props.encryptionKey.keyId,
+        ENV:props.stage
+      },
+      bundling: {
+        externalModules: ['aws-sdk'],
+        nodeModules: ['square'],
+      },
+      timeout: cdk.Duration.seconds(10),
+    })
+
+    usersTable.grantReadData(listMerchantsLambda);
+    usersTable.grantWriteData(listMerchantsLambda);
+    props.encryptionKey.grantEncryptDecrypt(listMerchantsLambda);
+
     const squareApi = props.api.root.addResource('square'); 
     const connectApi = squareApi.api.root.addResource('connect'); 
+    const listMerchants = squareApi.api.root.addResource('listMerchants'); 
 
-    // Lambda Functions
     const setupLambdaIntegration = new apigateway.LambdaIntegration(setupSquareLambda);
+    const merchantsLambdaIntegration = new apigateway.LambdaIntegration(listMerchantsLambda);
 
     connectApi.addMethod('POST', setupLambdaIntegration, {
-        authorizer: props.authorizer,
-        authorizationType: apigateway.AuthorizationType.COGNITO,
+      authorizer: props.authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO,
+    });
+
+    listMerchants.addMethod('GET', merchantsLambdaIntegration, {
+      authorizer: props.authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO,
     });
   }
 }

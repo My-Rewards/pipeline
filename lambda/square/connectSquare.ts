@@ -1,14 +1,21 @@
-import { TimeoutInSeconds } from './../../node_modules/aws-sdk/clients/stepfunctions.d';
 import * as square from 'square';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, UpdateCommand, UpdateCommandInput } from '@aws-sdk/lib-dynamodb';
 import { KMSClient, EncryptCommand } from '@aws-sdk/client-kms';
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 
 const client = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(client);
 const kmsClient = new KMSClient({});
 
-export const handler = async (event: any) => {
+export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+  if (!event.body) {
+    return {
+        statusCode: 400,
+        body: JSON.stringify({ error: "Request body is required" }),
+    };
+  }
+
   const { authCode, userSub } = JSON.parse(event.body);
   
   const tableName = process.env.USERS_TABLE;

@@ -28,51 +28,19 @@ export class BusinessApiStack extends cdk.NestedStack {
       bundling: {
         externalModules: ['aws-sdk'],
       },
-    })
-
-    const bizzUserPoolId = cdk.Fn.importValue(UP_BUSINESS_ID);
-    
-    const setLinked = new nodejs.NodejsFunction(this, "my-handler-linking",{
-      runtime: lambda.Runtime.NODEJS_20_X,
-      entry: 'lambda/user/linked.ts',
-      handler: 'handler',
-      environment: {
-        USERS_TABLE: usersTable.tableName,
-        USERPOOL_ID: bizzUserPoolId
-      },
-      bundling: {
-        externalModules: ['aws-sdk'],
-      },
-    })
+    })  
 
     usersTable.grantReadData(getUserLambda);
-    setLinked.addToRolePolicy(new iam.PolicyStatement({
-      actions: [
-        'cognito-idp:AdminUpdateUserAttributes',
-        'cognito-idp:AdminAddUserToGroup',
-        'cognito-idp:AdminRemoveUserFromGroup',
-        'cognito-idp:AdminDisableUser',
-        'cognito-idp:AdminEnableUser',
-      ],
-      resources: [`arn:aws:cognito-idp:${this.region}:${this.account}:userpool/${bizzUserPoolId}`],
-    }));
 
     // API Gateway integration
     const businessapi = props.api.root.addResource('business'); 
     const usersApi = businessapi.addResource('user'); 
-    const linkedApi = usersApi.addResource('linked'); 
 
     const getUserIntegration = new apigateway.LambdaIntegration(getUserLambda);
-    const setLinkedIntegration = new apigateway.LambdaIntegration(setLinked);
 
     usersApi.addMethod('GET', getUserIntegration, {
         authorizer: props.authorizer,
         authorizationType: apigateway.AuthorizationType.COGNITO,
     });
-
-    linkedApi.addMethod('POST', setLinkedIntegration, {
-      authorizer: props.authorizer,
-      authorizationType: apigateway.AuthorizationType.COGNITO,
-    });  
   }
 }
