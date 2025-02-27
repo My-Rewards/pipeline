@@ -40,7 +40,6 @@ export class DynamoStack extends cdk.Stack {
       indexName: "OrgIndex",
       partitionKey: { name: "org_id", type: aws_dynamodb.AttributeType.STRING },
       projectionType: aws_dynamodb.ProjectionType.ALL,
-      sortKey:{name:'name', type:aws_dynamodb.AttributeType.STRING}
     });
 
     // plans Table
