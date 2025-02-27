@@ -1,9 +1,10 @@
-import { handler } from "../lambda/organization/newOrganization";
+import { handler } from "../../../lambda/organization/newOrganization";
 import { SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
-import { GetCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
+import { GetCommand, PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import Stripe from "stripe";
+import { APIGatewayProxyEvent } from "aws-lambda";
 
 jest.mock("@aws-sdk/client-secrets-manager");
 jest.mock("@aws-sdk/client-s3");
@@ -17,9 +18,7 @@ jest.mock('stripe', () => {
                 currency: "sgd",
                 description: "Jest User Account created",
             }),
-            retrieve: jest.fn().mockResolvedValue({
-                id: "cust_123",
-            }),
+
         },
     };
 
@@ -43,17 +42,17 @@ jest.mock("@aws-sdk/lib-dynamodb", () => {
             from: jest.fn().mockReturnValue({
                 send: jest.fn(async (command) => {
                     if (command instanceof GetCommand) {
-                        if (command.input.Key?.user_id === "test-user-123") {
-                            return {
-                                Item: {
-                                    user_id: "test-user-123",
-                                    email: "test@example.com"
-                                }
-                            };
-                        }
-                        return { Item: null };
+                        return {
+                            Item: {
+                                user_id: "test-user-123",
+                                email: "test@example.com"
+                            }
+                        };
                     }
                     if (command instanceof PutCommand) {
+                        return {};
+                    }
+                    if (command instanceof UpdateCommand) {
                         return {};
                     }
                     throw new Error("Unknown command");
@@ -75,7 +74,7 @@ describe("Organization Lambda Handler", () => {
         process.env.STRIPE_ARN = "mock_stripe_arn";
 
         (SecretsManagerClient.prototype.send as jest.Mock).mockImplementation(() => ({
-            SecretString: JSON.stringify({ key: "test_stripe_secret" })
+            SecretString: JSON.stringify({ secretKey: "test_stripe_secret" })
         }));
 
         (S3Client.prototype.send as jest.Mock).mockImplementation(mockS3Send);
@@ -88,10 +87,10 @@ describe("Organization Lambda Handler", () => {
         jest.clearAllMocks();
     });
 
-    it("should successfully create a new organization", async () => {
+    test("should successfully create a new organization", async () => {
         const testEvent = {
             body: JSON.stringify({
-                user_id: "test-user-123",
+                userSub: "test-user-123",
                 org_name: "Test Organization",
                 description: "Test Description",
                 rewards_loyalty: true,
@@ -104,7 +103,7 @@ describe("Organization Lambda Handler", () => {
         const stripe = new Stripe("test_secret_key", { apiVersion: "2025-01-27.acacia" });
 
         const { randomUUID } = require('crypto');
-        const response = await handler(testEvent as any);
+        const response = await handler(testEvent as APIGatewayProxyEvent);
         const responseBody = JSON.parse(response.body);
 
         expect(randomUUID).toHaveBeenCalled();;
@@ -123,22 +122,22 @@ describe("Organization Lambda Handler", () => {
 
     });
 
-    it("should handle user not found in DynamoDB", async () => {
+    test("should handle user not found in DynamoDB", async () => {
         const testEvent = {
             body: JSON.stringify({
-                user_id: null,
+                userSub: null,
                 org_name: "Test Organization",
                 description: "Test Description"
             })
         };
 
-        const response = await handler(testEvent as any);
+        const response = await handler(testEvent as APIGatewayProxyEvent);
         
         expect(response.statusCode).toBe(400);
         expect(JSON.parse(response.body)).toHaveProperty("error", "User ID is required");
     });
 
-    it("should handle missing user_id", async () => {
+    test("should handle missing user_id", async () => {
         const testEvent = {
             body: JSON.stringify({
                 org_name: "Test Organization",
@@ -146,14 +145,14 @@ describe("Organization Lambda Handler", () => {
             })
         };
 
-        const response = await handler(testEvent as any);
+        const response = await handler(testEvent as APIGatewayProxyEvent);
         
         expect(response.statusCode).toBe(400);
         expect(JSON.parse(response.body)).toHaveProperty("error", "User ID is required");
     });
 
-    it("should handle missing request body", async () => {
-        const response = await handler({} as any);
+    test("should handle missing request body", async () => {
+        const response = await handler({} as APIGatewayProxyEvent);
         
         expect(response.statusCode).toBe(400);
         expect(JSON.parse(response.body)).toHaveProperty("error", "Request body is required");

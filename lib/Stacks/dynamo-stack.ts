@@ -15,6 +15,11 @@ export class DynamoStack extends cdk.Stack {
       billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
     });
+    userTable.addGlobalSecondaryIndex({
+      indexName: "OrgIndex",
+      partitionKey: { name: "org_id", type: aws_dynamodb.AttributeType.STRING },
+      projectionType: aws_dynamodb.ProjectionType.ALL, 
+    });
 
     // business Table
     const organizationTable = new aws_dynamodb.Table(this, 'OrganizationTable', {
@@ -30,6 +35,12 @@ export class DynamoStack extends cdk.Stack {
       tableName: `Shops`,
       billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
+    });
+    shopTable.addGlobalSecondaryIndex({
+      indexName: "OrgIndex",
+      partitionKey: { name: "org_id", type: aws_dynamodb.AttributeType.STRING },
+      projectionType: aws_dynamodb.ProjectionType.ALL,
+      sortKey:{name:'name', type:aws_dynamodb.AttributeType.STRING}
     });
 
     // plans Table

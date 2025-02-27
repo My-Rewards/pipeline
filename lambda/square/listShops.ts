@@ -10,19 +10,18 @@ const secretsManager = new SecretsManagerClient({ region: process.env.AWS_REGION
 const dynamoClient = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
 
-const requiredEnvVars = [
-    "APP_ENV",
-    "USER_TABLE",
-    "KMS_KEY_ID"
-];
-
-async function decryptKMS(encryptedBase64:String) {
+async function decryptKMS(encryptedBase64:String, kmsKey:string) {
     try {
         const encryptedBuffer = Buffer.from(encryptedBase64, "base64");
-        const command = new DecryptCommand({ CiphertextBlob: encryptedBuffer });
+
+        const command = new DecryptCommand({
+            CiphertextBlob: encryptedBuffer,
+            KeyId: kmsKey
+        });
+        
         const { Plaintext } = await kms.send(command);
         const decryptedString = new TextDecoder().decode(Plaintext);
-
+        console.log("Decrypted value:", decryptedString);
         return decryptedString;
 
     } catch (error) {
@@ -36,40 +35,39 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         return { statusCode: 400, body: JSON.stringify({ error: "Missing owner_id query parameter" }) };
     }
 
-    requiredEnvVars.forEach((envVar) => {
-        if (!process.env[envVar]) {
-            throw new Error(`Missing required environment variable: ${envVar}`);
-        }
-    });
+    const userTable = process.env.USER_TABLE;
+    const appEnv = process.env.APP_ENV;
+    const kmsKey = process.env.KMS_KEY_ID
+
+    switch(true){
+        case !userTable: return { statusCode: 500, body: JSON.stringify({ error: "User Table Missing" }) };
+        case !appEnv: return { statusCode: 500, body: JSON.stringify({ error: "APP Env Missing" }) };
+        case !kmsKey: return { statusCode: 500, body: JSON.stringify({ error: "KMS key Missing" }) };
+    }
 
     const user_id = event.queryStringParameters.owner_id;
 
     try {
         const params: GetCommandInput = {
-            TableName: process.env.USER_TABLE,
+            TableName: userTable,
             Key: { id: user_id },
             ProjectionExpression: "accessToken",
         };
         const response = await dynamoDb.send(new GetCommand(params));
 
-        const squareAccessToken = await decryptKMS(response.Item?.accessToken);
+        const squareAccessToken = await decryptKMS(response.Item?.accessToken, kmsKey);
 
         const client = new square.SquareClient({
-            environment: process.env.APP_ENV === 'prod'? square.SquareEnvironment.Production : square.SquareEnvironment.Sandbox,
-            version:'2025-01-23',
+            environment: appEnv === 'prod'? square.SquareEnvironment.Production : square.SquareEnvironment.Sandbox,
             token:squareAccessToken
 
         });
 
-        const merchants = client.merchants.list();
-
-        if (!merchants) {
-            return { statusCode: 404, body: JSON.stringify({ error: "No merchants found" }) };
-        }
+        const shops = client.locations.list();
 
         return {
             statusCode: 200,
-            body: JSON.stringify({ merchants })
+            body: JSON.stringify({ shops })
         };
     } catch (error) {
         console.error("Error fetching Square merchants:", error);

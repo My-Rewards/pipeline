@@ -103,7 +103,7 @@ export class UserPoolStack extends cdk.Stack {
         userVerification: {
           emailSubject: 'MyRewards Verification',
           emailBody: verifyEmailBody,
-        emailStyle: cognito.VerificationEmailStyle.CODE, 
+          emailStyle: cognito.VerificationEmailStyle.CODE, 
         },
         removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
       });
@@ -125,9 +125,9 @@ export class UserPoolStack extends cdk.Stack {
           linked: new cognito.NumberAttribute({ mutable: true })
         },
         passwordPolicy: {
-            minLength: 8,
-            requireLowercase: true,
-            requireUppercase: true,
+          minLength: 8,
+          requireLowercase: true,
+          requireUppercase: true,
         },
         lambdaTriggers:{
           postConfirmation: postConfirmationHandlerBusiness,
@@ -141,7 +141,7 @@ export class UserPoolStack extends cdk.Stack {
         userVerification: {
           emailSubject: 'MyRewards Verification',
           emailBody: verifyEmailBody,
-        emailStyle: cognito.VerificationEmailStyle.CODE, 
+          emailStyle: cognito.VerificationEmailStyle.CODE, 
         },
         removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
       });

@@ -1,12 +1,10 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand, PutCommandInput, GetCommand, GetCommandInput } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, PutCommand, PutCommandInput, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { randomUUID } from "crypto";
 
 const client = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(client);
-
-const requiredEnvVars = ["SHOP_TABLE", "USER_TABLE", "ORG_TABLE"];
 
 exports.handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     if (!event.body) {
@@ -16,28 +14,27 @@ exports.handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyRe
         };
     }
 
-    requiredEnvVars.forEach((envVar) => {
-        if (!process.env[envVar]) {
-            throw new Error(`Missing required environment variable: ${envVar}`);
-        }
-    });
+    const shopTable = process.env.SHOP_TABLE;
+    const userTable = process.env.USER_TABLE;
+    const orgTable = process.env.ORG_TABLE;
 
     try {
-        const { organization_id, square_id, latitude, longitude, shop_hours } = JSON.parse(event.body);
+        const { 
+            org_id, square_id, latitude, longitude, shop_hours } = JSON.parse(event.body);
 
-        if (!organization_id || !square_id || !latitude || !longitude  || !shop_hours) {
+        if (!org_id || !square_id || !latitude || !longitude  || !shop_hours) {
             return {
                 statusCode: 400,
                 body: JSON.stringify({ error: "Missing required fields" })
             };
         }
 
-        const checkOrgParams: GetCommandInput = {
-            TableName: process.env.ORG_TABLE!,
-            Key: { organization_id }
-        };
+        const getOrg = new GetCommand({
+            TableName: orgTable,
+            Key: { org_id }
+        });
 
-        const orgResult = await dynamoDb.send(new GetCommand(checkOrgParams));
+        const orgResult = await dynamoDb.send(getOrg);
 
         if (!orgResult.Item) {
             return {
@@ -49,10 +46,10 @@ exports.handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyRe
         const shopId = randomUUID();
 
         const shopAttributes: PutCommandInput = {
-            TableName: process.env.SHOPS_TABLE!,
+            TableName: shopTable,
             Item: {
                 id: shopId,
-                organization_id,
+                org_id,
                 square_id,
                 latitude,
                 longitude,

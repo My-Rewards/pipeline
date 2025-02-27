@@ -89,23 +89,19 @@ export class ApiGatewayStack extends cdk.Stack {
       api: api,
       authorizer:authorizerBizz,
       encryptionKey:this.encryptionKey,
-      stage:props.stageName!
+      stage:props.stageName
     });
 
     new OrgApiStack(this, 'OrgApiStack', {
       api: api,
       authorizer:authorizerBizz,
-      encryptionKey:this.encryptionKey,
     });
 
-    new ShopApiStack(this, 'OrgApiStack', {
+    new ShopApiStack(this, 'ShopApiStack', {
       api: api,
       authorizer:authorizerBizz,
       encryptionKey:this.encryptionKey,
     });
-
-
-
 
     // Additional API resources (e.g., Shops, Organizations) can follow the same pattern
   }

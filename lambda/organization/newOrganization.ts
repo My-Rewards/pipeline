@@ -1,34 +1,22 @@
 import { SecretsManagerClient, GetSecretValueCommand} from "@aws-sdk/client-secrets-manager"
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { randomUUID } from "crypto";
-import { DynamoDBDocumentClient, GetCommand, GetCommandInput, PutCommand, PutCommandInput } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, GetCommand, GetCommandInput, PutCommand, PutCommandInput, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import Stripe from "stripe";
-import { S3Client, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import * as square from 'square';
-import { DecryptCommand, KMSClient } from "@aws-sdk/client-kms";
+import { OrganizationProps } from "../Interfaces";
 
-// AWS Clients
 const secretClient = new SecretsManagerClient({ region: "us-east-1" });
 const s3 = new S3Client({ region: "us-east-1" });
 const dynamoClient = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
-const kms = new KMSClient({ region: "us-east-1" });
-
-
-const requiredEnvVars = [
-    "ORG_TABLE",
-    "USER_TABLE",
-    "BUCKET_NAME",
-    "IMAGE_DOMAIN",
-    "STRIPE_ARN"
-];
 
 let cachedStripeKey: string | null; 
 
-const getStripeSecret = async (): Promise<string | null> => {
-    const data = await secretClient.send(new GetSecretValueCommand({ SecretId: process.env.STRIPE_ARN }));
+const getStripeSecret = async (stripeArn:string): Promise<string | null> => {
+    const data = await secretClient.send(new GetSecretValueCommand({ SecretId: stripeArn }));
 
     if (!data.SecretString) {
         throw new Error("Stripe key not found in Secrets Manager.");
@@ -38,36 +26,34 @@ const getStripeSecret = async (): Promise<string | null> => {
     return secret.secretKey;
 };
 
-const getUserEmailFromDynamoDB = async (userId: string): Promise<string | null> => {
+const getUserEmailFromDynamoDB = async (userId: string, userTable:string): Promise<string | null> => {
     try {
-        const params: GetCommandInput = {
-            TableName: process.env.USER_TABLE,
+        const params = new GetCommand({
+            TableName: userTable,
             Key: { id: userId },
             ProjectionExpression: "email",
-        };
-        const response = await dynamoDb.send(new GetCommand(params));
+        });
+        const response = await dynamoDb.send(params);
 
         if (!response || !response.Item) {
-            throw new Error(`User not found in DynamoDB for user_id: ${userId}`);
+            return null;
         }
 
         return response.Item.email || null;
         
     } catch (error) {
-        throw new Error(`Error fetching user email from DynamoDB: ${error}`);
+        return null;
     }
 };
 
-// Function to generate pre-signed URL
-const getPresignedUrls = async (fileKeys: string[]) => {
+const getPresignedUrls = async (fileKeys: string[], bucketName:string) => {
     return await Promise.all(
         fileKeys.map(async (fileKey) => {
             const command = new PutObjectCommand({
-                Bucket: process.env.BUCKET_NAME,
+                Bucket: bucketName,
                 Key: fileKey,
                 ContentType: "image/jpeg",
             });
-
             return {
                 fileKey,
                 url: await getSignedUrl(s3, command, { expiresIn: 300 }),
@@ -75,21 +61,6 @@ const getPresignedUrls = async (fileKeys: string[]) => {
         })
     );
 };
-
-async function decryptKMS(encryptedBase64:String) {
-    try {
-        const encryptedBuffer = Buffer.from(encryptedBase64, "base64");
-        const command = new DecryptCommand({ CiphertextBlob: encryptedBuffer });
-        const { Plaintext } = await kms.send(command);
-        const decryptedString = new TextDecoder().decode(Plaintext);
-
-        return decryptedString;
-
-    } catch (error) {
-        console.error("KMS Decryption Error:", error);
-        throw new Error("Failed to decrypt Square API token.");
-    }
-}
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     if (!event.body) {
@@ -99,17 +70,24 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         };
     }
 
-    requiredEnvVars.forEach((envVar) => {
-        if (!process.env[envVar]) {
-            throw new Error(`Missing required environment variable: ${envVar}`);
-        }
-    });
+    const orgTable = process.env.ORG_TABLE;
+    const userTable = process.env.USER_TABLE;
+    const bucketName = process.env.BUCKET_NAME;
+    const imageDomain = process.env.IMAGE_DOMAIN;
+    const stripeArn = process.env.STRIPE_ARN;
+
+    switch(true){
+        case !orgTable || !userTable: return{statusCode:404, body:'Missing Table Info'};
+        case !stripeArn: return{statusCode:404, body:'Missing Stripe ARN'};
+        case !imageDomain: return{statusCode:404, body:'Missing Image Domain'};
+        case !bucketName: return{statusCode:404, body:'Missing Image Bucket Name'};
+    }
 
     try {
         const { 
-            user_id, 
-            org_name,
-            description,
+            userSub, 
+            org_name, 
+            description, 
             rewards_loyalty, 
             rewards_milestone, 
             rl_active, 
@@ -118,45 +96,27 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
         const organization_id = randomUUID();
 
-        if (!user_id) {
+        if (!userSub) {
             return { statusCode: 400, body: JSON.stringify({ error: "User ID is required" }) };
         }
 
-        const params: GetCommandInput = {
-            TableName: process.env.USER_TABLE,
-            Key: { id: user_id },
-            ProjectionExpression: "accessToken",
-        };
-        const response = await dynamoDb.send(new GetCommand(params));
-
-        const squareAccessToken = await decryptKMS(response.Item?.accessToken);
-
-        const client = new square.SquareClient({
-            environment: process.env.APP_ENV === 'prod'? square.SquareEnvironment.Production : square.SquareEnvironment.Sandbox,
-            version:'2025-01-23',
-            token:squareAccessToken
-        });
-
-        const merchant = await client.merchants.list()
-
-        if(!merchant.data){
-            return { statusCode: 404, body: JSON.stringify({ error: "Square merchant not retrieved" }) };
+        if(!org_name || !description || !rl_active || !rm_active){
+            return { statusCode: 500, body: JSON.stringify({ error: "Body Incomplete" }) };
         }
 
         if (!cachedStripeKey) {
-            cachedStripeKey = await getStripeSecret();
-            if (!cachedStripeKey) return { statusCode: 500, body: JSON.stringify({ error: "Failed to retrieve Stripe secret key" }) };
+            cachedStripeKey = await getStripeSecret(stripeArn);
+            if (!cachedStripeKey) return { statusCode: 404, body: JSON.stringify({ error: "Failed to retrieve Stripe secret key" }) };
         }
 
         const stripe = new Stripe(cachedStripeKey, { apiVersion: "2025-01-27.acacia" });
 
-        // Fetch user email from DynamoDB
-        const userEmail = await getUserEmailFromDynamoDB(user_id);
+        const userEmail = await getUserEmailFromDynamoDB(userSub, userTable);
+
         if (!userEmail) {
             return { statusCode: 404, body: JSON.stringify({ error: "User email not found in database" }) };
         }
 
-        // Create Stripe Customer
         const stripeCustomer = await stripe.customers.create({
             name: org_name,
             email: userEmail,
@@ -171,32 +131,51 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const fileKeys = [`${organization_id}/logo`, `${organization_id}/preview`, `${organization_id}/banner`];
         const publicUrls = fileKeys.map((fileKey) => `https://${process.env.IMAGE_DOMAIN}/${fileKey}`);
 
-        const dynamoDbItem:PutCommandInput = {
-            TableName: process.env.ORG_TABLE,
-            Item: {
+        const dynamoDbItem = new PutCommand ({
+            TableName: orgTable,
+            Item: <OrganizationProps> {
                 id:organization_id,
-                owner_id: user_id,
+                owner_id: userSub,
                 stripe_id: stripeCustomer.id,
-                square_merchant_id: merchant.data[0].id,
+                accessToken:null,
+                refreshToken:null,
+                updatedAt:null,
+                expiresAt:null,
+                square_merchant_id: null,
                 date_registered: new Date().toISOString(),
                 lastUpdate: new Date().toISOString(),
                 rewards_loyalty,
                 rewards_milestone,
-                payment_setup:false,
-                org_name,
+                members:[],
+                name:org_name,
                 description,
                 rl_active,
                 rm_active,
+                active:false,
                 images: {
                     logo: publicUrls[0],
                     preview: publicUrls[1],
                     banner: publicUrls[2],
                 },
+                linked:false
             },
-        };
-        await dynamoDb.send(new PutCommand(dynamoDbItem));
+        });
+        
+        await dynamoDb.send(dynamoDbItem);
 
-        const preSignedUrls = await getPresignedUrls(fileKeys);
+        const updateUser = new UpdateCommand({
+            TableName: userTable,
+            Key: { id: userSub },
+            UpdateExpression: 'SET orgId = :org_id',
+            ExpressionAttributeValues: {
+            ':org_id': organization_id,
+            },
+            ReturnValues: 'UPDATED_NEW'
+        });
+    
+        await dynamoDb.send(updateUser);
+
+        const preSignedUrls = await getPresignedUrls(fileKeys, bucketName);
 
         return {
             statusCode: 200,

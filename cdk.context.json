@@ -6,5 +6,8 @@
   "hosted-zone:account=050451385382:domainName=beta.business.myrewards.website:region=us-east-1": {
     "Id": "/hostedzone/Z07188782GYXEXVEVQEKI",
     "Name": "beta.business.myrewards.website."
-  }
+  },
+  "acknowledged-issue-numbers": [
+    32775
+  ]
 }
