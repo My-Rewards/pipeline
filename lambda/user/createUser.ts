@@ -23,6 +23,7 @@ exports.handler = async (event:PostConfirmationTriggerEvent) => {
         console.error('Missing required attributes');
         throw new Error('Missing required attributes');
         }
+        
         const userData = {
             id: userAttributes.sub,
             email: userAttributes.email,

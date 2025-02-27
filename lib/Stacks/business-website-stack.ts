@@ -1,4 +1,3 @@
-import { version } from './../../node_modules/@types/babel__core/index.d';
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { BusinessWebsiteStackProps } from '../../global/props';
@@ -14,7 +13,7 @@ export class BusinessWebsiteStack extends cdk.Stack {
         const githubToken = cdk.SecretValue.secretsManager('github-token');
 
         const stripeData = cdk.aws_secretsmanager.Secret.fromSecretNameV2(this, 'fetchStripeCredentials', 'stripe/credentials');
-        const stripe_key = stripeData.secretValueFromJson('key')
+        const stripe_key = stripeData.secretValueFromJson('secretKey')
     
         const squareData = cdk.aws_secretsmanager.Secret.fromSecretNameV2(this, 'fetchSquareCredentials', 'square/credentials');
         const square_clientId = squareData.secretValueFromJson('client_id')

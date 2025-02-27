@@ -84,11 +84,12 @@ export class PipelineAppStage extends cdk.Stage {
       let mainWebsiteProps = this.mainWebsiteProps(props, this.stageName, authDomain);
       const website_stack = new WebsiteStack(this, "Website-Stack", mainWebsiteProps)
       website_stack.addDependency(ssm_Stack);
+      website_stack.addDependency(appConfigStack)
 
       let mainBusinessWebsiteProps = this.mainBusinessWebsiteProps(props, this.stageName, businessDomain);
       const business_website_stack = new BusinessWebsiteStack(this, "Business-Website-Stack", mainBusinessWebsiteProps);
       business_website_stack.addDependency(ssm_Stack)
-
+      business_website_stack.addDependency(appConfigStack)
     }
 
   createHostedZoneProps(props:StageProps, stage:string, authDomain:string, businessDomain:string, apiDomain:string, imageDomain:string):HostedZoneProps{

@@ -18,7 +18,7 @@ exports.handler = async (event:PostAuthenticationTriggerEvent) => {
             Destination: { ToAddresses: [event.request.userAttributes.email] },
             Message: {
                 Subject: { Data: 'Welcome To MyRewards!' },
-                Body: { Text: { Data: 'Setup Your account and link with awuare if you havent! We have a feeling your gonna like it here.' } },
+                Body: { Text: { Data: 'Setup Your account and link with square if you havent! We have a feeling your gonna like it here.' } },
             },
         };
 

@@ -40,7 +40,12 @@ exports.handler = async (event: PostConfirmationTriggerEvent) => {
       refreshToken: null,
       updatedAt: null,
       linked: false,
-      orgIds: null
+      orgId: null,
+      permissions: {
+        canEditOrg: true,
+        canEditBilling: true,
+        canEditShops: true
+      },
     };
 
     const params = {

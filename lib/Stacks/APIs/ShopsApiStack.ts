@@ -4,10 +4,12 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as nodejs from 'aws-cdk-lib/aws-lambda-nodejs'
+import * as kms from 'aws-cdk-lib/aws-kms';
 
 interface UsersApiStackProps extends cdk.NestedStackProps {
   api: apigateway.RestApi;
   authorizer: cdk.aws_apigateway.CognitoUserPoolsAuthorizer;
+  encryptionKey: kms.Key;
 }
 
 export class ShopApiStack extends cdk.NestedStack {
@@ -15,29 +17,35 @@ export class ShopApiStack extends cdk.NestedStack {
     super(scope, id, props);
 
     const shopTable = dynamodb.Table.fromTableArn(this, 'ImportedShopTableARN', cdk.Fn.importValue('ShopTableARN'));
-    
+    const orgTable = dynamodb.Table.fromTableArn(this, 'ImportedOrganizationTableARN', cdk.Fn.importValue('OrganizationTableARN'));
+    const userTable = dynamodb.Table.fromTableArn(this, 'ImportedUserTableARN', cdk.Fn.importValue('UserTableARN'));
+
     const createShopLambda = new nodejs.NodejsFunction(this, "my-handler",{
       runtime: lambda.Runtime.NODEJS_20_X,
       entry: 'lambda/shop/newShop.ts',
       handler: 'handler',
       environment: {
-        SHOPS_TABLE: shopTable.tableName,
+        SHOP_TABLE: shopTable.tableName,
       },
       bundling: {
-        externalModules: ['aws-sdk'],
+        externalModules: ['aws-sdk', 'stripe'],
       },
     })
 
     shopTable.grantReadData(createShopLambda);
+    userTable.grantReadData(createShopLambda);
+    userTable.grantWriteData(createShopLambda);
+    props.encryptionKey.grantEncryptDecrypt(createShopLambda);
 
     // API Gateway integration
-    const shopApi = props.api.root.addResource('shop'); 
+    const shopApi = props.api.root.addResource('shops'); 
+    const createShopApi = shopApi.addResource('create'); 
 
     const createShop = new apigateway.LambdaIntegration(createShopLambda);
 
-    shopApi.addMethod('POST', createShop, {
-        authorizer: props.authorizer,
-        authorizationType: apigateway.AuthorizationType.COGNITO,
+    createShopApi.addMethod('POST', createShop, {
+      authorizer: props.authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO,
     });
   }
 }

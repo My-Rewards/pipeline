@@ -18,26 +18,42 @@ export class SquareApiStack extends cdk.NestedStack {
     super(scope, id, props);
 
     const usersTable = dynamodb.Table.fromTableArn(this, 'ImportedUsersTable', cdk.Fn.importValue('UserTableARN'));
+    const orgTable = dynamodb.Table.fromTableArn(this, 'ImportedOrganizationTableARN', cdk.Fn.importValue('OrganizationTableARN'));
 
-    // Get square credemtials
     const secretData = cdk.aws_secretsmanager.Secret.fromSecretNameV2(this, 'fetchSquareSecret', 'square/credentials');
-    const client_id = secretData.secretValueFromJson('client_id').unsafeUnwrap();
-    const client_secret = secretData.secretValueFromJson('client_secret').unsafeUnwrap();
     
-    if(!client_id || !client_secret){
-      throw Error('Missing client secret or Id')
-    }
-
-    const setupSquareLambda = new nodejs.NodejsFunction(this, "my-handler",{
+    const setupSquareLambda = new nodejs.NodejsFunction(this, "connectSquare",{
       runtime: lambda.Runtime.NODEJS_20_X,
-      entry: 'lambda/square/connectSquare.ts',
+      entry: 'lambda/organization/connectSquare.ts',
       handler: 'handler',
       environment: {
-        USERS_TABLE: usersTable.tableName,
-        SQUARE_CLIENT:client_id,
-        SQUARE_SECRET:client_secret,
+        USER_TABLE: usersTable.tableName,
+        ORG_TABLE: orgTable.tableName,
+        SQUARE_ARN: secretData.secretArn,
         KMS_KEY_ID: props.encryptionKey.keyId,
-        ENV:props.stage
+        APP_ENV: props.stage
+      },
+      bundling: {
+        externalModules: ['aws-sdk'],
+        nodeModules: ['square']
+      },
+      timeout: cdk.Duration.seconds(10),
+    })
+
+    usersTable.grantReadData(setupSquareLambda);
+    orgTable.grantReadWriteData(setupSquareLambda);
+    secretData.grantRead(setupSquareLambda)
+    props.encryptionKey.grantEncryptDecrypt(setupSquareLambda);
+
+    const listSquareShops = new nodejs.NodejsFunction(this, "list-shops",{
+      runtime: lambda.Runtime.NODEJS_20_X,
+      entry: 'lambda/square/listShops.ts',
+      handler: 'handler',
+      environment: {
+        USER_TABLE: usersTable.tableName,
+        SQUARE_ARN:secretData.secretArn,
+        KMS_KEY_ID: props.encryptionKey.keyId,
+        APP_ENV:props.stage
       },
       bundling: {
         externalModules: ['aws-sdk'],
@@ -46,21 +62,26 @@ export class SquareApiStack extends cdk.NestedStack {
       timeout: cdk.Duration.seconds(10),
     })
 
-    // Grant permissions
-    usersTable.grantReadData(setupSquareLambda);
-    usersTable.grantWriteData(setupSquareLambda);
-    props.encryptionKey.grantEncryptDecrypt(setupSquareLambda);
+    usersTable.grantReadData(listSquareShops);
+    usersTable.grantWriteData(listSquareShops);
+    secretData.grantRead(listSquareShops)
+    props.encryptionKey.grantDecrypt(listSquareShops);
 
-    // API Gateway integration
     const squareApi = props.api.root.addResource('square'); 
-    const connectApi = squareApi.api.root.addResource('connect'); 
+    const connectApi = squareApi.addResource('connect'); 
+    const listShops = squareApi.addResource('listShops'); 
 
-    // Lambda Functions
     const setupLambdaIntegration = new apigateway.LambdaIntegration(setupSquareLambda);
+    const shopsLambdaIntegration = new apigateway.LambdaIntegration(listSquareShops);
 
-    connectApi.addMethod('POST', setupLambdaIntegration, {
-        authorizer: props.authorizer,
-        authorizationType: apigateway.AuthorizationType.COGNITO,
+    connectApi.addMethod('PUT', setupLambdaIntegration, {
+      authorizer: props.authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO,
+    });
+
+    listShops.addMethod('GET', shopsLambdaIntegration, {
+      authorizer: props.authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO,
     });
   }
 }
