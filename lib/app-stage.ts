@@ -86,7 +86,7 @@ export class PipelineAppStage extends cdk.Stage {
       website_stack.addDependency(ssm_Stack);
       website_stack.addDependency(appConfigStack)
 
-      let mainBusinessWebsiteProps = this.mainBusinessWebsiteProps(props, this.stageName, businessDomain);
+      let mainBusinessWebsiteProps = this.mainBusinessWebsiteProps(props, this.stageName, businessDomain, apiDomain);
       const business_website_stack = new BusinessWebsiteStack(this, "Business-Website-Stack", mainBusinessWebsiteProps);
       business_website_stack.addDependency(ssm_Stack)
       business_website_stack.addDependency(appConfigStack)
@@ -211,7 +211,7 @@ export class PipelineAppStage extends cdk.Stage {
     }
   }
 
-  mainBusinessWebsiteProps(props:StageProps, stage:string, businessDomain:string):BusinessWebsiteStackProps{
+  mainBusinessWebsiteProps(props:StageProps, stage:string, businessDomain:string, apiDomain:string):BusinessWebsiteStackProps{
     return{
         env: {
             account: props.env?.account,
@@ -223,6 +223,7 @@ export class PipelineAppStage extends cdk.Stage {
         githubRepo: 'bizz-website',
         githubBranch: stage,
         buildCommand: 'npm run build',
+        apiDomain
     }
   }
 }

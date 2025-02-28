@@ -35,7 +35,8 @@ export class BusinessWebsiteStack extends cdk.Stack {
                 NEXT_PUBLIC_AWS_REGION: props.env?.region || 'us-east-1',
                 NEXT_PUBLIC_APP_ENV: props.stageName,
                 NEXT_PUBLIC_STRIPE_KEY: stripe_key.unsafeUnwrap(),
-                NEXT_PUBLIC_SQUARE_CLIENT: square_clientId.unsafeUnwrap()
+                NEXT_PUBLIC_SQUARE_CLIENT: square_clientId.unsafeUnwrap(),
+                NEXT_PUBLIC_API_DOMAIN: props.apiDomain
             },
             customRules: [
                 { source: "/<*>", target: "/index.html", status: RedirectStatus.NOT_FOUND_REWRITE },
