@@ -69,6 +69,7 @@ export interface BusinessWebsiteStackProps extends cdk.StackProps {
   githubBranch: string;
   buildCommand: string;
   subDomain:string;
+  apiDomain:string;
 }
 
 export interface AmplifyHostingStackProps extends cdk.StackProps {
