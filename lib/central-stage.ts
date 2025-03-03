@@ -1,7 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from "constructs";
 import { HostedZoneStack } from './Central Stacks/hostedZone-stack';
-import { FargateStack } from './Stacks/ecs-stack';
+//import { FargateStack } from './Stacks/ecs-stack';
 import { StageProps } from '../global/props';
 
 
@@ -14,7 +14,7 @@ export class PipelineCentralStage extends cdk.Stage {
     const hostedZone_stack = new HostedZoneStack(this, 'HostedZone-Stack', hostedZoneProp);
 
     let fargateProps = this.createFargateProps(props);
-    const fargateStack = new FargateStack(this, 'Fargate-Stack', fargateProps);
+    //const fargateStack = new FargateStack(this, 'Fargate-Stack', fargateProps);
   }
 
   createHostedZoneProps(props:cdk.StageProps):cdk.StackProps{
