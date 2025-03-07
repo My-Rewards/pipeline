@@ -7,7 +7,7 @@ const dynamoClient = new DynamoDBClient({region: "us-east-1"});
 const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const userSub = event.queryStringParameters?.userSub;
+    const userSub = event.requestContext.authorizer?.claims?.sub;
 
     try {
         const orgTable = process.env.ORG_TABLE
@@ -21,24 +21,27 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         
         const getUser = new GetCommand({
             TableName: userTable,
-            Key: { id: userSub },
-            ProjectionExpression: "org_id",
+            Key: {id: userSub},
+            ProjectionExpression: "org_id, #userPermissions",
+            ExpressionAttributeNames: { 
+                "#userPermissions": "permissions"
+            },
           });
           
-        const resultOrgId = await dynamoDb.send(getUser);
+        const resultUser = await dynamoDb.send(getUser);
         
-        if (!resultOrgId.Item?.org_id) {
-            return { statusCode: 212, body: JSON.stringify({ info: "User not found" }) };
+        if (!resultUser.Item?.org_id) {
+            return { statusCode: 210, body: JSON.stringify({ info: "Organization not Found" }) };
         }
         
-        const orgId = resultOrgId.Item.org_id;
+        const orgId = resultUser.Item.org_id;
+        const permissions = resultUser.Item.permissions;
 
         const getOrg = new GetCommand({
             TableName: orgTable,
             Key: { id: orgId },
           });
         
-
         const resultOrg = await dynamoDb.send(getOrg);
         
         if (!resultOrg.Item) {
@@ -46,8 +49,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         }
 
         const organization = resultOrg.Item as OrganizationProps;
-
-        const admin = organization.owner_id === userSub ? true : false;
 
         if(!organization?.linked){
             return { 
@@ -78,7 +79,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             body: JSON.stringify({ 
                 organization:
                 { 
-                    id:organization.id,
                     name:organization.name,
                     description:organization.description,
                     images:organization.images,
@@ -89,8 +89,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
                     rl_active: organization.rl_active,
                     rm_active: organization.rm_active,
                     active: organization.active,
-                    shops:shops,
-                    admin 
+                    shops:shops
                 }
             }),
         };

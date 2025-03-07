@@ -37,8 +37,9 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     };
   }
 
-  const { authCode, userSub } = JSON.parse(event.body);
-  
+  const { authCode } = JSON.parse(event.body);
+  const userSub = event.requestContext.authorizer?.claims?.sub;
+
   const userTable = process.env.USER_TABLE;
   const orgTable = process.env.ORG_TABLE;
   const squareSecretArn = process.env.SQUARE_ARN

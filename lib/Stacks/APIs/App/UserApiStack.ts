@@ -4,21 +4,21 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as nodejs from 'aws-cdk-lib/aws-lambda-nodejs'
-import { UP_BUSINESS_ID } from '../../../global/constants';
-import * as iam from 'aws-cdk-lib/aws-iam';
 
 interface UsersApiStackProps extends cdk.NestedStackProps {
   api: apigateway.RestApi;
   authorizer: cdk.aws_apigateway.CognitoUserPoolsAuthorizer;
 }
 
-export class BusinessApiStack extends cdk.NestedStack {
+export class UsersApiStack extends cdk.NestedStack {
   constructor(scope: Construct, id: string, props: UsersApiStackProps) {
     super(scope, id, props);
 
     const usersTable = dynamodb.Table.fromTableArn(this, 'ImportedUsersTable', cdk.Fn.importValue('UserTableARN'));
+    const orgTable = dynamodb.Table.fromTableArn(this, 'ImportedOrganizationTableARN', cdk.Fn.importValue('OrganizationTableARN'));
     
-    const getUserLambda = new nodejs.NodejsFunction(this, "my-handler",{
+    // Get Customer Account
+    const getCustomerAccountLambda = new nodejs.NodejsFunction(this, "Get-Customer-User",{
       runtime: lambda.Runtime.NODEJS_20_X,
       entry: 'lambda/user/getUser.ts',
       handler: 'handler',
@@ -28,19 +28,18 @@ export class BusinessApiStack extends cdk.NestedStack {
       bundling: {
         externalModules: ['aws-sdk'],
       },
-    })  
-
-    usersTable.grantReadData(getUserLambda);
+    })
 
     // API Gateway integration
-    const businessapi = props.api.root.addResource('business'); 
-    const usersApi = businessapi.addResource('user'); 
+    const customer = props.api.root.addResource('customer'); 
+    const usersApi = customer.addResource('user'); 
 
-    const getUserIntegration = new apigateway.LambdaIntegration(getUserLambda);
+    const getCustomerUserIntegration = new apigateway.LambdaIntegration(getCustomerAccountLambda);
 
-    usersApi.addMethod('GET', getUserIntegration, {
-        authorizer: props.authorizer,
-        authorizationType: apigateway.AuthorizationType.COGNITO,
+    usersApi.addMethod('GET', getCustomerUserIntegration, {
+      authorizer: props.authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO,
     });
+
   }
 }

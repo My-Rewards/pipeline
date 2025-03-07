@@ -39,7 +39,6 @@ exports.handler = async (event: PostConfirmationTriggerEvent) => {
       accessToken: null,
       refreshToken: null,
       updatedAt: null,
-      linked: false,
       orgId: null,
       permissions: {
         canEditOrg: true,

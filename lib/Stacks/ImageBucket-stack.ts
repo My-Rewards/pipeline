@@ -1,13 +1,13 @@
 import * as cdk from "aws-cdk-lib";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
-import * as cloudfrontOrigins from "aws-cdk-lib/aws-cloudfront-origins";
+import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as route53 from "aws-cdk-lib/aws-route53";
 import * as route53Targets from "aws-cdk-lib/aws-route53-targets";
 import * as certificatemanager from "aws-cdk-lib/aws-certificatemanager";
 import { Construct } from "constructs";
 import { ImageBucketProps } from "../../global/props";
-import { DOMAIN } from "../../global/constants";
+import { AUTHENTICATED_ROLE_BUSINESS, DOMAIN } from "../../global/constants";
 
 export class ImageBucketStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: ImageBucketProps) {
@@ -18,9 +18,29 @@ export class ImageBucketStack extends cdk.Stack {
     const imageBucket = new s3.Bucket(this, "ImageBuckets", {
         removalPolicy: cdk.RemovalPolicy.RETAIN,
         autoDeleteObjects: false,
-        bucketName:bucketName,
-        versioned:true,
-
+        bucketName: bucketName,
+        versioned: true,
+        publicReadAccess: true,
+        blockPublicAccess: new s3.BlockPublicAccess({
+            blockPublicAcls: false,
+            blockPublicPolicy: false,
+            ignorePublicAcls: false,
+            restrictPublicBuckets: false
+        }),
+        cors: [
+            {
+                allowedMethods: [
+                    s3.HttpMethods.GET,
+                    s3.HttpMethods.PUT,
+                    s3.HttpMethods.POST,
+                    s3.HttpMethods.DELETE
+                ],
+                allowedOrigins: ["*"],
+                allowedHeaders: ["*"],
+                exposedHeaders: ["ETag"],
+                maxAge: 3000,
+            },
+        ],
     });
 
     const domainName = `${props.imageDomain}.${DOMAIN}`;
@@ -36,18 +56,39 @@ export class ImageBucketStack extends cdk.Stack {
         validation: certificatemanager.CertificateValidation.fromDns(hostedZone),
     });
 
-    const distribution = new cloudfront.Distribution(this, 'myDist', {
-        defaultBehavior: {
-            origin: new cloudfrontOrigins.OriginGroup({
-            primaryOrigin: cloudfrontOrigins.S3BucketOrigin.withOriginAccessControl(imageBucket),
-            fallbackOrigin: new cloudfrontOrigins.HttpOrigin(`${props.businessDomain}.${DOMAIN}`),
-            fallbackStatusCodes: [404],
-            }),
+    const oac = new cloudfront.CfnOriginAccessControl(this, "OAC", {
+        originAccessControlConfig: {
+          name: "ImageBucketOAC",
+          originAccessControlOriginType: "s3",
+          signingBehavior: "always",
+          signingProtocol: "sigv4",
         },
-        domainNames: [domainName],
-        certificate,
     });
       
+    const s3Origin = origins.S3BucketOrigin.withOriginAccessControl(imageBucket, {
+        originAccessLevels: [cloudfront.AccessLevel.READ, cloudfront.AccessLevel.LIST],
+      });
+
+    const distribution = new cloudfront.Distribution(this, "myDist", {
+        defaultBehavior: {
+            origin: s3Origin,
+            compress: true,
+            viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+            responseHeadersPolicy: cloudfront.ResponseHeadersPolicy.CORS_ALLOW_ALL_ORIGINS,
+            allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD
+        },
+        defaultRootObject: "", 
+        domainNames: [domainName],
+        comment: DOMAIN,
+        certificate,
+        httpVersion: cloudfront.HttpVersion.HTTP2,
+        minimumProtocolVersion: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2021,
+        
+    });
+    
+    const cfnDistribution = distribution.node.defaultChild as cloudfront.CfnDistribution;
+    cfnDistribution.addPropertyOverride("DistributionConfig.Origins.0.OriginAccessControlId", oac.attrId);
+    
     new route53.ARecord(this, "AliasRecord", {
         zone: hostedZone,
         target: route53.RecordTarget.fromAlias(
@@ -69,6 +110,11 @@ export class ImageBucketStack extends cdk.Stack {
     new cdk.CfnOutput(this, "OrganizationImageBucket", {
         value: imageBucket.bucketName,
         exportName:'OrganizationImageBucket'
+    });
+
+    new cdk.CfnOutput(this, "OrganizationImageBucketARN", {
+        value: imageBucket.bucketArn,
+        exportName:'OrganizationImageBucketARN'
     });
   }
 }
