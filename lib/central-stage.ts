@@ -11,7 +11,6 @@ export class PipelineCentralStage extends cdk.Stage {
 
     let hostedZoneProp = this.createHostedZoneProps(props);
     const hostedZone_stack = new HostedZoneStack(this, 'HostedZone-Stack', hostedZoneProp);
-
   }
 
   createHostedZoneProps(props:cdk.StageProps):cdk.StackProps{

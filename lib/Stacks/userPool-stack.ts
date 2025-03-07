@@ -13,10 +13,10 @@ import {
     DOMAIN,
     IDENTITY_POOL_CUSTOMER,
     IDENTITY_POOL_BUSINESS,
+    AUTHENTICATED_ROLE_BUSINESS,
  } from '../../global/constants';
 import { UserPoolStackProps } from '../../global/props';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
-import * as targets from 'aws-cdk-lib/aws-route53-targets';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
@@ -484,6 +484,11 @@ export class UserPoolStack extends cdk.Stack {
         description: 'ARN of authenticated Role',
         exportName: AUTHENTICATED_ROLE
       });
-      
+
+      new cdk.CfnOutput(this, AUTHENTICATED_ROLE_BUSINESS, {
+        value: authenticatedRole_Business.roleArn,
+        description: 'ARN of authenticated Role Business',
+        exportName: AUTHENTICATED_ROLE_BUSINESS
+      });
     }
 }

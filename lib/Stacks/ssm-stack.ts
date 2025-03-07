@@ -67,8 +67,8 @@ export class SSMStack extends cdk.Stack {
     });
 
     // Stripe
-    new ssm.StringParameter(this, 'StripeKey', {
-      parameterName: `/myRewardsApp/${props.stageName}/stripeKey`,
+    new ssm.StringParameter(this, 'StripePublicKey', {
+      parameterName: `/myRewardsApp/${props.stageName}/stripePublicKey`,
       stringValue: stripe_key,
     });
 

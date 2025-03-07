@@ -53,10 +53,6 @@ export class PipelineAppStage extends cdk.Stage {
       let dynamoDbProp = this.createDynamoProps(props, this.stageName);
       const dynamo_stack = new DynamoStack(this, 'Dynamo-Stack', dynamoDbProp);
 
-      let imageBucketProps = this.createImageBucketProps(props, this.stageName, imageDomain, businessDomain);
-      const imageBucket_stack = new ImageBucketStack(this, 'ImageBucket-Stack', imageBucketProps);
-      imageBucket_stack.addDependency(hostedZone_stack);
-
       let appConfigProps = this.createAppConfigProps(props, this.stageName);
       const appConfigStack = new AppConfigStack(this, 'AppConfig-Stack', appConfigProps);
 
@@ -67,6 +63,10 @@ export class PipelineAppStage extends cdk.Stage {
       let userPoolProps = this.createUserPoolProps(props, this.stageName, authDomain, businessDomain);
       const userPool_stack = new UserPoolStack(this, 'UserPool-Stack', userPoolProps);
       userPool_stack.addDependency(customEmail_stack);
+
+      let imageBucketProps = this.createImageBucketProps(props, this.stageName, imageDomain, businessDomain);
+      const imageBucket_stack = new ImageBucketStack(this, 'ImageBucket-Stack', imageBucketProps);
+      imageBucket_stack.addDependency(userPool_stack);
 
       let apiGatewayProps = this.createApiProps(props, this.stageName, apiDomain);
       const apiGateway_stack = new ApiGatewayStack(this, 'ApiGateway-Stack', apiGatewayProps);

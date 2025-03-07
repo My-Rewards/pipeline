@@ -6,13 +6,12 @@ import * as cognito from 'aws-cdk-lib/aws-cognito';
 import { DOMAIN, UP_BUSINESS_ID, UP_CUSTOMER_ID } from '../../global/constants';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
-import { UsersApiStack } from './APIs/UserApiStack';
-import { SquareApiStack } from './APIs/SquareApiStack';
+import { UsersApiStack } from './APIs/App/UserApiStack';
+import { SquareApiStack } from './APIs/Business/SquareApiStack';
 import * as kms from 'aws-cdk-lib/aws-kms';
 import * as targets from 'aws-cdk-lib/aws-route53-targets';
-import { BusinessApiStack } from './APIs/BusinessApiStack';
-import { OrgApiStack } from './APIs/OrganizationApiStack';
-import { ShopApiStack } from './APIs/ShopsApiStack';
+import { OrgApiStack } from './APIs/Business/OrganizationApiStack';
+import { ShopApiStack } from './APIs/Business/ShopsApiStack';
 
 export class ApiGatewayStack extends cdk.Stack {
   public readonly encryptionKey: kms.Key;
@@ -54,19 +53,19 @@ export class ApiGatewayStack extends cdk.Stack {
 
     // Create Custom Domain API
     const api = new apigateway.RestApi(this, 'myRewardsApi', {
-        restApiName: 'myRewards API',
-        description: 'This is an API for Lambda functions.',
-        domainName: {
-          domainName: `${props.apiDomain}.${DOMAIN}`,
-          certificate: certificate,
-          endpointType: apigateway.EndpointType.EDGE,
-          securityPolicy: apigateway.SecurityPolicy.TLS_1_2,
-        },
-        defaultCorsPreflightOptions: {
-          allowOrigins: apigateway.Cors.ALL_ORIGINS,
-          allowMethods: apigateway.Cors.ALL_METHODS,
-          allowHeaders: apigateway.Cors.DEFAULT_HEADERS
-        }
+      restApiName: 'myRewards API',
+      description: 'This is an API for Lambda functions.',
+      domainName: {
+        domainName: `${props.apiDomain}.${DOMAIN}`,
+        certificate: certificate,
+        endpointType: apigateway.EndpointType.EDGE,
+        securityPolicy: apigateway.SecurityPolicy.TLS_1_2,
+      },
+      defaultCorsPreflightOptions: {
+        allowOrigins: apigateway.Cors.ALL_ORIGINS,
+        allowMethods: apigateway.Cors.ALL_METHODS,
+        allowHeaders: apigateway.Cors.DEFAULT_HEADERS
+      }
     });
 
     new route53.ARecord(this, 'ApiARecord', {
@@ -78,11 +77,6 @@ export class ApiGatewayStack extends cdk.Stack {
     new UsersApiStack(this, 'UsersApiStack', {
       api: api,
       authorizer:authorizerUser,
-    });
-
-    new BusinessApiStack(this, 'BusinessApiStack', {
-      api: api,
-      authorizer:authorizerBizz,
     });
 
     new SquareApiStack(this, 'SquareApiStack', {
@@ -103,6 +97,10 @@ export class ApiGatewayStack extends cdk.Stack {
       encryptionKey:this.encryptionKey,
     });
 
-    // Additional API resources (e.g., Shops, Organizations) can follow the same pattern
+    new cdk.CfnOutput(this, 'RestApi', {
+      value: api.restApiId,
+      description: 'RestApi ID',
+      exportName: 'restApi',
+    });
   }
 }

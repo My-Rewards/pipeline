@@ -12,6 +12,8 @@ export const AWS_REGION = 'us-east-1'
 
 export const DOMAIN = 'myrewards.website'
 
+export const METER_PRICE = 'price_1QliStLvDQv3Uhkh2z03QWbK'
+
 // Resource export names
 export const UP_CUSTOMER_ID = 'customerUserPoolID';
 export const UPC_CUSTOMER = 'customerUserPoolClientID';
@@ -28,3 +30,4 @@ export const ADMIN_DOMAIN = 'adminDomain';
 export const IDENTITY_POOL_CUSTOMER = 'IdentityPoolUser';
 export const IDENTITY_POOL_BUSINESS = 'IdentityPoolBusiness';
 export const AUTHENTICATED_ROLE = 'AuthenticatedRoleARN';
+export const AUTHENTICATED_ROLE_BUSINESS = 'AuthenticatedRoleARNBusiness';

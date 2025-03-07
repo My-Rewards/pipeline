@@ -14,6 +14,7 @@ const dynamoClient = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
 
 let cachedStripeKey: string | null; 
+let stripe: Stripe| null;
 
 const getStripeSecret = async (stripeArn:string): Promise<string | null> => {
     const data = await secretClient.send(new GetSecretValueCommand({ SecretId: stripeArn }));
@@ -46,9 +47,9 @@ const getUserEmailFromDynamoDB = async (userId: string, userTable:string): Promi
     }
 };
 
-const getPresignedUrls = async (fileKeys: string[], bucketName:string) => {
+const getPresignedUrls = async (fileKeys: string[], bucketName:string, types:string[]) => {
     return await Promise.all(
-        fileKeys.map(async (fileKey) => {
+        fileKeys.map(async (fileKey, index) => {
             const command = new PutObjectCommand({
                 Bucket: bucketName,
                 Key: fileKey,
@@ -57,6 +58,7 @@ const getPresignedUrls = async (fileKeys: string[], bucketName:string) => {
             return {
                 fileKey,
                 url: await getSignedUrl(s3, command, { expiresIn: 300 }),
+                type:types[index]
             };
         })
     );
@@ -85,7 +87,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
     try {
         const { 
-            userSub, 
             org_name, 
             description, 
             rewards_loyalty, 
@@ -93,6 +94,8 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             rl_active, 
             rm_active 
         } = JSON.parse(event.body);
+
+        const userSub = event.requestContext.authorizer?.claims?.sub;
 
         const organization_id = randomUUID();
 
@@ -109,7 +112,10 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             if (!cachedStripeKey) return { statusCode: 404, body: JSON.stringify({ error: "Failed to retrieve Stripe secret key" }) };
         }
 
-        const stripe = new Stripe(cachedStripeKey, { apiVersion: "2025-01-27.acacia" });
+        if(!stripe){
+            stripe = new Stripe(cachedStripeKey, { apiVersion: "2025-01-27.acacia" });
+            if (!stripe) return { statusCode: 404, body: JSON.stringify({ error: "Failed to open stripe Client" }) };
+        }
 
         const userEmail = await getUserEmailFromDynamoDB(userSub, userTable);
 
@@ -129,24 +135,24 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         }
 
         const fileKeys = [`${organization_id}/logo`, `${organization_id}/preview`, `${organization_id}/banner`];
+        const types = [`logo`, `preview`, `banner`];
         const publicUrls = fileKeys.map((fileKey) => `https://${process.env.IMAGE_DOMAIN}/${fileKey}`);
 
         const dynamoDbItem = new PutCommand ({
             TableName: orgTable,
             Item: <OrganizationProps> {
                 id:organization_id,
-                owner_id: userSub,
                 stripe_id: stripeCustomer.id,
                 accessToken:null,
                 refreshToken:null,
                 updatedAt:null,
                 expiresAt:null,
                 square_merchant_id: null,
+                owner_id:userSub,
                 date_registered: new Date().toISOString(),
                 lastUpdate: new Date().toISOString(),
                 rewards_loyalty,
                 rewards_milestone,
-                members:[],
                 name:org_name,
                 description,
                 rl_active,
@@ -175,13 +181,12 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     
         await dynamoDb.send(updateUser);
 
-        const preSignedUrls = await getPresignedUrls(fileKeys, bucketName);
+        const preSignedUrls = await getPresignedUrls(fileKeys, bucketName, types);
 
         return {
             statusCode: 200,
             body: JSON.stringify({
                 message: "Success",
-                stripe_customer_id: stripeCustomer.id,
                 preSignedUrls,
             }),
         };

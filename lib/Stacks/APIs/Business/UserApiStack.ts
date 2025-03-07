@@ -4,8 +4,6 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as nodejs from 'aws-cdk-lib/aws-lambda-nodejs'
-import { UP_BUSINESS_ID } from '../../../global/constants';
-import * as iam from 'aws-cdk-lib/aws-iam';
 
 interface UsersApiStackProps extends cdk.NestedStackProps {
   api: apigateway.RestApi;
@@ -17,29 +15,33 @@ export class UsersApiStack extends cdk.NestedStack {
     super(scope, id, props);
 
     const usersTable = dynamodb.Table.fromTableArn(this, 'ImportedUsersTable', cdk.Fn.importValue('UserTableARN'));
+    const orgTable = dynamodb.Table.fromTableArn(this, 'ImportedOrganizationTableARN', cdk.Fn.importValue('OrganizationTableARN'));
     
-    const getUserLambda = new nodejs.NodejsFunction(this, "my-handler",{
+    // Get Bizz Account
+    const getBizzAccountLambda = new nodejs.NodejsFunction(this, "Get-Business-User",{
       runtime: lambda.Runtime.NODEJS_20_X,
-      entry: 'lambda/user/getUser.ts',
+      entry: 'lambda/organization/getBilling.ts',
       handler: 'handler',
       environment: {
-        USERS_TABLE: usersTable.tableName,
+        ORG_TABLE: orgTable.tableName,
       },
       bundling: {
-        externalModules: ['aws-sdk'],
+        externalModules: ['aws-sdk']
       },
     })
-
-    usersTable.grantReadData(getUserLambda);
+    orgTable.grantReadData(getBizzAccountLambda);
+    usersTable.grantReadData(getBizzAccountLambda);
 
     // API Gateway integration
-    const usersApi = props.api.root.addResource('user'); 
+    const business = props.api.root.addResource('business'); 
+    const businessUser = business.addResource('user'); 
 
-    const getUserIntegration = new apigateway.LambdaIntegration(getUserLambda);
+    const getBusinessUserIntegration = new apigateway.LambdaIntegration(getBizzAccountLambda);
 
-    usersApi.addMethod('GET', getUserIntegration, {
-        authorizer: props.authorizer,
-        authorizationType: apigateway.AuthorizationType.COGNITO,
+    businessUser.addMethod('GET', getBusinessUserIntegration, {
+      authorizer: props.authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO,
     });
+
   }
 }

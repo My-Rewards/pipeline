@@ -14,15 +14,19 @@ exports.handler = async (event:PostConfirmationTriggerEvent) => {
   const role = process.env.ROLE;
   const emailSender = process.env.EMAIL_SENDER;
 
-    console.log('Event:', JSON.stringify(event, null, 2));
-    console.log('User Attributes:', JSON.stringify(event.request.userAttributes, null, 2));
     try {
         const { request: { userAttributes } } = event;
+        let credentials = {
+            modifyPlans:true,
+            modifyPayments:true,
+        };
         
         if (!userAttributes.email || !userAttributes.given_name || !userAttributes.family_name || !userAttributes.sub || !role || !tableName) {
         console.error('Missing required attributes');
         throw new Error('Missing required attributes');
         }
+
+        // look for invites
         
         const userData = {
             id: userAttributes.sub,
@@ -34,6 +38,7 @@ exports.handler = async (event:PostConfirmationTriggerEvent) => {
             },
             date_created: new Date().toISOString(),
             role:role,
+            credentials,
             newAccount: true,
             preferences:{
                 lightMode:true
