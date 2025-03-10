@@ -1,7 +1,7 @@
 import { SecretsManagerClient, GetSecretValueCommand} from "@aws-sdk/client-secrets-manager"
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { randomUUID } from "crypto";
-import { DynamoDBDocumentClient, GetCommand, GetCommandInput, PutCommand, PutCommandInput, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import Stripe from "stripe";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
@@ -32,15 +32,16 @@ const getUserEmailFromDynamoDB = async (userId: string, userTable:string): Promi
         const params = new GetCommand({
             TableName: userTable,
             Key: { id: userId },
-            ProjectionExpression: "email",
+            ProjectionExpression: "email, orgId",
         });
+
         const response = await dynamoDb.send(params);
 
-        if (!response || !response.Item) {
+        if (!response || !response.Item || response.Item.orgId) {
             return null;
         }
 
-        return response.Item.email || null;
+        return response.Item.email;
         
     } catch (error) {
         return null;
@@ -120,7 +121,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const userEmail = await getUserEmailFromDynamoDB(userSub, userTable);
 
         if (!userEmail) {
-            return { statusCode: 404, body: JSON.stringify({ error: "User email not found in database" }) };
+            return { statusCode: 404, body: JSON.stringify({ error: "User email not found in database or User already linked to Organization" }) };
         }
 
         const stripeCustomer = await stripe.customers.create({

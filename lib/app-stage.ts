@@ -25,6 +25,7 @@ import { HostedZoneStack } from './Stacks/hostedZone-stack';
 import { AppConfigStack } from './Stacks/appConfigStack';
 import { BusinessWebsiteStack } from './Stacks/business-website-stack';
 import { ImageBucketStack } from './Stacks/ImageBucket-stack';
+import { CloudWatchStack } from './Stacks/cloudWatch-stack';
 
 export class PipelineAppStage extends cdk.Stage {
     constructor(scope: Construct, id: string, props: StageProps) {
@@ -72,6 +73,10 @@ export class PipelineAppStage extends cdk.Stage {
       const apiGateway_stack = new ApiGatewayStack(this, 'ApiGateway-Stack', apiGatewayProps);
       apiGateway_stack.addDependency(userPool_stack);
       apiGateway_stack.addDependency(imageBucket_stack);
+
+      let cloudWatchProp = this.createCloudWatchProps(props, this.stageName);
+      const cloudWatchStack = new CloudWatchStack(this, 'CloudWatch-Stack', cloudWatchProp);
+      cloudWatchStack.addDependency(apiGateway_stack);
 
       let amplifyProp = this.createAmplifyProps(props, this.stageName);
       const amplify_stack = new AmplifyStack(this, 'Amplify-Stack', amplifyProp);
@@ -195,6 +200,15 @@ export class PipelineAppStage extends cdk.Stage {
     }
   }
 
+  createCloudWatchProps(props:StageProps, stage:string):SSMStackProps{
+    return{
+        env: {
+            account: props.env?.account,
+            region: props.env?.region
+        },
+        stageName: stage
+    }
+  }
   mainWebsiteProps(props:StageProps, stage:string, authDomain:string):WebsiteStackProps{
     return{
       env: {
