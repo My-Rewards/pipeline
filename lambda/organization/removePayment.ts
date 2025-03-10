@@ -41,7 +41,7 @@ const removePayment = async (payment_id:string):Promise<{success:boolean}> => {
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     try {
-        const userSub = event.queryStringParameters?.userSub;
+        const userSub = event.requestContext.authorizer?.claims?.sub;
         const paymentId = event.queryStringParameters?.paymentId;
 
         const orgTable = process.env.ORG_TABLE

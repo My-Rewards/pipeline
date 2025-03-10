@@ -46,6 +46,10 @@ export interface AppConfigStackProps extends cdk.StackProps {
   stageName: string;
 }
 
+export interface CloudWatchStackProps extends cdk.StackProps {
+  stageName: string;
+}
+
 export interface ImageBucketProps extends cdk.StackProps {
   stageName: string;
   imageDomain: string;

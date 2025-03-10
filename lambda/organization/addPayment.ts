@@ -23,8 +23,12 @@ const getStripeSecret = async (stripeArn:string): Promise<string | null> => {
     return secret.secretKey;
 };
 
-const getIntent = async (stripe_id:string):Promise<{client_secret:string|null}> => {
+const getIntent = async (stripe_id:string):Promise<{client_secret:string|null, first_pm:boolean}> => {
     try {
+
+        const currPaymentMethods = await stripe?.customers.listPaymentMethods(stripe_id,{
+            limit:3
+        });
 
         const setupIntents = await stripe?.setupIntents.list({
             customer: stripe_id,
@@ -52,13 +56,15 @@ const getIntent = async (stripe_id:string):Promise<{client_secret:string|null}> 
         }
 
         return {
-            client_secret:activeIntent ? activeIntent?.client_secret: null
+            client_secret:activeIntent ? activeIntent?.client_secret: null,
+            first_pm: currPaymentMethods ? currPaymentMethods.data.length>0 : false
         };
 
       } catch (error) {
         console.error(error)
         return{
-            client_secret: null
+            client_secret: null,
+            first_pm:false
         }
       }
 }
@@ -138,7 +144,8 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         return {
             statusCode: 200,
             body: JSON.stringify({ 
-                client_secret:intent.client_secret
+                client_secret:intent.client_secret,
+                first_pm:true
             })
         };
 

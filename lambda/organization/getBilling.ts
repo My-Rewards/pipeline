@@ -3,7 +3,7 @@ import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { SecretsManagerClient, GetSecretValueCommand} from "@aws-sdk/client-secrets-manager"
 import Stripe from "stripe";
-import { StripeBillingProps } from "../Interfaces";
+import { StripeBillingProps, StripeInvoice } from "../Interfaces";
 
 const dynamoClient = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
@@ -38,11 +38,6 @@ const getStripe = async (stripe_id:string):Promise<stripeClientProps> => {
             }
         );
 
-        const customer = await stripe?.customers.retrieve(
-            stripe_id, 
-            { expand: ['invoice_settings.default_payment_method'] }
-          );
-
         const customerResponse = await stripe?.customers.retrieve(stripe_id);
 
         const subscriptions = await stripe?.subscriptions.list({
@@ -71,29 +66,64 @@ const getStripe = async (stripe_id:string):Promise<stripeClientProps> => {
 
         const subscription = subscriptions.data[0];
 
-        let invoices = await stripe?.invoices.list({
+        const upcomingInvoice = await stripe?.invoices.retrieveUpcoming({
             customer: stripe_id,
             subscription: subscription.id,
-            limit: 50, 
         });
 
+        const pastInvoices = await stripe?.invoices.list({
+            customer: stripe_id,
+            subscription: subscription.id,
+            limit: 50,
+        });
 
+        let allInvoices:StripeInvoice[] = [];
+
+        if (upcomingInvoice) {
+            allInvoices.push({
+                total: upcomingInvoice.total,
+                amount_due: upcomingInvoice.amount_due,
+                created: upcomingInvoice.created,
+                period_start: upcomingInvoice.period_start,
+                period_end: upcomingInvoice.period_end,
+                upcoming: true,
+                paid: false,
+            });
+        }
+        
+        const sortedPastInvoices = pastInvoices?.data
+            .slice()
+            .sort((a, b) => a.created - b.created) || [];
+        
+        sortedPastInvoices.forEach((invoice) => {
+            allInvoices.push({
+                id: invoice.id,
+                total: invoice.total,
+                amount_due: invoice.amount_due,
+                created: invoice.created,
+                period_start: invoice.period_start,
+                period_end: invoice.period_end,
+                upcoming: false,
+                paid: invoice.paid,
+            });
+        });
+        
         return {
             success:true,
             value:{
-                total: subscription.items.data[0].plan.amount,
+                total: upcomingInvoice ? upcomingInvoice.total_excluding_tax : null,
                 currPaymentMethod: (customerResponse && !customerResponse?.deleted) 
                 ? (typeof customerResponse.invoice_settings.default_payment_method === 'string' 
                    ? customerResponse.invoice_settings.default_payment_method 
                    : customerResponse.invoice_settings.default_payment_method?.id || null)
                 : null,
-                tax: subscription.items.data[0].tax_rates && subscription.items.data[0].tax_rates.length>0 ? subscription.items.data[0].tax_rates[0].effective_percentage : 0,
+                tax: upcomingInvoice ? upcomingInvoice.tax : null,
                 active: true,
                 paymentWindow:{
                     start: subscription.current_period_start,
                     end: subscription.current_period_end
                 },
-                invoices: invoices ? invoices.data : [],
+                invoices: allInvoices,
                 paymentMethods: paymentMethods ? paymentMethods.data : []
             }
         };

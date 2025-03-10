@@ -141,6 +141,25 @@ export class OrgApiStack extends cdk.NestedStack {
     userTable.grantReadData(setDefaultPaymentLambda);
     stripeData.grantRead(setDefaultPaymentLambda);
 
+    // removePayment Lambda
+    const removePaymentLambda = new nodejs.NodejsFunction(this, "organization-removePayment",{
+      runtime: lambda.Runtime.NODEJS_20_X,
+      entry: 'lambda/organization/removePayment.ts',
+      handler: 'handler',
+      environment: {
+        ORG_TABLE: orgTable.tableName,
+        USER_TABLE: userTable.tableName,
+        STRIPE_ARN: stripeData.secretArn,
+      },
+      bundling: {
+        externalModules: ['aws-sdk'],
+        nodeModules: ['stripe']
+      },
+    })
+    orgTable.grantReadData(removePaymentLambda);
+    userTable.grantReadData(removePaymentLambda);
+    stripeData.grantRead(removePaymentLambda);
+
     const orgApi = props.api.root.addResource('org'); 
     
     // Sub Paths
@@ -149,6 +168,7 @@ export class OrgApiStack extends cdk.NestedStack {
     const getBilling = orgApi.addResource('billing'); 
     const addPayment = orgApi.addResource('addPayment'); 
     const setDefaultPayment = orgApi.addResource('setDefaultPayment'); 
+    const removePayment = orgApi.addResource('removePayment'); 
 
     // API-Gateway lambda Integration
     const createOrgMethod = new apigateway.LambdaIntegration(createOrgLambda);
@@ -156,6 +176,7 @@ export class OrgApiStack extends cdk.NestedStack {
     const getBillingMethod = new apigateway.LambdaIntegration(getBillingLambda);
     const addPaymentMethod = new apigateway.LambdaIntegration(addPaymentLambda);
     const setDefaultPaymentMethod = new apigateway.LambdaIntegration(setDefaultPaymentLambda);
+    const removePaymentMethod = new apigateway.LambdaIntegration(removePaymentLambda);
 
     // API-Gateway Path Integration
     createOrg.addMethod('POST', createOrgMethod, {
@@ -175,6 +196,10 @@ export class OrgApiStack extends cdk.NestedStack {
       authorizationType: apigateway.AuthorizationType.COGNITO,
     });
     setDefaultPayment.addMethod('PUT', setDefaultPaymentMethod, {
+      authorizer: props.authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO,
+    });
+    removePayment.addMethod('DELETE', removePaymentMethod, {
       authorizer: props.authorizer,
       authorizationType: apigateway.AuthorizationType.COGNITO,
     });

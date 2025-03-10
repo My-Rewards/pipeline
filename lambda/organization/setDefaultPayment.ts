@@ -38,6 +38,7 @@ const setDefaultPM = async (stripe_id:string, meterPrice:string, pm_id:string):P
                 items: [
                     {
                         price: meterPrice,
+                        tax_rates: ["txr_123456789"]
                     },
                 ],
             });

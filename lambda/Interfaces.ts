@@ -31,15 +31,26 @@ export interface ShopProps {
     org_id: string;
 }
 
-export interface StripeBillingProps{
-    total:number|null,
-    tax:number|null,
-    active:boolean,
-    currPaymentMethod: string | null
-    paymentWindow:{
-        start:number | null,
-        end:number | null
-    },
-    invoices:Stripe.Invoice[]
-    paymentMethods:Stripe.PaymentMethod[]
+export interface StripeInvoice {
+    id?: string;
+    total: number;
+    amount_due: number;
+    created: number;
+    period_start: number;
+    period_end: number;
+    upcoming: boolean;
+    paid:boolean
+}
+
+export interface StripeBillingProps {
+    total: number | null;
+    tax: number | null;
+    active: boolean;
+    currPaymentMethod: string | null;
+    paymentWindow: {
+        start: number | null;
+        end: number | null;
+    };
+    invoices: StripeInvoice[];
+    paymentMethods: Stripe.PaymentMethod[];
 }
