@@ -29,6 +29,8 @@ export class UsersApiStack extends cdk.NestedStack {
         externalModules: ['aws-sdk'],
       },
     })
+    
+    usersTable.grantReadWriteData(getCustomerAccountLambda);
 
     // API Gateway integration
     const customer = props.api.root.addResource('customer'); 
