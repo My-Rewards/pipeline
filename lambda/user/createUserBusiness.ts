@@ -3,13 +3,13 @@ import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
 import { PostConfirmationTriggerEvent } from 'aws-lambda';
 import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 import { readFileSync } from 'fs';
-import { resolve } from 'path';
+import { join } from 'path';
 
 const client = new DynamoDBClient({});
 const ses = new SESClient({ region: 'us-east-1' });
 const dynamoDb = DynamoDBDocumentClient.from(client);
 
-exports.handler = async (event: PostConfirmationTriggerEvent) => {
+export const handler = async (event: PostConfirmationTriggerEvent) => {
   const tableName = process.env.TABLE;
   const role = process.env.ROLE;
   const emailSender = process.env.EMAIL_SENDER;
@@ -36,14 +36,11 @@ exports.handler = async (event: PostConfirmationTriggerEvent) => {
       preferences: {
         lightMode: true
       },
-      accessToken: null,
-      refreshToken: null,
-      updatedAt: null,
       orgId: null,
       permissions: {
-        canEditOrg: true,
-        canEditBilling: true,
-        canEditShops: true
+        modifyOrg: true,
+        modifyBilling: true,
+        modifyShops: true,
       },
     };
 
@@ -55,8 +52,7 @@ exports.handler = async (event: PostConfirmationTriggerEvent) => {
 
     await dynamoDb.send(new PutCommand(params));
 
-    const emailHtmlPath = resolve(__dirname, 'EmailTemplate', 'welcome-email-bizz.html');
-    const emailHtmlContent = readFileSync(emailHtmlPath, 'utf-8');
+    const emailHtmlContent = readFileSync(join(__dirname, '../../EmailTemplate/welcome-email-bizz.html'),'utf8');
 
     const emailParams = {
       Source: `MyRewards <${emailSender}>`,

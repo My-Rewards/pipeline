@@ -1,7 +1,7 @@
 import { DynamoDBClient} from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { OrganizationProps, ShopProps } from "../Interfaces";
+import { OrganizationProps } from "../Interfaces";
 import { SecretsManagerClient, GetSecretValueCommand} from "@aws-sdk/client-secrets-manager"
 import Stripe from "stripe";
 

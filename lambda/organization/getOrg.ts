@@ -15,7 +15,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const userTable = process.env.USER_TABLE
 
         switch(true){
-            case (!orgTable || !shopTable): return { statusCode: 404, body: JSON.stringify({ error: "No Org/Shop Table" }) };
+            case (!orgTable || !shopTable): return { statusCode: 500, body: JSON.stringify({ error: "No Org/Shop Table" }) };
             case (!userSub): return { statusCode: 404, body: JSON.stringify({ error: "no userID supplied" }) };
         }
         

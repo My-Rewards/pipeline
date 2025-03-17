@@ -3,13 +3,13 @@ import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
 import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 import { PostConfirmationTriggerEvent } from 'aws-lambda';
 import { readFileSync } from 'fs';
-import { resolve } from 'path';
+import { join } from 'path';
 
 const client = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(client);
-const ses = new SESClient({ region: 'us-east-1' }); 
+const ses = new SESClient({ region: 'us-east-1' });
 
-exports.handler = async (event:PostConfirmationTriggerEvent) => {
+export const handler = async (event:PostConfirmationTriggerEvent) => {
   const tableName = process.env.TABLE;
   const role = process.env.ROLE;
   const emailSender = process.env.EMAIL_SENDER;
@@ -20,14 +20,14 @@ exports.handler = async (event:PostConfirmationTriggerEvent) => {
             modifyPlans:true,
             modifyPayments:true,
         };
-        
+
         if (!userAttributes.email || !userAttributes.given_name || !userAttributes.family_name || !userAttributes.sub || !role || !tableName) {
         console.error('Missing required attributes');
         throw new Error('Missing required attributes');
         }
 
         // look for invites
-        
+
         const userData = {
             id: userAttributes.sub,
             email: userAttributes.email,
@@ -51,8 +51,9 @@ exports.handler = async (event:PostConfirmationTriggerEvent) => {
             ConditionExpression: 'attribute_not_exists(id)'
         };
 
-        const emailHtmlPath = resolve(__dirname, 'EmailTemplate', 'welcome-email-customer.html');
-        const emailHtmlContent = readFileSync(emailHtmlPath, 'utf-8');
+        await dynamoDb.send(new PutCommand(params));
+
+        const emailHtmlContent = readFileSync(join(__dirname, '../../EmailTemplate/welcome-email-customer.html'),'utf8');
 
         const emailParams = {
             Source: `MyRewards <${emailSender}>`,
@@ -61,17 +62,15 @@ exports.handler = async (event:PostConfirmationTriggerEvent) => {
                 Subject: { Data: 'Welcome To MyRewards!' },
                 Body: {
                     Html: { Data: emailHtmlContent },
-                    Text: { Data: 'Setup your account and link with Square if you haven’t! We have a feeling you’re going to like it here.' },
+                    Text: { Data: 'Welcome to MyRewards' },
                 },
             },
         };
 
-        await dynamoDb.send(new PutCommand(params));
-
         await ses.send(new SendEmailCommand(emailParams));
 
         return event;
-        
+
     } catch (error) {
         console.error('Error creating User:', error);
         throw error;

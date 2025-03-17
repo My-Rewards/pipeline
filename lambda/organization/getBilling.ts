@@ -146,9 +146,9 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const stripeArn = process.env.STRIPE_ARN;
 
         switch(true){
-            case (!orgTable || !userTable): return { statusCode: 404, body: JSON.stringify({ error: "No Org/User Table" }) };
-            case (!userSub): return { statusCode: 404, body: JSON.stringify({ error: "no userID supplied" }) };
-            case (!stripeArn): return { statusCode: 404, body: JSON.stringify({ error: "Missing Stripe Arn" }) };
+            case (!orgTable || !userTable): return { statusCode: 500, body: JSON.stringify({ error: "No Org/User Table" }) };
+            case (!userSub): return { statusCode: 401, body: JSON.stringify({ error: "no userID supplied" }) };
+            case (!stripeArn): return { statusCode: 500, body: JSON.stringify({ error: "Missing Stripe Arn" }) };
         }
 
         const getUser = new GetCommand ({
