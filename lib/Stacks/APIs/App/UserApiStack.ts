@@ -72,12 +72,12 @@ export class UsersApiStack extends cdk.NestedStack {
       authorizationType: apigateway.AuthorizationType.COGNITO,
     });
 
-    usersApi.addMethod('DELETE', getCustomerUserIntegration, {
+    usersApi.addMethod('DELETE', deleteCustomerUserIntegration, {
       authorizer: props.authorizer,
       authorizationType: apigateway.AuthorizationType.COGNITO,
     });
 
-    usersApi.addMethod('PUT', getCustomerUserIntegration, {
+    usersApi.addMethod('PUT', updateCustomerUserIntegration, {
       authorizer: props.authorizer,
       authorizationType: apigateway.AuthorizationType.COGNITO,
     });
