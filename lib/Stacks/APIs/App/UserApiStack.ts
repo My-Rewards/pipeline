@@ -64,8 +64,20 @@ export class UsersApiStack extends cdk.NestedStack {
     const usersApi = customer.addResource('user'); 
 
     const getCustomerUserIntegration = new apigateway.LambdaIntegration(getCustomerAccountLambda);
+    const updateCustomerUserIntegration = new apigateway.LambdaIntegration(updateCustomerAccountLambda);
+    const deleteCustomerUserIntegration = new apigateway.LambdaIntegration(deleteCustomerAccountLambda);
 
     usersApi.addMethod('GET', getCustomerUserIntegration, {
+      authorizer: props.authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO,
+    });
+
+    usersApi.addMethod('DELETE', getCustomerUserIntegration, {
+      authorizer: props.authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO,
+    });
+
+    usersApi.addMethod('PUT', getCustomerUserIntegration, {
       authorizer: props.authorizer,
       authorizationType: apigateway.AuthorizationType.COGNITO,
     });
