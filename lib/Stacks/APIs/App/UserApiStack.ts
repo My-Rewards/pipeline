@@ -28,9 +28,36 @@ export class UsersApiStack extends cdk.NestedStack {
       bundling: {
         externalModules: ['aws-sdk'],
       },
-    })
+    });
+
+    //Update Customer Account
+    const updateCustomerAccountLambda = new nodejs.NodejsFunction(this, "Update-Customer-User",{
+      runtime: lambda.Runtime.NODEJS_20_X,
+      entry: 'lambda/user/updateUser.ts',
+      handler: 'handler',
+      environment: {
+        USERS_TABLE: usersTable.tableName,
+      },
+      bundling: {
+        externalModules: ['aws-sdk'],
+      },
+    });
+    //Delete Customer Account
+    const deleteCustomerAccountLambda = new nodejs.NodejsFunction(this, "Delete-Customer-User",{
+      runtime: lambda.Runtime.NODEJS_20_X,
+      entry: 'lambda/user/deleteUser.ts',
+      handler: 'handler',
+      environment: {
+        USERS_TABLE: usersTable.tableName,
+      },
+      bundling: {
+        externalModules: ['aws-sdk'],
+      },
+    });
     
     usersTable.grantReadWriteData(getCustomerAccountLambda);
+    usersTable.grantReadWriteData(updateCustomerAccountLambda);
+    usersTable.grantReadWriteData(deleteCustomerAccountLambda);
 
     // API Gateway integration
     const customer = props.api.root.addResource('customer'); 
