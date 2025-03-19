@@ -9,7 +9,7 @@ exports.handler = async (event: APIGatewayProxyEvent) => {
     console.log("Received Event: ", JSON.stringify(event, null, 2));
 
     const tableName = process.env.USERS_TABLE;
-    const {id} = event.queryStringParameters || {};
+    const id = event.requestContext.authorizer?.claims?.sub;
 
     if (!id) {
         return {
@@ -29,6 +29,8 @@ exports.handler = async (event: APIGatewayProxyEvent) => {
     };
 
     try {
+        //Delete user in userpool
+        
         const result = await dynamoDb.send(new DeleteCommand(params));
         
 

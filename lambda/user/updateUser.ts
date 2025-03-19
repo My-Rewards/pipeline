@@ -9,7 +9,7 @@ exports.handler = async (event: APIGatewayProxyEvent) => {
     console.log("Received Event: ", JSON.stringify(event, null, 2));
 
     const tableName = process.env.USERS_TABLE;
-    const { id } = event.queryStringParameters || {};
+    const id = event.requestContext.authorizer?.claims?.sub;
     const body = event.body ? JSON.parse(event.body) : null;
 
     if (!id) {
@@ -57,7 +57,7 @@ exports.handler = async (event: APIGatewayProxyEvent) => {
         UpdateExpression: updateExpression,
         ExpressionAttributeValues: expressionAttributeValues,
         ExpressionAttributeNames: expressionAttributeNames,
-        ReturnValues: "ALL_NEW",
+        ReturnValues: "UPDATED_NEW",
     };
 
     try {

@@ -55,13 +55,16 @@ export class UsersApiStack extends cdk.NestedStack {
       },
     });
     
-    usersTable.grantReadWriteData(getCustomerAccountLambda);
+    usersTable.grantReadData(getCustomerAccountLambda);
     usersTable.grantReadWriteData(updateCustomerAccountLambda);
     usersTable.grantReadWriteData(deleteCustomerAccountLambda);
+
 
     // API Gateway integration
     const customer = props.api.root.addResource('customer'); 
     const usersApi = customer.addResource('user'); 
+    const userDelete = usersApi.addResource('delete');
+    const userUpdate = usersApi.addResource('update');
 
     const getCustomerUserIntegration = new apigateway.LambdaIntegration(getCustomerAccountLambda);
     const updateCustomerUserIntegration = new apigateway.LambdaIntegration(updateCustomerAccountLambda);
@@ -72,12 +75,12 @@ export class UsersApiStack extends cdk.NestedStack {
       authorizationType: apigateway.AuthorizationType.COGNITO,
     });
 
-    usersApi.addMethod('DELETE', deleteCustomerUserIntegration, {
+    userDelete.addMethod('DELETE', deleteCustomerUserIntegration, {
       authorizer: props.authorizer,
       authorizationType: apigateway.AuthorizationType.COGNITO,
     });
 
-    usersApi.addMethod('PUT', updateCustomerUserIntegration, {
+    userUpdate.addMethod('PUT', updateCustomerUserIntegration, {
       authorizer: props.authorizer,
       authorizationType: apigateway.AuthorizationType.COGNITO,
     });
