@@ -4,7 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b04b976d-ae26-4b57-a83b-27f2462796d1" name="Changes" comment="billing page testing and subscription creation update" />
+    <list default="true" id="b04b976d-ae26-4b57-a83b-27f2462796d1" name="Changes" comment="billing page testing and subscription creation update">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lambda/organization/addPayment.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/addPayment.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/Stacks/APIs/Business/OrganizationApiStack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/APIs/Business/OrganizationApiStack.ts" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />

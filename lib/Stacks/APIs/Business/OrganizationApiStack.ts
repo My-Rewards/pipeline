@@ -5,7 +5,7 @@ import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as nodejs from 'aws-cdk-lib/aws-lambda-nodejs'
 import * as iam from 'aws-cdk-lib/aws-iam';
-import { AUTHENTICATED_ROLE_BUSINESS, METER_PRICE } from '../../../../global/constants';
+import { METER_PRICE } from '../../../../global/constants';
 
 interface OrgApiStackProps extends cdk.NestedStackProps {
   api: apigateway.RestApi;
