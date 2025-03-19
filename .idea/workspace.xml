@@ -5,13 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b04b976d-ae26-4b57-a83b-27f2462796d1" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/test/lambdas/organization/newShop.test.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cdk.context.json" beforeDir="false" afterPath="$PROJECT_DIR$/cdk.context.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/global/props.ts" beforeDir="false" afterPath="$PROJECT_DIR$/global/props.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/Stacks/business-website-stack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/business-website-stack.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/app-stage.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/app-stage.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lambda/shop/newShop.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/shop/newShop.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -28,11 +25,24 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "dylanflaum08"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/My-Rewards/pipeline.git",
+    "accountId": "feea49a7-60a5-45ac-aac9-3da8e11d04c0"
+  }
+}]]></component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
   &quot;associatedIndex&quot;: 1
 }</component>
   <component name="ProjectId" id="2sPvgavNmeopLW2vRn1RTGmS1MA" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -41,14 +51,14 @@
   "keyToString": {
     "Node.js.business-website-stack.ts.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "business-website",
+    "git-widget-placeholder": "dylan",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/dylan/IdeaProjects/pipeline",
     "node.js.detected.package.eslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
-    "ts.external.directory.path": "C:\\Users\\dylan\\IdeaProjects\\pipeline\\node_modules\\typescript\\lib",
+    "ts.external.directory.path": "/Applications/IntelliJ IDEA.app/Contents/plugins/javascript-plugin/jsLanguageServicesImpl/external",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -171,6 +181,7 @@
       <workItem from="1738629148426" duration="58000" />
       <workItem from="1738694962107" duration="2569000" />
       <workItem from="1738698143599" duration="15009000" />
+      <workItem from="1742347490623" duration="5056000" />
     </task>
     <servers />
   </component>
