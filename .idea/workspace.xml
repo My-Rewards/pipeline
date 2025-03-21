@@ -4,11 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b04b976d-ae26-4b57-a83b-27f2462796d1" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/test/lambdas/organization/newShop.test.ts" afterDir="false" />
+    <list default="true" id="b04b976d-ae26-4b57-a83b-27f2462796d1" name="Changes" comment="init progress">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/shop/newShop.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/shop/newShop.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/lambdas/organization/newShop.test.ts" beforeDir="false" afterPath="$PROJECT_DIR$/test/lambdas/organization/newShop.test.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -181,8 +179,17 @@
       <workItem from="1738629148426" duration="58000" />
       <workItem from="1738694962107" duration="2569000" />
       <workItem from="1738698143599" duration="15009000" />
-      <workItem from="1742347490623" duration="5056000" />
+      <workItem from="1742347490623" duration="12783000" />
     </task>
+    <task id="LOCAL-00001" summary="init progress">
+      <option name="closed" value="true" />
+      <created>1742421414816</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1742421414816</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -204,5 +211,9 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="init progress" />
+    <option name="LAST_COMMIT_MESSAGE" value="init progress" />
   </component>
 </project>
