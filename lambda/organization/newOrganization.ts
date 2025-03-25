@@ -104,24 +104,24 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             return { statusCode: 400, body: JSON.stringify({ error: "User ID is required" }) };
         }
 
-        if(!org_name || !description || !rl_active || !rm_active){
+        if(!org_name || !description){
             return { statusCode: 500, body: JSON.stringify({ error: "Body Incomplete" }) };
         }
 
         if (!cachedStripeKey) {
             cachedStripeKey = await getStripeSecret(stripeArn);
-            if (!cachedStripeKey) return { statusCode: 404, body: JSON.stringify({ error: "Failed to retrieve Stripe secret key" }) };
+            if (!cachedStripeKey) return { statusCode: 500, body: JSON.stringify({ error: "Failed to retrieve Stripe secret key" }) };
         }
 
         if(!stripe){
             stripe = new Stripe(cachedStripeKey, { apiVersion: "2025-01-27.acacia" });
-            if (!stripe) return { statusCode: 404, body: JSON.stringify({ error: "Failed to open stripe Client" }) };
+            if (!stripe) return { statusCode: 500, body: JSON.stringify({ error: "Failed to open stripe Client" }) };
         }
 
         const userEmail = await getUserEmailFromDynamoDB(userSub, userTable);
 
         if (!userEmail) {
-            return { statusCode: 404, body: JSON.stringify({ error: "User email not found in database or User already linked to Organization" }) };
+            return { statusCode: 500, body: JSON.stringify({ error: "User email not found in database or User already linked to Organization" }) };
         }
 
         const stripeCustomer = await stripe.customers.create({

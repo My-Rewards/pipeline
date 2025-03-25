@@ -14,19 +14,39 @@ export class DynamoStack extends cdk.Stack {
       tableName: `Users`,
       billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
+      pointInTimeRecoverySpecification: {
+        pointInTimeRecoveryEnabled: true
+      },
+      deletionProtection:true
     });
-    userTable.addGlobalSecondaryIndex({
+
+    // business users Table
+     const businessUserTable = new aws_dynamodb.Table(this, 'BizzUsersTable', {
+      partitionKey: { name: 'id', type: aws_dynamodb.AttributeType.STRING }, 
+      tableName: `Business-Users`,
+      billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
+      pointInTimeRecoverySpecification: {
+        pointInTimeRecoveryEnabled: true
+      },
+      deletionProtection:true
+    });
+    businessUserTable.addGlobalSecondaryIndex({
       indexName: "OrgIndex",
-      partitionKey: { name: "org_id", type: aws_dynamodb.AttributeType.STRING },
+      partitionKey: { name: "orgId", type: aws_dynamodb.AttributeType.STRING },
       projectionType: aws_dynamodb.ProjectionType.ALL, 
     });
 
-    // business Table
+    // Organizations Table
     const organizationTable = new aws_dynamodb.Table(this, 'OrganizationTable', {
       partitionKey: { name: 'id', type: aws_dynamodb.AttributeType.STRING }, 
       tableName: `Organizations`,
       billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
+      pointInTimeRecoverySpecification: {
+        pointInTimeRecoveryEnabled: true
+      },
+      deletionProtection:true
     });
 
     // shops Table
@@ -35,10 +55,14 @@ export class DynamoStack extends cdk.Stack {
       tableName: `Shops`,
       billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
+      pointInTimeRecoverySpecification: {
+        pointInTimeRecoveryEnabled: true
+      },
+      deletionProtection:true
     });
     shopTable.addGlobalSecondaryIndex({
       indexName: "OrgIndex",
-      partitionKey: { name: "org_id", type: aws_dynamodb.AttributeType.STRING },
+      partitionKey: { name: "orgId", type: aws_dynamodb.AttributeType.STRING },
       projectionType: aws_dynamodb.ProjectionType.ALL,
     });
 
@@ -48,24 +72,51 @@ export class DynamoStack extends cdk.Stack {
       tableName: `Plans`,
       billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
+      pointInTimeRecoverySpecification: {
+        pointInTimeRecoveryEnabled: true
+      },
+      deletionProtection:true
     });
-
+    planTable.addGlobalSecondaryIndex({
+      indexName: "UserIndex",
+      partitionKey: { name: "userId", type: aws_dynamodb.AttributeType.STRING },
+      projectionType: aws_dynamodb.ProjectionType.ALL,
+    });
+    planTable.addGlobalSecondaryIndex({
+      indexName: "OrgIndex",
+      partitionKey: { name: "orgId", type: aws_dynamodb.AttributeType.STRING },
+      projectionType: aws_dynamodb.ProjectionType.ALL,
+    });
+    
     // visits Table
     const visitTable = new aws_dynamodb.Table(this, 'VisitTable', {
       partitionKey: { name: 'id', type: aws_dynamodb.AttributeType.STRING }, 
       tableName: `Visits`,
       billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
+      deletionProtection:true
     });
 
-    // Visit Table
+    // Likes TabledeletionProtection:true
     const likesTable = new aws_dynamodb.Table(this, 'LikesTable', {
       partitionKey: { name: 'id', type: aws_dynamodb.AttributeType.STRING }, 
       tableName: `Likes`,
       billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
+      deletionProtection:true
     });
 
+    // Rewards Table
+    const rewardsTable = new aws_dynamodb.Table(this, 'RewardsTable', {
+      partitionKey: { name: 'id', type: aws_dynamodb.AttributeType.STRING }, 
+      tableName: `Rewards`,
+      billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
+      pointInTimeRecoverySpecification: {
+        pointInTimeRecoveryEnabled: true
+      },
+      deletionProtection:true
+    });
 
     new cdk.CfnOutput(this, 'OrganizationTableARN', {
       value: organizationTable.tableArn,
@@ -75,8 +126,14 @@ export class DynamoStack extends cdk.Stack {
     
     new cdk.CfnOutput(this, 'UserTableARN', {
       value: userTable.tableArn,
-      description: 'The Users Table ARN',
+      description: 'The Customer Users Table ARN',
       exportName: 'UserTableARN',
+    });
+
+    new cdk.CfnOutput(this, 'BizzUserTableARN', {
+      value: businessUserTable.tableArn,
+      description: 'The Business Users Table ARN',
+      exportName: 'BizzUserTableARN',
     });
     
     new cdk.CfnOutput(this, 'ShopTableARN', {
@@ -102,6 +159,11 @@ export class DynamoStack extends cdk.Stack {
       description: 'The Likes Table ARN',
       exportName: 'LikesTableARN',
     });
-    
+
+    new cdk.CfnOutput(this, 'RewardsTableARN', {
+      value: rewardsTable.tableArn,
+      description: 'The Likes Table ARN',
+      exportName: 'RewardsTableARN',
+    });
   }
 }

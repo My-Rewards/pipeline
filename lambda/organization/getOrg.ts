@@ -15,14 +15,14 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const userTable = process.env.USER_TABLE
 
         switch(true){
-            case (!orgTable || !shopTable): return { statusCode: 404, body: JSON.stringify({ error: "No Org/Shop Table" }) };
+            case (!orgTable || !shopTable): return { statusCode: 500, body: JSON.stringify({ error: "No Org/Shop Table" }) };
             case (!userSub): return { statusCode: 404, body: JSON.stringify({ error: "no userID supplied" }) };
         }
         
         const getUser = new GetCommand({
             TableName: userTable,
             Key: {id: userSub},
-            ProjectionExpression: "org_id, #userPermissions",
+            ProjectionExpression: "orgId, #userPermissions",
             ExpressionAttributeNames: { 
                 "#userPermissions": "permissions"
             },
@@ -30,11 +30,11 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
           
         const resultUser = await dynamoDb.send(getUser);
         
-        if (!resultUser.Item?.org_id) {
+        if (!resultUser.Item?.orgId) {
             return { statusCode: 210, body: JSON.stringify({ info: "Organization not Found" }) };
         }
         
-        const orgId = resultUser.Item.org_id;
+        const orgId = resultUser.Item.orgId;
         const permissions = resultUser.Item.permissions;
 
         const getOrg = new GetCommand({
@@ -60,9 +60,9 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const queryShops = new QueryCommand({
             TableName: shopTable,
             IndexName: "OrgIndex",
-            KeyConditionExpression: "org_id = :orgId",
+            KeyConditionExpression: "orgId = :org_id",
             ExpressionAttributeValues: {
-              ":orgId": orgId,
+              ":org_id": orgId,
             }
           });
 

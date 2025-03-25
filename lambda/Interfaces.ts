@@ -28,7 +28,7 @@ export interface OrganizationProps {
 
 export interface ShopProps {
     id: string;
-    org_id: string;
+    orgId: string;
 }
 
 export interface StripeInvoice {

@@ -13,7 +13,7 @@ export class BusinessWebsiteStack extends cdk.Stack {
         const githubToken = cdk.SecretValue.secretsManager('github-token');
 
         const stripeData = cdk.aws_secretsmanager.Secret.fromSecretNameV2(this, 'fetchStripeCredentials', 'stripe/credentials');
-        const stripe_key = stripeData.secretValueFromJson('secretKey')
+        const stripe_key = stripeData.secretValueFromJson('key')
     
         const squareData = cdk.aws_secretsmanager.Secret.fromSecretNameV2(this, 'fetchSquareCredentials', 'square/credentials');
         const square_clientId = squareData.secretValueFromJson('client_id')
@@ -36,7 +36,7 @@ export class BusinessWebsiteStack extends cdk.Stack {
                 NEXT_PUBLIC_APP_ENV: props.stageName,
                 NEXT_PUBLIC_STRIPE_KEY: stripe_key.unsafeUnwrap(),
                 NEXT_PUBLIC_SQUARE_CLIENT: square_clientId.unsafeUnwrap(),
-                NEXT_PUBLIC_API_DOMAIN: props.apiDomain
+                NEXT_PUBLIC_API_DOMAIN: `${props.apiDomain}.${DOMAIN}`
             },
             customRules: [
                 { source: "/<*>", target: "/index.html", status: RedirectStatus.NOT_FOUND_REWRITE },

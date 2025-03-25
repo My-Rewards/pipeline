@@ -24,12 +24,14 @@ import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as nodejs from 'aws-cdk-lib/aws-lambda-nodejs'
 import * as fs from 'fs';
 import * as path from 'path';
+import * as targets from 'aws-cdk-lib/aws-route53-targets';
 
 export class UserPoolStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props: UserPoolStackProps) {
       super(scope, id, props);
 
       const usersTable = dynamodb.Table.fromTableArn(this, 'ImportedUsersTable', cdk.Fn.importValue('UserTableARN'));
+      const bizzUsersTable = dynamodb.Table.fromTableArn(this, 'ImportedBizzUsersTable', cdk.Fn.importValue('BizzUserTableARN'));
 
       const sesStatement = new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
@@ -42,13 +44,12 @@ export class UserPoolStack extends cdk.Stack {
 
       const verifyEmailBody = fs.readFileSync(path.join(__dirname, '../../EmailTemplate/verify-email-template.html'),'utf8');
 
-      const postConfirmationHandlerUser = new nodejs.NodejsFunction(this, "my-user-handler",{
+      const postConfirmationHandlerUser = new nodejs.NodejsFunction(this, "Customer-User-postConfirmation",{
         runtime: lambda.Runtime.NODEJS_20_X,
         entry: 'lambda/user/createUser.ts',
         handler: 'handler',
         environment: {
           TABLE: usersTable.tableName,
-          ROLE:'user',
           EMAIL_SENDER:`no-reply@${props.authDomain}.${DOMAIN}`
         },
         bundling: {
@@ -58,20 +59,19 @@ export class UserPoolStack extends cdk.Stack {
       usersTable.grantWriteData(postConfirmationHandlerUser);
       postConfirmationHandlerUser.addToRolePolicy(sesStatement);
 
-      const postConfirmationHandlerBusiness = new nodejs.NodejsFunction(this, "my-business-handler",{
+      const postConfirmationHandlerBusiness = new nodejs.NodejsFunction(this, "Bizz-User-postConfirmation",{
         runtime: lambda.Runtime.NODEJS_20_X,
         entry: 'lambda/user/createUserBusiness.ts',
         handler: 'handler',
         environment: {
-          TABLE: usersTable.tableName,
-          ROLE:'business',
+          TABLE: bizzUsersTable.tableName,
           EMAIL_SENDER:`no-reply@${props.authDomain}.${DOMAIN}`
         },
         bundling: {
           externalModules: ['aws-sdk']
         }
       })
-      usersTable.grantWriteData(postConfirmationHandlerBusiness);
+      bizzUsersTable.grantWriteData(postConfirmationHandlerBusiness);
       postConfirmationHandlerBusiness.addToRolePolicy(sesStatement);
 
       // userPool - Customers
@@ -120,10 +120,6 @@ export class UserPoolStack extends cdk.Stack {
           givenName:{ required: true, mutable: true },
           familyName:{ required: true, mutable: true },
         },
-        customAttributes: {
-          role: new cognito.StringAttribute({ mutable: true }),
-          linked: new cognito.NumberAttribute({ mutable: true })
-        },
         passwordPolicy: {
           minLength: 8,
           requireLowercase: true,
@@ -166,6 +162,20 @@ export class UserPoolStack extends cdk.Stack {
             requireUppercase: true,
         },
         removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
+      });
+
+      const cognitoDomain_Customer = new cognito.UserPoolDomain(this, 'CognitoDomain_Customer', {
+        userPool:userPool_Customer,
+        cognitoDomain: {
+          domainPrefix: `${props.stageName}-customer`,
+        },
+      });
+
+      const cognitoDomain_Business = new cognito.UserPoolDomain(this, 'CognitoDomain_Business', {
+        userPool:userPool_Business,
+        cognitoDomain: {
+          domainPrefix: `${props.stageName}-business`,
+        },
       });
       
       // userPool Client - Customers
@@ -415,6 +425,27 @@ export class UserPoolStack extends cdk.Stack {
         zoneName: `${props.authDomain}.${DOMAIN}`,
       });
 
+      const aRecord = new route53.ARecord(this, `${props.stageName}-AuthARecord-Parent`, {
+        zone: hostedZoneAuth,
+        target: route53.RecordTarget.fromAlias(new targets.UserPoolDomainTarget(cognitoDomain_Customer)),
+        deleteExisting: true,
+      });
+      const aRecordUser = new route53.ARecord(this, `${props.stageName}-User-AuthARecord`, {
+        zone: hostedZoneAuth,
+        recordName:'user',
+        target: route53.RecordTarget.fromAlias(new targets.UserPoolDomainTarget(cognitoDomain_Customer)),
+        deleteExisting: true,
+      });
+      const aRecordBusiness = new route53.ARecord(this, `${props.stageName}-Business-AuthARecord`, {
+        zone: hostedZoneAuth,
+        recordName:'business',
+        target: route53.RecordTarget.fromAlias(new targets.UserPoolDomainTarget(cognitoDomain_Business)),
+        deleteExisting: true,
+      });
+
+      aRecordUser.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE);
+      aRecordBusiness.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE);
+
       const certificateAuth = new acm.Certificate(this, 'AuthCertificate', {
         domainName: `${props.authDomain}.${DOMAIN}`,
         subjectAlternativeNames:[
@@ -424,18 +455,24 @@ export class UserPoolStack extends cdk.Stack {
         validation: acm.CertificateValidation.fromDns(hostedZoneAuth),
       });
   
-      const cognitoDomainUser = userPool_Customer.addDomain('addingCustomerDomain', {
+      const cognitoDomainUser = userPool_Customer.addDomain('UserPoolCustomDomain', {
         customDomain: {
           domainName: `user.${props.authDomain}.${DOMAIN}`,
           certificate: certificateAuth
-        },
+        }
       });
-      const cognitoDomainBusiness = userPool_Business.addDomain('addingBusinessDomain', {
+      
+      const cognitoDomainBusiness = userPool_Business.addDomain('BusinessPoolCustomDomain', {
         customDomain: {
           domainName: `business.${props.authDomain}.${DOMAIN}`,
           certificate: certificateAuth
-        },
+        }
       });
+
+      cognitoDomainUser.node.addDependency(aRecordUser)
+      cognitoDomainUser.node.addDependency(aRecord)
+      cognitoDomainBusiness.node.addDependency(aRecordBusiness)
+      cognitoDomainBusiness.node.addDependency(aRecord)
 
       // ----- UserPools ------
       new cdk.CfnOutput(this, UPC_CUSTOMER, {

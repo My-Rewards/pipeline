@@ -17,7 +17,7 @@ export class SquareApiStack extends cdk.NestedStack {
   constructor(scope: Construct, id: string, props: SquareApiStackProps) {
     super(scope, id, props);
 
-    const usersTable = dynamodb.Table.fromTableArn(this, 'ImportedUsersTable', cdk.Fn.importValue('UserTableARN'));
+    const userTable = dynamodb.Table.fromTableArn(this, 'ImportedBizzUsersTable', cdk.Fn.importValue('BizzUserTableARN'));
     const orgTable = dynamodb.Table.fromTableArn(this, 'ImportedOrganizationTableARN', cdk.Fn.importValue('OrganizationTableARN'));
 
     const secretData = cdk.aws_secretsmanager.Secret.fromSecretNameV2(this, 'fetchSquareSecret', 'square/credentials');
@@ -27,7 +27,7 @@ export class SquareApiStack extends cdk.NestedStack {
       entry: 'lambda/organization/connectSquare.ts',
       handler: 'handler',
       environment: {
-        USER_TABLE: usersTable.tableName,
+        USER_TABLE: userTable.tableName,
         ORG_TABLE: orgTable.tableName,
         SQUARE_ARN: secretData.secretArn,
         KMS_KEY_ID: props.encryptionKey.keyId,
@@ -40,7 +40,7 @@ export class SquareApiStack extends cdk.NestedStack {
       timeout: cdk.Duration.seconds(10),
     })
 
-    usersTable.grantReadData(setupSquareLambda);
+    userTable.grantReadData(setupSquareLambda);
     orgTable.grantReadWriteData(setupSquareLambda);
     secretData.grantRead(setupSquareLambda)
     props.encryptionKey.grantEncryptDecrypt(setupSquareLambda);
@@ -50,7 +50,7 @@ export class SquareApiStack extends cdk.NestedStack {
       entry: 'lambda/square/listShops.ts',
       handler: 'handler',
       environment: {
-        USER_TABLE: usersTable.tableName,
+        USER_TABLE: userTable.tableName,
         SQUARE_ARN:secretData.secretArn,
         KMS_KEY_ID: props.encryptionKey.keyId,
         APP_ENV:props.stage
@@ -62,8 +62,8 @@ export class SquareApiStack extends cdk.NestedStack {
       timeout: cdk.Duration.seconds(10),
     })
 
-    usersTable.grantReadData(listSquareShops);
-    usersTable.grantWriteData(listSquareShops);
+    userTable.grantReadData(listSquareShops);
+    userTable.grantWriteData(listSquareShops);
     secretData.grantRead(listSquareShops)
     props.encryptionKey.grantDecrypt(listSquareShops);
 
