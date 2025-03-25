@@ -28,17 +28,59 @@ export class UsersApiStack extends cdk.NestedStack {
       bundling: {
         externalModules: ['aws-sdk'],
       },
-    })
+    });
+
+    //Update Customer Account
+    const updateCustomerAccountLambda = new nodejs.NodejsFunction(this, "Update-Customer-User",{
+      runtime: lambda.Runtime.NODEJS_20_X,
+      entry: 'lambda/user/updateUser.ts',
+      handler: 'handler',
+      environment: {
+        USERS_TABLE: usersTable.tableName,
+      },
+      bundling: {
+        externalModules: ['aws-sdk'],
+      },
+    });
+    //Delete Customer Account
+    const deleteCustomerAccountLambda = new nodejs.NodejsFunction(this, "Delete-Customer-User",{
+      runtime: lambda.Runtime.NODEJS_20_X,
+      entry: 'lambda/user/deleteUser.ts',
+      handler: 'handler',
+      environment: {
+        USERS_TABLE: usersTable.tableName,
+      },
+      bundling: {
+        externalModules: ['aws-sdk'],
+      },
+    });
     
-    usersTable.grantReadWriteData(getCustomerAccountLambda);
+    usersTable.grantReadData(getCustomerAccountLambda);
+    usersTable.grantReadWriteData(updateCustomerAccountLambda);
+    usersTable.grantReadWriteData(deleteCustomerAccountLambda);
+
 
     // API Gateway integration
     const customer = props.api.root.addResource('customer'); 
     const usersApi = customer.addResource('user'); 
+    const userDelete = usersApi.addResource('delete');
+    const userUpdate = usersApi.addResource('update');
 
     const getCustomerUserIntegration = new apigateway.LambdaIntegration(getCustomerAccountLambda);
+    const updateCustomerUserIntegration = new apigateway.LambdaIntegration(updateCustomerAccountLambda);
+    const deleteCustomerUserIntegration = new apigateway.LambdaIntegration(deleteCustomerAccountLambda);
 
     usersApi.addMethod('GET', getCustomerUserIntegration, {
+      authorizer: props.authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO,
+    });
+
+    userDelete.addMethod('DELETE', deleteCustomerUserIntegration, {
+      authorizer: props.authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO,
+    });
+
+    userUpdate.addMethod('PUT', updateCustomerUserIntegration, {
       authorizer: props.authorizer,
       authorizationType: apigateway.AuthorizationType.COGNITO,
     });
