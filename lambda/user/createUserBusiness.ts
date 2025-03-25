@@ -34,7 +34,6 @@ export const handler = async (event: PostConfirmationTriggerEvent) => {
       preferences: {
         lightMode: true
       },
-      orgId: null,
       permissions: {
         modifyOrg: true,
         modifyBilling: true,
@@ -42,13 +41,13 @@ export const handler = async (event: PostConfirmationTriggerEvent) => {
       },
     };
 
-    const params = {
+    const params = new PutCommand({
       TableName: tableName,
       Item: userData,
       ConditionExpression: 'attribute_not_exists(id)'
-    };
+    });
 
-    await dynamoDb.send(new PutCommand(params));
+    await dynamoDb.send(params);
 
     const emailHtmlContent = readFileSync(join(__dirname, '../../EmailTemplate/welcome-email-bizz.html'),'utf8');
 

@@ -37,7 +37,7 @@ export class DynamoStack extends cdk.Stack {
       projectionType: aws_dynamodb.ProjectionType.ALL, 
     });
 
-    // business Table
+    // Organizations Table
     const organizationTable = new aws_dynamodb.Table(this, 'OrganizationTable', {
       partitionKey: { name: 'id', type: aws_dynamodb.AttributeType.STRING }, 
       tableName: `Organizations`,
@@ -61,7 +61,7 @@ export class DynamoStack extends cdk.Stack {
       deletionProtection:true
     });
     shopTable.addGlobalSecondaryIndex({
-      indexName: "Org_Id",
+      indexName: "OrgIndex",
       partitionKey: { name: "orgId", type: aws_dynamodb.AttributeType.STRING },
       projectionType: aws_dynamodb.ProjectionType.ALL,
     });
@@ -69,7 +69,7 @@ export class DynamoStack extends cdk.Stack {
     // plans Table
     const planTable = new aws_dynamodb.Table(this, 'PlanTable', {
       partitionKey: { name: 'id', type: aws_dynamodb.AttributeType.STRING }, 
-      tableName: `Customer-Plans`,
+      tableName: `Plans`,
       billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
       pointInTimeRecoverySpecification: {
@@ -78,12 +78,12 @@ export class DynamoStack extends cdk.Stack {
       deletionProtection:true
     });
     planTable.addGlobalSecondaryIndex({
-      indexName: "User_Id",
+      indexName: "UserIndex",
       partitionKey: { name: "userId", type: aws_dynamodb.AttributeType.STRING },
       projectionType: aws_dynamodb.ProjectionType.ALL,
     });
     planTable.addGlobalSecondaryIndex({
-      indexName: "Org_Id",
+      indexName: "OrgIndex",
       partitionKey: { name: "orgId", type: aws_dynamodb.AttributeType.STRING },
       projectionType: aws_dynamodb.ProjectionType.ALL,
     });
@@ -130,7 +130,7 @@ export class DynamoStack extends cdk.Stack {
       exportName: 'UserTableARN',
     });
 
-    new cdk.CfnOutput(this, 'BizzUserTable', {
+    new cdk.CfnOutput(this, 'BizzUserTableARN', {
       value: businessUserTable.tableArn,
       description: 'The Business Users Table ARN',
       exportName: 'BizzUserTableARN',

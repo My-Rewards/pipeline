@@ -44,7 +44,7 @@ export class UserPoolStack extends cdk.Stack {
 
       const verifyEmailBody = fs.readFileSync(path.join(__dirname, '../../EmailTemplate/verify-email-template.html'),'utf8');
 
-      const postConfirmationHandlerUser = new nodejs.NodejsFunction(this, "my-user-handler",{
+      const postConfirmationHandlerUser = new nodejs.NodejsFunction(this, "Customer-User-postConfirmation",{
         runtime: lambda.Runtime.NODEJS_20_X,
         entry: 'lambda/user/createUser.ts',
         handler: 'handler',
@@ -59,7 +59,7 @@ export class UserPoolStack extends cdk.Stack {
       usersTable.grantWriteData(postConfirmationHandlerUser);
       postConfirmationHandlerUser.addToRolePolicy(sesStatement);
 
-      const postConfirmationHandlerBusiness = new nodejs.NodejsFunction(this, "my-business-handler",{
+      const postConfirmationHandlerBusiness = new nodejs.NodejsFunction(this, "Bizz-User-postConfirmation",{
         runtime: lambda.Runtime.NODEJS_20_X,
         entry: 'lambda/user/createUserBusiness.ts',
         handler: 'handler',
