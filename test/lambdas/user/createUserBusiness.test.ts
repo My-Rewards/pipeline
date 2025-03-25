@@ -45,7 +45,6 @@ describe('createUser Lambda Function', () => {
         jest.clearAllMocks();
 
         process.env.TABLE = 'UsersTable';
-        process.env.ROLE = 'business';
         process.env.EMAIL_SENDER = 'no-reply@example.com';
 
         (fs.readFileSync as jest.Mock).mockReturnValue(mockEmailTemplate);
@@ -70,7 +69,6 @@ describe('createUser Lambda Function', () => {
                     firstName: 'John',
                     lastName: 'Doe'
                 },
-                role: 'business',
                 newAccount: true,
                 preferences: {
                     lightMode: true

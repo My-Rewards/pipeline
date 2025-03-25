@@ -5,6 +5,7 @@ import { S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import Stripe from "stripe";
 import { APIGatewayProxyEvent } from "aws-lambda";
+import { randomUUID } from "crypto";
 
 jest.mock("@aws-sdk/client-secrets-manager");
 jest.mock("@aws-sdk/client-s3");
@@ -90,23 +91,26 @@ describe("Organization Lambda Handler", () => {
     test("should successfully create a new organization", async () => {
         const testEvent = {
             body: JSON.stringify({
-                userSub: "test-user-123",
                 org_name: "Test Organization",
                 description: "Test Description",
-                rewards_loyalty: true,
-                rewards_milestone: true,
+                rewards_loyalty: {},
+                rewards_milestone: null,
                 rl_active: true,
-                rm_active: true
-            })
+                rm_active: false
+            }),
+            requestContext: {
+                authorizer: {
+                    claims: { sub: 'user123' }
+                }
+            },
         };
 
         const stripe = new Stripe("test_secret_key", { apiVersion: "2025-01-27.acacia" });
 
-        const { randomUUID } = require('crypto');
-        const response = await handler(testEvent as APIGatewayProxyEvent);
+        const response = await handler(testEvent as any);
         const responseBody = JSON.parse(response.body);
 
-        expect(randomUUID).toHaveBeenCalled();;
+        expect(randomUUID).toHaveBeenCalled();
 
         expect(stripe.customers.create).toHaveBeenCalledWith({
             name: "Test Organization",
@@ -116,22 +120,24 @@ describe("Organization Lambda Handler", () => {
         });
 
         expect(response.statusCode).toBe(200);
-        expect(responseBody).toHaveProperty("stripe_customer_id");
-        expect(responseBody).toHaveProperty("preSignedUrls");
+        expect(responseBody).toEqual({"message": "Success", "preSignedUrls": [{"fileKey": "test-organization-id-123/logo", "type": "logo", "url": "https://presigned-url.example.com"}, {"fileKey": "test-organization-id-123/preview", "type": "preview", "url": "https://presigned-url.example.com"}, {"fileKey": "test-organization-id-123/banner", "type": "banner", "url": "https://presigned-url.example.com"}]});
         expect(Array.isArray(responseBody.preSignedUrls)).toBeTruthy()
 
     });
 
     test("should handle user not found in DynamoDB", async () => {
-        const testEvent = {
+
+        const response = await handler({
+            requestContext: {
+                authorizer: {
+                    claims: { sub: null }
+                }
+            },
             body: JSON.stringify({
-                userSub: null,
                 org_name: "Test Organization",
                 description: "Test Description"
             })
-        };
-
-        const response = await handler(testEvent as APIGatewayProxyEvent);
+        } as any);
         
         expect(response.statusCode).toBe(400);
         expect(JSON.parse(response.body)).toHaveProperty("error", "User ID is required");
@@ -139,13 +145,18 @@ describe("Organization Lambda Handler", () => {
 
     test("should handle missing user_id", async () => {
         const testEvent = {
+            requestContext: {
+                authorizer: {
+                    claims: { sub: null }
+                }
+            },
             body: JSON.stringify({
                 org_name: "Test Organization",
                 description: "Test Description"
             })
         };
 
-        const response = await handler(testEvent as APIGatewayProxyEvent);
+        const response = await handler(testEvent as any);
         
         expect(response.statusCode).toBe(400);
         expect(JSON.parse(response.body)).toHaveProperty("error", "User ID is required");

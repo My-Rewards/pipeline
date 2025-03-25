@@ -17,7 +17,7 @@ export class OrgApiStack extends cdk.NestedStack {
     super(scope, id, props);
 
     const orgTable = dynamodb.Table.fromTableArn(this, 'ImportedOrganizationTableARN', cdk.Fn.importValue('OrganizationTableARN'));
-    const userTable = dynamodb.Table.fromTableArn(this, 'ImportedUserTableARN', cdk.Fn.importValue('UserTableARN'));
+    const userTable = dynamodb.Table.fromTableArn(this, 'ImportedBizzUsersTable', cdk.Fn.importValue('BizzUserTableARN'));
     const shopTable = dynamodb.Table.fromTableArn(this, 'ImportedShopsTableARN', cdk.Fn.importValue('ShopTableARN'));
     
     const stripeData = cdk.aws_secretsmanager.Secret.fromSecretNameV2(this, 'fetchStripeCredentials', 'stripe/credentials');

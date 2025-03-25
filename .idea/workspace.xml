@@ -4,10 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b04b976d-ae26-4b57-a83b-27f2462796d1" name="Changes" comment="billing page testing and subscription creation update">
+    <list default="true" id="b04b976d-ae26-4b57-a83b-27f2462796d1" name="Changes" comment="create subsciption on addPayment">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/organization/addPayment.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/addPayment.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/Stacks/APIs/Business/OrganizationApiStack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/APIs/Business/OrganizationApiStack.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lambda/organization/connectSquare.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/connectSquare.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/Stacks/apiGateway-stack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/apiGateway-stack.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -33,7 +33,7 @@
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
     &quot;url&quot;: &quot;https://github.com/My-Rewards/pipeline.git&quot;,
-    &quot;accountId&quot;: &quot;aea4a58a-4c1a-4af7-9526-d68398429cf5&quot;
+    &quot;accountId&quot;: &quot;7f46a21d-1860-4381-ba4e-9659a1b5727c&quot;
   }
 }</component>
   <component name="ProjectColorInfo">{
@@ -174,12 +174,6 @@
       <test-file value="$PROJECT_DIR$/test/lambdas/organization/getOrg.test.ts" />
       <method v="2" />
     </configuration>
-    <configuration default="true" type="JetRunConfigurationType">
-      <module name="pipeline" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
     <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
       <module name="pipeline" />
       <option name="filePath" />
@@ -236,8 +230,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-9823dce3aa75-a94e463ab2e7-intellij.indexing.shared.core-IU-243.25659.59" />
-        <option value="bundled-js-predefined-d6986cc7102b-1632447f56bf-JavaScript-IU-243.25659.59" />
+        <option value="bundled-jdk-9823dce3aa75-a94e463ab2e7-intellij.indexing.shared.core-IU-243.26053.27" />
+        <option value="bundled-js-predefined-d6986cc7102b-1632447f56bf-JavaScript-IU-243.26053.27" />
       </set>
     </attachedChunks>
   </component>
@@ -254,6 +248,9 @@
       <workItem from="1738694962107" duration="2569000" />
       <workItem from="1738698143599" duration="15009000" />
       <workItem from="1742169581051" duration="10265000" />
+      <workItem from="1742351800759" duration="83000" />
+      <workItem from="1742351897516" duration="601000" />
+      <workItem from="1742509726423" duration="174000" />
     </task>
     <task id="LOCAL-00001" summary="billing page testing and subscription creation update">
       <option name="closed" value="true" />
@@ -271,7 +268,15 @@
       <option name="project" value="LOCAL" />
       <updated>1742184670726</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="create subsciption on addPayment">
+      <option name="closed" value="true" />
+      <created>1742344260298</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1742344260298</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -296,7 +301,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="billing page testing and subscription creation update" />
-    <option name="LAST_COMMIT_MESSAGE" value="billing page testing and subscription creation update" />
+    <MESSAGE value="create subsciption on addPayment" />
+    <option name="LAST_COMMIT_MESSAGE" value="create subsciption on addPayment" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

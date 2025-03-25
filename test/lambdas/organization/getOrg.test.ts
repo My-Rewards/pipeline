@@ -94,7 +94,7 @@ describe('GetOrg Lambda Function', () => {
         expect(JSON.parse(response.body)).toEqual({ error: 'no userID supplied' });
     });
 
-    test('should return 210 when user not found or has no org_id', async () => {
+    test('should return 210 when user not found or has no orgId', async () => {
         const event = createMockEvent();
         ddbMock.on(GetCommand).resolves({ Item: undefined });
 
@@ -112,7 +112,7 @@ describe('GetOrg Lambda Function', () => {
             Key: { id: '123456789' }
         }).resolves({
             Item: {
-                org_id: 'org-123',
+                orgId: 'org-123',
                 permissions: ['read']
             }
         });
@@ -138,7 +138,7 @@ describe('GetOrg Lambda Function', () => {
             Key: { id: '123456789' }
         }).resolves({
             Item: {
-                org_id: 'org-123',
+                orgId: 'org-123',
                 permissions: ['read']
             }
         });
@@ -167,7 +167,7 @@ describe('GetOrg Lambda Function', () => {
             TableName: 'test-user-table'
         }).resolves({
             Item: {
-                org_id: 'org-123',
+                orgId: 'org-123',
                 permissions: ['read']
             }
         });
@@ -220,12 +220,12 @@ describe('GetOrg Lambda Function', () => {
             {
                 id: 'shop-1',
                 name: 'Shop 1',
-                org_id: 'org-123'
+                orgId: 'org-123'
             },
             {
                 id: 'shop-2',
                 name: 'Shop 2',
-                org_id: 'org-123'
+                orgId: 'org-123'
             }
         ];
 
@@ -233,7 +233,7 @@ describe('GetOrg Lambda Function', () => {
             TableName: 'test-user-table'
         }).resolves({
             Item: {
-                org_id: 'org-123',
+                orgId: 'org-123',
                 permissions: ['read']
             }
         });

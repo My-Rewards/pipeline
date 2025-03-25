@@ -11,13 +11,12 @@ const dynamoDb = DynamoDBDocumentClient.from(client);
 
 export const handler = async (event: PostConfirmationTriggerEvent) => {
   const tableName = process.env.TABLE;
-  const role = process.env.ROLE;
   const emailSender = process.env.EMAIL_SENDER;
 
   try {
     const { request: { userAttributes } } = event;
 
-    if (!userAttributes.email || !userAttributes.given_name || !userAttributes.family_name || !userAttributes.sub || !role || !tableName) {
+    if (!userAttributes.email || !userAttributes.given_name || !userAttributes.family_name || !userAttributes.sub || !tableName) {
       console.error('Missing required attributes');
       throw new Error('Missing required attributes');
     }
@@ -31,7 +30,6 @@ export const handler = async (event: PostConfirmationTriggerEvent) => {
         lastName: userAttributes.family_name
       },
       date_created: new Date().toISOString(),
-      role: role,
       newAccount: true,
       preferences: {
         lightMode: true

@@ -70,7 +70,7 @@ describe("getBilling Lambda Handler", () => {
         process.env.STRIPE_ARN = "test-stripe-arn";
     });
 
-    test("should return 210 if user's org_id is not found", async () => {
+    test("should return 210 if user's orgId is not found", async () => {
         ddbMock.on(GetCommand, {
             TableName: "test-user-table",
             Key: { id: "user123" }
@@ -96,7 +96,7 @@ describe("getBilling Lambda Handler", () => {
             Key: { id: "user123" }
         }).resolves({
             Item: {
-                org_id: "org123",
+                orgId: "org123",
                 permissions: ["read", "write"]
             }
         });
@@ -126,7 +126,7 @@ describe("getBilling Lambda Handler", () => {
             Key: { id: "user123" }
         }).resolves({
             Item: {
-                org_id: "org123",
+                orgId: "org123",
                 permissions: ["read", "write"]
             }
         });
@@ -162,7 +162,7 @@ describe("getBilling Lambda Handler", () => {
             Key: { id: "user123" }
         }).resolves({
             Item: {
-                org_id: "org123",
+                orgId: "org123",
                 permissions: ["read", "write"]
             }
         });
@@ -263,7 +263,7 @@ describe("getBilling Lambda Handler", () => {
             Key: { id: "user123" }
         }).resolves({
             Item: {
-                org_id: "org123",
+                orgId: "org123",
                 permissions: ["read", "write"]
             }
         });

@@ -50,9 +50,11 @@ export class PipelineAppStage extends cdk.Stage {
 
       let hostedZoneProps = this.createHostedZoneProps(props, this.stageName, authDomain, businessDomain, apiDomain, imageDomain);
       const hostedZone_stack = new HostedZoneStack(this, 'HostedZone-Stack', hostedZoneProps);
+      hostedZone_stack.terminationProtection = true;
 
       let dynamoDbProp = this.createDynamoProps(props, this.stageName);
       const dynamo_stack = new DynamoStack(this, 'Dynamo-Stack', dynamoDbProp);
+      dynamo_stack.terminationProtection = true;
 
       let appConfigProps = this.createAppConfigProps(props, this.stageName);
       const appConfigStack = new AppConfigStack(this, 'AppConfig-Stack', appConfigProps);
@@ -64,6 +66,7 @@ export class PipelineAppStage extends cdk.Stage {
       let userPoolProps = this.createUserPoolProps(props, this.stageName, authDomain, businessDomain);
       const userPool_stack = new UserPoolStack(this, 'UserPool-Stack', userPoolProps);
       userPool_stack.addDependency(customEmail_stack);
+      userPool_stack.terminationProtection = true;
 
       let imageBucketProps = this.createImageBucketProps(props, this.stageName, imageDomain, businessDomain);
       const imageBucket_stack = new ImageBucketStack(this, 'ImageBucket-Stack', imageBucketProps);

@@ -11,7 +11,6 @@ const ses = new SESClient({ region: 'us-east-1' });
 
 export const handler = async (event:PostConfirmationTriggerEvent) => {
   const tableName = process.env.TABLE;
-  const role = process.env.ROLE;
   const emailSender = process.env.EMAIL_SENDER;
 
     try {
@@ -21,7 +20,7 @@ export const handler = async (event:PostConfirmationTriggerEvent) => {
             modifyPayments:true,
         };
 
-        if (!userAttributes.email || !userAttributes.given_name || !userAttributes.family_name || !userAttributes.sub || !role || !tableName) {
+        if (!userAttributes.email || !userAttributes.given_name || !userAttributes.family_name || !userAttributes.sub || !tableName) {
         console.error('Missing required attributes');
         throw new Error('Missing required attributes');
         }
@@ -37,7 +36,6 @@ export const handler = async (event:PostConfirmationTriggerEvent) => {
                 lastName: userAttributes.family_name
             },
             date_created: new Date().toISOString(),
-            role:role,
             credentials,
             newAccount: true,
             preferences:{

@@ -73,18 +73,18 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const getUser = new GetCommand({
       TableName: userTable,
       Key: { id: userSub},
-      ProjectionExpression: "org_id",
+      ProjectionExpression: "orgId",
     });
 
     const userResult = await dynamoDb.send(getUser);
 
-    if(!userResult?.Item || !userResult.Item.org_id){
+    if(!userResult?.Item || !userResult.Item.orgId){
       return { statusCode: 210, body: JSON.stringify({ info: "User not found" }) };
     }
 
     const getOrg = new GetCommand({
       TableName: orgTable,
-      Key: { id: userResult.Item.org_id },
+      Key: { id: userResult.Item.orgId },
     });
 
     const orgResult = await dynamoDb.send(getOrg);
@@ -96,7 +96,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const organization = orgResult.Item as OrganizationProps
 
     if(organization.owner_id !== userSub ){
-      return { statusCode: 404, body: JSON.stringify({ error: "Unauthorized" }) };
+      return { statusCode: 401, body: JSON.stringify({ error: "Only Organization owner may delete Organization" }) };
     }
         
     const client = new square.SquareClient({
