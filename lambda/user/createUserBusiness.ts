@@ -12,6 +12,7 @@ const dynamoDb = DynamoDBDocumentClient.from(client);
 export const handler = async (event: PostConfirmationTriggerEvent) => {
   const tableName = process.env.TABLE;
   const emailSender = process.env.EMAIL_SENDER;
+  const email = process.env.EMAIL;
 
   try {
     const { request: { userAttributes } } = event;
@@ -49,15 +50,13 @@ export const handler = async (event: PostConfirmationTriggerEvent) => {
 
     await dynamoDb.send(params);
 
-    const emailHtmlContent = readFileSync(join(__dirname, '../../EmailTemplate/welcome-email-bizz.html'),'utf8');
-
     const emailParams = {
       Source: `MyRewards <${emailSender}>`,
       Destination: { ToAddresses: [userAttributes.email] },
       Message: {
         Subject: { Data: 'Welcome To MyRewards!' },
         Body: {
-          Html: { Data: emailHtmlContent },
+          Html: { Data: email },
           Text: { Data: 'Setup your account and link with Square if you haven’t! We have a feeling you’re going to like it here.' },
         },
       },

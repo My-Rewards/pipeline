@@ -12,6 +12,7 @@ const ses = new SESClient({ region: 'us-east-1' });
 export const handler = async (event:PostConfirmationTriggerEvent) => {
   const tableName = process.env.TABLE;
   const emailSender = process.env.EMAIL_SENDER;
+  const email = process.env.EMAIL;
 
     try {
         const { request: { userAttributes } } = event;
@@ -51,15 +52,13 @@ export const handler = async (event:PostConfirmationTriggerEvent) => {
 
         await dynamoDb.send(params);
 
-        const emailHtmlContent = readFileSync(join(__dirname, '../../EmailTemplate/welcome-email-customer.html'),'utf8');
-
         const emailParams = {
             Source: `MyRewards <${emailSender}>`,
             Destination: { ToAddresses: [userAttributes.email] },
             Message: {
                 Subject: { Data: 'Welcome To MyRewards!' },
                 Body: {
-                    Html: { Data: emailHtmlContent },
+                    Html: { Data: email },
                     Text: { Data: 'Welcome to MyRewards' },
                 },
             },
