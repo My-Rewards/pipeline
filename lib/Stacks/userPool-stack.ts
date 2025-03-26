@@ -43,6 +43,8 @@ export class UserPoolStack extends cdk.Stack {
       });      
 
       const verifyEmailBody = fs.readFileSync(path.join(__dirname, '../../EmailTemplate/verify-email-template.html'),'utf8');
+      const welcomeEmailCustomer = fs.readFileSync(path.join(__dirname, '../../EmailTemplate/welcome-email-customer.html'),'utf8');
+      const welcomeEmailBizz = fs.readFileSync(path.join(__dirname, '../../EmailTemplate/welcome-email-bizz.html'),'utf8');
 
       const postConfirmationHandlerUser = new nodejs.NodejsFunction(this, "Customer-User-postConfirmation",{
         runtime: lambda.Runtime.NODEJS_20_X,
@@ -50,7 +52,8 @@ export class UserPoolStack extends cdk.Stack {
         handler: 'handler',
         environment: {
           TABLE: usersTable.tableName,
-          EMAIL_SENDER:`no-reply@${props.authDomain}.${DOMAIN}`
+          EMAIL_SENDER:`no-reply@${props.authDomain}.${DOMAIN}`,
+          EMAIL: welcomeEmailCustomer
         },
         bundling: {
           externalModules: ['aws-sdk']
@@ -65,7 +68,8 @@ export class UserPoolStack extends cdk.Stack {
         handler: 'handler',
         environment: {
           TABLE: bizzUsersTable.tableName,
-          EMAIL_SENDER:`no-reply@${props.authDomain}.${DOMAIN}`
+          EMAIL_SENDER:`no-reply@${props.authDomain}.${DOMAIN}`,
+          EMAIL: welcomeEmailBizz
         },
         bundling: {
           externalModules: ['aws-sdk']
@@ -180,22 +184,22 @@ export class UserPoolStack extends cdk.Stack {
       
       // userPool Client - Customers
       const userPoolClient_Customer = new cognito.UserPoolClient(this, 'userPoolClient_Customer', {
-          userPoolClientName:`${props.stageName}-mobileUserPoolClient`,
-          userPool:userPool_Customer,
-          generateSecret: false,
-          supportedIdentityProviders: [cognito.UserPoolClientIdentityProvider.GOOGLE],
-          authFlows: {
-            userPassword: true,
-            userSrp: true,
+        userPoolClientName:`${props.stageName}-mobileUserPoolClient`,
+        userPool:userPool_Customer,
+        generateSecret: false,
+        supportedIdentityProviders: [cognito.UserPoolClientIdentityProvider.GOOGLE],
+        authFlows: {
+          userPassword: true,
+          userSrp: true,
+        },
+        oAuth: {
+          flows: {
+            authorizationCodeGrant: true,
           },
-          oAuth: {
-            flows: {
-              authorizationCodeGrant: true,
-            },
-            callbackUrls: ['exp://127.0.0.1:19000/--/'],
-            logoutUrls: ['exp://127.0.0.1:19000/--/'],
-          }
-        });
+          callbackUrls: ['exp://127.0.0.1:19000/--/'],
+          logoutUrls: ['exp://127.0.0.1:19000/--/'],
+        }
+      });
 
       // userPool Client - Business
       const userPoolClient_Business = new cognito.UserPoolClient(this, 'userPoolClient_Business', {
