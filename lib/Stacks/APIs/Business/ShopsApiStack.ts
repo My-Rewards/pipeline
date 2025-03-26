@@ -26,15 +26,17 @@ export class ShopApiStack extends cdk.NestedStack {
       handler: 'handler',
       environment: {
         SHOP_TABLE: shopTable.tableName,
+        USER_TABLE: userTable.tableName,
+        ORG_TABLE: orgTable.tableName
       },
       bundling: {
-        externalModules: ['aws-sdk', 'stripe'],
+        externalModules: ['aws-sdk'],
       },
     })
 
-    shopTable.grantReadData(createShopLambda);
+    shopTable.grantReadWriteData(createShopLambda);
+    orgTable.grantReadData(createShopLambda);
     userTable.grantReadData(createShopLambda);
-    userTable.grantWriteData(createShopLambda);
     props.encryptionKey.grantEncryptDecrypt(createShopLambda);
 
     // API Gateway integration

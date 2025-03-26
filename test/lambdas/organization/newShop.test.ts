@@ -9,29 +9,27 @@ jest.mock("crypto", () => ({
     randomUUID: jest.fn().mockReturnValue("test-shop-id-123"),
 }));
 
-// Preserve all actual exports from client-dynamodb (including GetItemCommand)
 jest.mock("@aws-sdk/client-dynamodb", () => {
     const actual = jest.requireActual("@aws-sdk/client-dynamodb");
     return {
         ...actual,
         DynamoDBClient: jest.fn().mockImplementation(() => ({
-            send: jest.fn(), // This send function won’t be used because the document client is used instead.
+            send: jest.fn(),
         })),
     };
 });
 
-// Correctly mock DynamoDBDocumentClient while preserving GetCommand, etc.
 jest.mock("@aws-sdk/lib-dynamodb", () => {
     const actualModule = jest.requireActual("@aws-sdk/lib-dynamodb");
 
-    // Define a mock send function that uses the actual module's GetCommand constructor for instanceof checks.
+    // Define a mock send function that uses the actual module's GetCommand for instanceof checks.
     const mockDynamoDbSend = jest.fn(async (command: any) => {
         if (command instanceof actualModule.GetCommand) {
             if (command.input.TableName === "mock-org-table") {
                 return { Item: { id: "test-org-id-123" } };
             }
             if (command.input.TableName === "mock-user-table") {
-                return { Item: { id: "test-user-id-123", orgId: "test-org-id-123" } };
+                return { Item: { id: "test-user-id-123", org_id: "test-org-id-123", email: "test@example.com" } };
             }
             return { Item: null };
         }
@@ -43,7 +41,6 @@ jest.mock("@aws-sdk/lib-dynamodb", () => {
 
     return {
         ...actualModule,
-        // Preserve the class constructors
         GetCommand: actualModule.GetCommand,
         PutCommand: actualModule.PutCommand,
         UpdateCommand: actualModule.UpdateCommand,
@@ -67,9 +64,10 @@ describe("Shop Lambda Handler", () => {
     });
 
     test("should successfully create a new shop", async () => {
+        // For successful flow, we let the default mockDynamoDbSend behavior run.
         const testEvent: APIGatewayProxyEvent = {
             body: JSON.stringify({
-                org_id: "test-org-id-123",
+                org_id: "test-org-id-123", // not used in handler; user's org_id is determined via getUser
                 square_id: "test-square-id-456",
                 latitude: 40.7128,
                 longitude: -74.0060,
@@ -105,21 +103,22 @@ describe("Shop Lambda Handler", () => {
                 authorizer: { claims: { sub: "test-user-id-123" } },
             },
         } as any;
-
         const response = await handler(testEvent);
         expect(response.statusCode).toBe(400);
         expect(JSON.parse(response.body)).toHaveProperty("error", "Missing required fields");
     });
 
-    test("should return 404 if organization does not exist", async () => {
-        // For this test, override the send mock to return no item.
+    test("should return 210 if organization does not exist", async () => {
         const { DynamoDBDocumentClient } = require("@aws-sdk/lib-dynamodb");
         const instance = DynamoDBDocumentClient.from(new DynamoDBClient({}));
+        // Simulate getUser call (first call) returns a valid user record.
+        instance.send.mockResolvedValueOnce({ Item: { id: "test-user-id-123", org_id: "test-org-id-123", email: "test@example.com" } });
+        // Simulate org lookup (second call) returns null.
         instance.send.mockResolvedValueOnce({ Item: null });
 
         const testEvent: APIGatewayProxyEvent = {
             body: JSON.stringify({
-                org_id: "non-existent-org",
+                org_id: "non-existent-org", // Not used: org_id is determined by the user's record.
                 square_id: "test-square-id-456",
                 latitude: 40.7128,
                 longitude: -74.0060,
@@ -129,10 +128,54 @@ describe("Shop Lambda Handler", () => {
                 authorizer: { claims: { sub: "test-user-id-123" } },
             },
         } as any;
-
         const response = await handler(testEvent);
-        expect(response.statusCode).toBe(404);
+        expect(response.statusCode).toBe(210);
         expect(JSON.parse(response.body)).toHaveProperty("error", "Organization not found");
+    });
+
+    test("should return 210 if user is not found", async () => {
+        const { DynamoDBDocumentClient } = require("@aws-sdk/lib-dynamodb");
+        const instance = DynamoDBDocumentClient.from(new DynamoDBClient({}));
+        // Simulate getUser call returns null.
+        instance.send.mockResolvedValueOnce({ Item: null });
+
+        const testEvent: APIGatewayProxyEvent = {
+            body: JSON.stringify({
+                org_id: "test-org-id-123",
+                square_id: "test-square-id-456",
+                latitude: 40.7128,
+                longitude: -74.0060,
+                shop_hours: "9 AM - 9 PM",
+            }),
+            requestContext: {
+                authorizer: { claims: { sub: "test-user-id-123" } },
+            },
+        } as any;
+        const response = await handler(testEvent);
+        expect(response.statusCode).toBe(210);
+        expect(JSON.parse(response.body)).toHaveProperty("error", "User email not found in database or User already linked to Organization");
+    });
+
+    test("should return 500 if an unexpected error occurs", async () => {
+        const { DynamoDBDocumentClient } = require("@aws-sdk/lib-dynamodb");
+        const instance = DynamoDBDocumentClient.from(new DynamoDBClient({}));
+        instance.send.mockRejectedValueOnce(new Error("Unexpected error"));
+
+        const testEvent: APIGatewayProxyEvent = {
+            body: JSON.stringify({
+                org_id: "test-org-id-123",
+                square_id: "test-square-id-456",
+                latitude: 40.7128,
+                longitude: -74.0060,
+                shop_hours: "9 AM - 9 PM",
+            }),
+            requestContext: {
+                authorizer: { claims: { sub: "test-user-id-123" } },
+            },
+        } as any;
+        const response = await handler(testEvent);
+        expect(response.statusCode).toBe(500);
+        expect(JSON.parse(response.body)).toHaveProperty("error", "Internal Server Error");
     });
 
     afterAll(() => {
