@@ -4,7 +4,7 @@ import { DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand } from "@
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { randomUUID } from "crypto";
 
-// Mock UUID generation
+
 jest.mock("crypto", () => ({
     randomUUID: jest.fn().mockReturnValue("test-shop-id-123"),
 }));
@@ -22,7 +22,6 @@ jest.mock("@aws-sdk/client-dynamodb", () => {
 jest.mock("@aws-sdk/lib-dynamodb", () => {
     const actualModule = jest.requireActual("@aws-sdk/lib-dynamodb");
 
-    // Define a mock send function that uses the actual module's GetCommand for instanceof checks.
     const mockDynamoDbSend = jest.fn(async (command: any) => {
         if (command instanceof actualModule.GetCommand) {
             if (command.input.TableName === "mock-org-table") {
@@ -64,10 +63,10 @@ describe("Shop Lambda Handler", () => {
     });
 
     test("should successfully create a new shop", async () => {
-        // For successful flow, we let the default mockDynamoDbSend behavior run.
+
         const testEvent: APIGatewayProxyEvent = {
             body: JSON.stringify({
-                org_id: "test-org-id-123", // not used in handler; user's org_id is determined via getUser
+                org_id: "test-org-id-123",
                 square_id: "test-square-id-456",
                 latitude: 40.7128,
                 longitude: -74.0060,
@@ -111,14 +110,13 @@ describe("Shop Lambda Handler", () => {
     test("should return 210 if organization does not exist", async () => {
         const { DynamoDBDocumentClient } = require("@aws-sdk/lib-dynamodb");
         const instance = DynamoDBDocumentClient.from(new DynamoDBClient({}));
-        // Simulate getUser call (first call) returns a valid user record.
+
         instance.send.mockResolvedValueOnce({ Item: { id: "test-user-id-123", org_id: "test-org-id-123", email: "test@example.com" } });
-        // Simulate org lookup (second call) returns null.
         instance.send.mockResolvedValueOnce({ Item: null });
 
         const testEvent: APIGatewayProxyEvent = {
             body: JSON.stringify({
-                org_id: "non-existent-org", // Not used: org_id is determined by the user's record.
+                org_id: "non-existent-org",
                 square_id: "test-square-id-456",
                 latitude: 40.7128,
                 longitude: -74.0060,

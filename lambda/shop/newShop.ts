@@ -42,7 +42,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             };
         }
 
-        // Lookup user to get org_id
+
         const getUser = new GetCommand({
             TableName: userTable,
             Key: { id: userSub },
@@ -59,7 +59,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
         const orgId = resultUser.Item.org_id;
 
-        // Lookup organization
+
         const orgResult = await dynamoDb.send(new GetCommand({
             TableName: orgTable,
             Key: { id: orgId },
@@ -71,7 +71,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             };
         }
 
-        // Check if user is associated with the organization (second user lookup)
+
         const userResult = await dynamoDb.send(new GetCommand({
             TableName: userTable,
             Key: { id: userSub },
@@ -101,7 +101,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             },
         }));
 
-        // Associate shop with organization
+
         await dynamoDb.send(new UpdateCommand({
             TableName: orgTable,
             Key: { id: orgId },
