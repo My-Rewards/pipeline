@@ -207,7 +207,20 @@ describe('GetOrg Lambda Function', () => {
             name: 'Test Org',
             linked: true,
             description: 'Test Description',
-            images: ['img1.jpg'],
+            images: {
+                logo:{
+                    url:'test.com/logo',
+                    fileKey:'path'
+                },
+                preview:{
+                    url:'test.com/preview',
+                    fileKey:'path'
+                },
+                banner:{
+                    url:'test.com/banner',
+                    fileKey:'path'
+                }
+            },
             date_registered: '2023-01-01',
             rewards_loyalty: true,
             rewards_milestone: false,

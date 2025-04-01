@@ -1,0 +1,1646 @@
+Resources:
+  Certificate4E7ABB08:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: beta.api.myrewards.website
+      DomainValidationOptions:
+      - DomainName: beta.api.myrewards.website
+        HostedZoneId:
+          Fn::ImportValue: beta-API-HostedZoneId
+      Tags:
+      - Key: Name
+        Value: PipelineStack/beta/ApiGateway-Stack/Certificate
+      ValidationMethod: DNS
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/Certificate/Resource
+  KMSEncryptionKeyE5AE461E:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: KMS Key for encrypting token data for database
+      EnableKeyRotation: true
+      KeyPolicy:
+        Statement:
+        - Action: kms:*
+          Effect: Allow
+          Principal:
+            AWS: arn:aws:iam::050451385382:root
+          Resource: '*'
+        Version: '2012-10-17'
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/KMSEncryptionKey/Resource
+  CognitoAuthorizerUser7D6C7024:
+    Type: AWS::ApiGateway::Authorizer
+    Properties:
+      IdentitySource: method.request.header.Authorization
+      Name: PipelineStackbetaApiGatewayStackCognitoAuthorizerUserA5CE9951
+      ProviderARNs:
+      - Fn::Join:
+        - ''
+        - - arn:aws:cognito-idp:us-east-1:050451385382:userpool/
+          - Fn::ImportValue: customerUserPoolID
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+      Type: COGNITO_USER_POOLS
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/CognitoAuthorizerUser/Resource
+  CognitoAuthorizerBizz863BB425:
+    Type: AWS::ApiGateway::Authorizer
+    Properties:
+      IdentitySource: method.request.header.Authorization
+      Name: PipelineStackbetaApiGatewayStackCognitoAuthorizerBizz808B2D80
+      ProviderARNs:
+      - Fn::Join:
+        - ''
+        - - arn:aws:cognito-idp:us-east-1:050451385382:userpool/
+          - Fn::ImportValue: businessUserPoolID
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+      Type: COGNITO_USER_POOLS
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/CognitoAuthorizerBizz/Resource
+  myRewardsApi06DB6986:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Description: This is an API for Lambda functions.
+      Name: myRewards API
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Resource
+  myRewardsApiDeploymentF2CCF36D15444a469b457f2390f7849c44263d5e:
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      Description: This is an API for Lambda functions.
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    DependsOn:
+    - CognitoAuthorizerBizz863BB425
+    - CognitoAuthorizerUser7D6C7024
+    - myRewardsApicustomerOPTIONSC9E1C695
+    - myRewardsApicustomer8B5AD989
+    - myRewardsApicustomeruserdeleteDELETE4B106B21
+    - myRewardsApicustomeruserdeleteOPTIONS9F427F9B
+    - myRewardsApicustomeruserdeleteFEBBA9A0
+    - myRewardsApicustomeruserGET1E104DA6
+    - myRewardsApicustomeruserOPTIONSE6D29712
+    - myRewardsApicustomeruser9BF5A2FE
+    - myRewardsApicustomeruserupdateOPTIONS947E0357
+    - myRewardsApicustomeruserupdatePUT8E3E9042
+    - myRewardsApicustomeruserupdateC092F1FD
+    - myRewardsApiOPTIONS358620FB
+    - myRewardsApiorgaddPaymentOPTIONS2A9367E7
+    - myRewardsApiorgaddPaymentPUTC1172292
+    - myRewardsApiorgaddPayment5DD522DE
+    - myRewardsApiorgbillingGETFF3DE1CA
+    - myRewardsApiorgbillingOPTIONS37784C9A
+    - myRewardsApiorgbillingD9F6A1AA
+    - myRewardsApiorgcreateOPTIONS90E34F8A
+    - myRewardsApiorgcreatePOST79D4467A
+    - myRewardsApiorgcreateC7C6DD6F
+    - myRewardsApiorgdetailsGETA6EFFF38
+    - myRewardsApiorgdetailsOPTIONSF65B056B
+    - myRewardsApiorgdetailsC0A41CB2
+    - myRewardsApiorgOPTIONS4FD2C757
+    - myRewardsApiorgremovePaymentDELETE887AC1A4
+    - myRewardsApiorgremovePaymentOPTIONS11502285
+    - myRewardsApiorgremovePayment8448A2ED
+    - myRewardsApiorgE7FE8847
+    - myRewardsApiorgsetDefaultPaymentOPTIONS0BBF9D98
+    - myRewardsApiorgsetDefaultPaymentPUTEA4646F1
+    - myRewardsApiorgsetDefaultPayment3008D21A
+    - myRewardsApishopscreateOPTIONSDBAD253F
+    - myRewardsApishopscreatePOSTF9B42651
+    - myRewardsApishopscreateC33BAE9C
+    - myRewardsApishopsOPTIONS6175DA83
+    - myRewardsApishops0A966D25
+    - myRewardsApisquareconnectOPTIONSE5E31437
+    - myRewardsApisquareconnectPUTF6498091
+    - myRewardsApisquareconnect4283BC46
+    - myRewardsApisquarelistShopsGET3DBA03A8
+    - myRewardsApisquarelistShopsOPTIONS98004A6C
+    - myRewardsApisquarelistShopsD087E216
+    - myRewardsApisquareOPTIONS69BAA3B9
+    - myRewardsApisquareA602E7A8
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Deployment/Resource
+  myRewardsApiDeploymentStageprodC7E98F7E:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      DeploymentId:
+        Ref: myRewardsApiDeploymentF2CCF36D15444a469b457f2390f7849c44263d5e
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+      StageName: prod
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/DeploymentStage.prod/Resource
+  myRewardsApiCustomDomainD6CE5D67:
+    Type: AWS::ApiGateway::DomainName
+    Properties:
+      CertificateArn:
+        Ref: Certificate4E7ABB08
+      DomainName: beta.api.myrewards.website
+      EndpointConfiguration:
+        Types:
+        - EDGE
+      SecurityPolicy: TLS_1_2
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/CustomDomain/Resource
+  myRewardsApiCustomDomainMapPipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6EB67C13A:
+    Type: AWS::ApiGateway::BasePathMapping
+    Properties:
+      DomainName:
+        Ref: myRewardsApiCustomDomainD6CE5D67
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+      Stage:
+        Ref: myRewardsApiDeploymentStageprodC7E98F7E
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/CustomDomain/Map:--=>PipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6/Resource
+  myRewardsApiOPTIONS358620FB:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      ApiKeyRequired: false
+      AuthorizationType: NONE
+      HttpMethod: OPTIONS
+      Integration:
+        IntegrationResponses:
+        - ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'''
+            method.response.header.Access-Control-Allow-Origin: '''*'''
+            method.response.header.Access-Control-Allow-Methods: '''OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'''
+          StatusCode: '204'
+        RequestTemplates:
+          application/json: '{ statusCode: 200 }'
+        Type: MOCK
+      MethodResponses:
+      - ResponseParameters:
+          method.response.header.Access-Control-Allow-Headers: true
+          method.response.header.Access-Control-Allow-Origin: true
+          method.response.header.Access-Control-Allow-Methods: true
+        StatusCode: '204'
+      ResourceId:
+        Fn::GetAtt:
+        - myRewardsApi06DB6986
+        - RootResourceId
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/OPTIONS/Resource
+  myRewardsApicustomer8B5AD989:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId:
+        Fn::GetAtt:
+        - myRewardsApi06DB6986
+        - RootResourceId
+      PathPart: customer
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/customer/Resource
+  myRewardsApicustomerOPTIONSC9E1C695:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      ApiKeyRequired: false
+      AuthorizationType: NONE
+      HttpMethod: OPTIONS
+      Integration:
+        IntegrationResponses:
+        - ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'''
+            method.response.header.Access-Control-Allow-Origin: '''*'''
+            method.response.header.Access-Control-Allow-Methods: '''OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'''
+          StatusCode: '204'
+        RequestTemplates:
+          application/json: '{ statusCode: 200 }'
+        Type: MOCK
+      MethodResponses:
+      - ResponseParameters:
+          method.response.header.Access-Control-Allow-Headers: true
+          method.response.header.Access-Control-Allow-Origin: true
+          method.response.header.Access-Control-Allow-Methods: true
+        StatusCode: '204'
+      ResourceId:
+        Ref: myRewardsApicustomer8B5AD989
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/customer/OPTIONS/Resource
+  myRewardsApicustomeruser9BF5A2FE:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId:
+        Ref: myRewardsApicustomer8B5AD989
+      PathPart: user
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/customer/user/Resource
+  myRewardsApicustomeruserOPTIONSE6D29712:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      ApiKeyRequired: false
+      AuthorizationType: NONE
+      HttpMethod: OPTIONS
+      Integration:
+        IntegrationResponses:
+        - ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'''
+            method.response.header.Access-Control-Allow-Origin: '''*'''
+            method.response.header.Access-Control-Allow-Methods: '''OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'''
+          StatusCode: '204'
+        RequestTemplates:
+          application/json: '{ statusCode: 200 }'
+        Type: MOCK
+      MethodResponses:
+      - ResponseParameters:
+          method.response.header.Access-Control-Allow-Headers: true
+          method.response.header.Access-Control-Allow-Origin: true
+          method.response.header.Access-Control-Allow-Methods: true
+        StatusCode: '204'
+      ResourceId:
+        Ref: myRewardsApicustomeruser9BF5A2FE
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/customer/user/OPTIONS/Resource
+  myRewardsApicustomeruserdeleteFEBBA9A0:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId:
+        Ref: myRewardsApicustomeruser9BF5A2FE
+      PathPart: delete
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/customer/user/delete/Resource
+  myRewardsApicustomeruserdeleteOPTIONS9F427F9B:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      ApiKeyRequired: false
+      AuthorizationType: NONE
+      HttpMethod: OPTIONS
+      Integration:
+        IntegrationResponses:
+        - ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'''
+            method.response.header.Access-Control-Allow-Origin: '''*'''
+            method.response.header.Access-Control-Allow-Methods: '''OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'''
+          StatusCode: '204'
+        RequestTemplates:
+          application/json: '{ statusCode: 200 }'
+        Type: MOCK
+      MethodResponses:
+      - ResponseParameters:
+          method.response.header.Access-Control-Allow-Headers: true
+          method.response.header.Access-Control-Allow-Origin: true
+          method.response.header.Access-Control-Allow-Methods: true
+        StatusCode: '204'
+      ResourceId:
+        Ref: myRewardsApicustomeruserdeleteFEBBA9A0
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/customer/user/delete/OPTIONS/Resource
+  ? myRewardsApicustomeruserdeleteDELETEApiPermissionPipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6DELETEcustomeruserdelete32BD6776
+  : Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - UsersApiStackNestedStackUsersApiStackNestedStackResourceB3E78E93
+        - Outputs.PipelineStackbetaApiGatewayStackUsersApiStackDeleteCustomerUserCC3FEB97Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:aws:execute-api:us-east-1:050451385382:'
+          - Ref: myRewardsApi06DB6986
+          - /
+          - Ref: myRewardsApiDeploymentStageprodC7E98F7E
+          - /DELETE/customer/user/delete
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/customer/user/delete/DELETE/ApiPermission.PipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6.DELETE..customer.user.delete
+  ? myRewardsApicustomeruserdeleteDELETEApiPermissionTestPipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6DELETEcustomeruserdeleteE88F05EC
+  : Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - UsersApiStackNestedStackUsersApiStackNestedStackResourceB3E78E93
+        - Outputs.PipelineStackbetaApiGatewayStackUsersApiStackDeleteCustomerUserCC3FEB97Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:aws:execute-api:us-east-1:050451385382:'
+          - Ref: myRewardsApi06DB6986
+          - /test-invoke-stage/DELETE/customer/user/delete
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/customer/user/delete/DELETE/ApiPermission.Test.PipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6.DELETE..customer.user.delete
+  myRewardsApicustomeruserdeleteDELETE4B106B21:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId:
+        Ref: CognitoAuthorizerUser7D6C7024
+      HttpMethod: DELETE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Join:
+          - ''
+          - - arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/
+            - Fn::GetAtt:
+              - UsersApiStackNestedStackUsersApiStackNestedStackResourceB3E78E93
+              - Outputs.PipelineStackbetaApiGatewayStackUsersApiStackDeleteCustomerUserCC3FEB97Arn
+            - /invocations
+      ResourceId:
+        Ref: myRewardsApicustomeruserdeleteFEBBA9A0
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/customer/user/delete/DELETE/Resource
+  myRewardsApicustomeruserupdateC092F1FD:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId:
+        Ref: myRewardsApicustomeruser9BF5A2FE
+      PathPart: update
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/customer/user/update/Resource
+  myRewardsApicustomeruserupdateOPTIONS947E0357:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      ApiKeyRequired: false
+      AuthorizationType: NONE
+      HttpMethod: OPTIONS
+      Integration:
+        IntegrationResponses:
+        - ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'''
+            method.response.header.Access-Control-Allow-Origin: '''*'''
+            method.response.header.Access-Control-Allow-Methods: '''OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'''
+          StatusCode: '204'
+        RequestTemplates:
+          application/json: '{ statusCode: 200 }'
+        Type: MOCK
+      MethodResponses:
+      - ResponseParameters:
+          method.response.header.Access-Control-Allow-Headers: true
+          method.response.header.Access-Control-Allow-Origin: true
+          method.response.header.Access-Control-Allow-Methods: true
+        StatusCode: '204'
+      ResourceId:
+        Ref: myRewardsApicustomeruserupdateC092F1FD
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/customer/user/update/OPTIONS/Resource
+  ? myRewardsApicustomeruserupdatePUTApiPermissionPipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6PUTcustomeruserupdateEE04035C
+  : Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - UsersApiStackNestedStackUsersApiStackNestedStackResourceB3E78E93
+        - Outputs.PipelineStackbetaApiGatewayStackUsersApiStackUpdateCustomerUserE35C227FArn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:aws:execute-api:us-east-1:050451385382:'
+          - Ref: myRewardsApi06DB6986
+          - /
+          - Ref: myRewardsApiDeploymentStageprodC7E98F7E
+          - /PUT/customer/user/update
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/customer/user/update/PUT/ApiPermission.PipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6.PUT..customer.user.update
+  ? myRewardsApicustomeruserupdatePUTApiPermissionTestPipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6PUTcustomeruserupdate6D4CF362
+  : Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - UsersApiStackNestedStackUsersApiStackNestedStackResourceB3E78E93
+        - Outputs.PipelineStackbetaApiGatewayStackUsersApiStackUpdateCustomerUserE35C227FArn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:aws:execute-api:us-east-1:050451385382:'
+          - Ref: myRewardsApi06DB6986
+          - /test-invoke-stage/PUT/customer/user/update
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/customer/user/update/PUT/ApiPermission.Test.PipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6.PUT..customer.user.update
+  myRewardsApicustomeruserupdatePUT8E3E9042:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId:
+        Ref: CognitoAuthorizerUser7D6C7024
+      HttpMethod: PUT
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Join:
+          - ''
+          - - arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/
+            - Fn::GetAtt:
+              - UsersApiStackNestedStackUsersApiStackNestedStackResourceB3E78E93
+              - Outputs.PipelineStackbetaApiGatewayStackUsersApiStackUpdateCustomerUserE35C227FArn
+            - /invocations
+      ResourceId:
+        Ref: myRewardsApicustomeruserupdateC092F1FD
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/customer/user/update/PUT/Resource
+  myRewardsApicustomeruserGETApiPermissionPipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6GETcustomeruserAC560063:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - UsersApiStackNestedStackUsersApiStackNestedStackResourceB3E78E93
+        - Outputs.PipelineStackbetaApiGatewayStackUsersApiStackGetCustomerUserCA3EBD9BArn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:aws:execute-api:us-east-1:050451385382:'
+          - Ref: myRewardsApi06DB6986
+          - /
+          - Ref: myRewardsApiDeploymentStageprodC7E98F7E
+          - /GET/customer/user
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/customer/user/GET/ApiPermission.PipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6.GET..customer.user
+  myRewardsApicustomeruserGETApiPermissionTestPipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6GETcustomeruser7BD2A954:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - UsersApiStackNestedStackUsersApiStackNestedStackResourceB3E78E93
+        - Outputs.PipelineStackbetaApiGatewayStackUsersApiStackGetCustomerUserCA3EBD9BArn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:aws:execute-api:us-east-1:050451385382:'
+          - Ref: myRewardsApi06DB6986
+          - /test-invoke-stage/GET/customer/user
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/customer/user/GET/ApiPermission.Test.PipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6.GET..customer.user
+  myRewardsApicustomeruserGET1E104DA6:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId:
+        Ref: CognitoAuthorizerUser7D6C7024
+      HttpMethod: GET
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Join:
+          - ''
+          - - arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/
+            - Fn::GetAtt:
+              - UsersApiStackNestedStackUsersApiStackNestedStackResourceB3E78E93
+              - Outputs.PipelineStackbetaApiGatewayStackUsersApiStackGetCustomerUserCA3EBD9BArn
+            - /invocations
+      ResourceId:
+        Ref: myRewardsApicustomeruser9BF5A2FE
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/customer/user/GET/Resource
+  myRewardsApisquareA602E7A8:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId:
+        Fn::GetAtt:
+        - myRewardsApi06DB6986
+        - RootResourceId
+      PathPart: square
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/square/Resource
+  myRewardsApisquareOPTIONS69BAA3B9:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      ApiKeyRequired: false
+      AuthorizationType: NONE
+      HttpMethod: OPTIONS
+      Integration:
+        IntegrationResponses:
+        - ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'''
+            method.response.header.Access-Control-Allow-Origin: '''*'''
+            method.response.header.Access-Control-Allow-Methods: '''OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'''
+          StatusCode: '204'
+        RequestTemplates:
+          application/json: '{ statusCode: 200 }'
+        Type: MOCK
+      MethodResponses:
+      - ResponseParameters:
+          method.response.header.Access-Control-Allow-Headers: true
+          method.response.header.Access-Control-Allow-Origin: true
+          method.response.header.Access-Control-Allow-Methods: true
+        StatusCode: '204'
+      ResourceId:
+        Ref: myRewardsApisquareA602E7A8
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/square/OPTIONS/Resource
+  myRewardsApisquareconnect4283BC46:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId:
+        Ref: myRewardsApisquareA602E7A8
+      PathPart: connect
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/square/connect/Resource
+  myRewardsApisquareconnectOPTIONSE5E31437:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      ApiKeyRequired: false
+      AuthorizationType: NONE
+      HttpMethod: OPTIONS
+      Integration:
+        IntegrationResponses:
+        - ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'''
+            method.response.header.Access-Control-Allow-Origin: '''*'''
+            method.response.header.Access-Control-Allow-Methods: '''OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'''
+          StatusCode: '204'
+        RequestTemplates:
+          application/json: '{ statusCode: 200 }'
+        Type: MOCK
+      MethodResponses:
+      - ResponseParameters:
+          method.response.header.Access-Control-Allow-Headers: true
+          method.response.header.Access-Control-Allow-Origin: true
+          method.response.header.Access-Control-Allow-Methods: true
+        StatusCode: '204'
+      ResourceId:
+        Ref: myRewardsApisquareconnect4283BC46
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/square/connect/OPTIONS/Resource
+  myRewardsApisquareconnectPUTApiPermissionPipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6PUTsquareconnect07B46EC6:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - SquareApiStackNestedStackSquareApiStackNestedStackResource10BED352
+        - Outputs.PipelineStackbetaApiGatewayStackSquareApiStackconnectSquare987FF848Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:aws:execute-api:us-east-1:050451385382:'
+          - Ref: myRewardsApi06DB6986
+          - /
+          - Ref: myRewardsApiDeploymentStageprodC7E98F7E
+          - /PUT/square/connect
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/square/connect/PUT/ApiPermission.PipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6.PUT..square.connect
+  myRewardsApisquareconnectPUTApiPermissionTestPipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6PUTsquareconnectD31A8655:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - SquareApiStackNestedStackSquareApiStackNestedStackResource10BED352
+        - Outputs.PipelineStackbetaApiGatewayStackSquareApiStackconnectSquare987FF848Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:aws:execute-api:us-east-1:050451385382:'
+          - Ref: myRewardsApi06DB6986
+          - /test-invoke-stage/PUT/square/connect
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/square/connect/PUT/ApiPermission.Test.PipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6.PUT..square.connect
+  myRewardsApisquareconnectPUTF6498091:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId:
+        Ref: CognitoAuthorizerBizz863BB425
+      HttpMethod: PUT
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Join:
+          - ''
+          - - arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/
+            - Fn::GetAtt:
+              - SquareApiStackNestedStackSquareApiStackNestedStackResource10BED352
+              - Outputs.PipelineStackbetaApiGatewayStackSquareApiStackconnectSquare987FF848Arn
+            - /invocations
+      ResourceId:
+        Ref: myRewardsApisquareconnect4283BC46
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/square/connect/PUT/Resource
+  myRewardsApisquarelistShopsD087E216:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId:
+        Ref: myRewardsApisquareA602E7A8
+      PathPart: listShops
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/square/listShops/Resource
+  myRewardsApisquarelistShopsOPTIONS98004A6C:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      ApiKeyRequired: false
+      AuthorizationType: NONE
+      HttpMethod: OPTIONS
+      Integration:
+        IntegrationResponses:
+        - ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'''
+            method.response.header.Access-Control-Allow-Origin: '''*'''
+            method.response.header.Access-Control-Allow-Methods: '''OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'''
+          StatusCode: '204'
+        RequestTemplates:
+          application/json: '{ statusCode: 200 }'
+        Type: MOCK
+      MethodResponses:
+      - ResponseParameters:
+          method.response.header.Access-Control-Allow-Headers: true
+          method.response.header.Access-Control-Allow-Origin: true
+          method.response.header.Access-Control-Allow-Methods: true
+        StatusCode: '204'
+      ResourceId:
+        Ref: myRewardsApisquarelistShopsD087E216
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/square/listShops/OPTIONS/Resource
+  myRewardsApisquarelistShopsGETApiPermissionPipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6GETsquarelistShops98D15DCC:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - SquareApiStackNestedStackSquareApiStackNestedStackResource10BED352
+        - Outputs.PipelineStackbetaApiGatewayStackSquareApiStacklistshopsD1B4CB3DArn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:aws:execute-api:us-east-1:050451385382:'
+          - Ref: myRewardsApi06DB6986
+          - /
+          - Ref: myRewardsApiDeploymentStageprodC7E98F7E
+          - /GET/square/listShops
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/square/listShops/GET/ApiPermission.PipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6.GET..square.listShops
+  ? myRewardsApisquarelistShopsGETApiPermissionTestPipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6GETsquarelistShops1144E06F
+  : Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - SquareApiStackNestedStackSquareApiStackNestedStackResource10BED352
+        - Outputs.PipelineStackbetaApiGatewayStackSquareApiStacklistshopsD1B4CB3DArn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:aws:execute-api:us-east-1:050451385382:'
+          - Ref: myRewardsApi06DB6986
+          - /test-invoke-stage/GET/square/listShops
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/square/listShops/GET/ApiPermission.Test.PipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6.GET..square.listShops
+  myRewardsApisquarelistShopsGET3DBA03A8:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId:
+        Ref: CognitoAuthorizerBizz863BB425
+      HttpMethod: GET
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Join:
+          - ''
+          - - arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/
+            - Fn::GetAtt:
+              - SquareApiStackNestedStackSquareApiStackNestedStackResource10BED352
+              - Outputs.PipelineStackbetaApiGatewayStackSquareApiStacklistshopsD1B4CB3DArn
+            - /invocations
+      ResourceId:
+        Ref: myRewardsApisquarelistShopsD087E216
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/square/listShops/GET/Resource
+  myRewardsApiorgE7FE8847:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId:
+        Fn::GetAtt:
+        - myRewardsApi06DB6986
+        - RootResourceId
+      PathPart: org
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/org/Resource
+  myRewardsApiorgOPTIONS4FD2C757:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      ApiKeyRequired: false
+      AuthorizationType: NONE
+      HttpMethod: OPTIONS
+      Integration:
+        IntegrationResponses:
+        - ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'''
+            method.response.header.Access-Control-Allow-Origin: '''*'''
+            method.response.header.Access-Control-Allow-Methods: '''OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'''
+          StatusCode: '204'
+        RequestTemplates:
+          application/json: '{ statusCode: 200 }'
+        Type: MOCK
+      MethodResponses:
+      - ResponseParameters:
+          method.response.header.Access-Control-Allow-Headers: true
+          method.response.header.Access-Control-Allow-Origin: true
+          method.response.header.Access-Control-Allow-Methods: true
+        StatusCode: '204'
+      ResourceId:
+        Ref: myRewardsApiorgE7FE8847
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/org/OPTIONS/Resource
+  myRewardsApiorgcreateC7C6DD6F:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId:
+        Ref: myRewardsApiorgE7FE8847
+      PathPart: create
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/org/create/Resource
+  myRewardsApiorgcreateOPTIONS90E34F8A:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      ApiKeyRequired: false
+      AuthorizationType: NONE
+      HttpMethod: OPTIONS
+      Integration:
+        IntegrationResponses:
+        - ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'''
+            method.response.header.Access-Control-Allow-Origin: '''*'''
+            method.response.header.Access-Control-Allow-Methods: '''OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'''
+          StatusCode: '204'
+        RequestTemplates:
+          application/json: '{ statusCode: 200 }'
+        Type: MOCK
+      MethodResponses:
+      - ResponseParameters:
+          method.response.header.Access-Control-Allow-Headers: true
+          method.response.header.Access-Control-Allow-Origin: true
+          method.response.header.Access-Control-Allow-Methods: true
+        StatusCode: '204'
+      ResourceId:
+        Ref: myRewardsApiorgcreateC7C6DD6F
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/org/create/OPTIONS/Resource
+  myRewardsApiorgcreatePOSTApiPermissionPipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6POSTorgcreate90E820CA:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - OrgApiStackNestedStackOrgApiStackNestedStackResource6BA468F9
+        - Outputs.PipelineStackbetaApiGatewayStackOrgApiStackcreateorganizationAA376AA4Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:aws:execute-api:us-east-1:050451385382:'
+          - Ref: myRewardsApi06DB6986
+          - /
+          - Ref: myRewardsApiDeploymentStageprodC7E98F7E
+          - /POST/org/create
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/org/create/POST/ApiPermission.PipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6.POST..org.create
+  myRewardsApiorgcreatePOSTApiPermissionTestPipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6POSTorgcreateDE48C692:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - OrgApiStackNestedStackOrgApiStackNestedStackResource6BA468F9
+        - Outputs.PipelineStackbetaApiGatewayStackOrgApiStackcreateorganizationAA376AA4Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:aws:execute-api:us-east-1:050451385382:'
+          - Ref: myRewardsApi06DB6986
+          - /test-invoke-stage/POST/org/create
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/org/create/POST/ApiPermission.Test.PipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6.POST..org.create
+  myRewardsApiorgcreatePOST79D4467A:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId:
+        Ref: CognitoAuthorizerBizz863BB425
+      HttpMethod: POST
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Join:
+          - ''
+          - - arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/
+            - Fn::GetAtt:
+              - OrgApiStackNestedStackOrgApiStackNestedStackResource6BA468F9
+              - Outputs.PipelineStackbetaApiGatewayStackOrgApiStackcreateorganizationAA376AA4Arn
+            - /invocations
+      ResourceId:
+        Ref: myRewardsApiorgcreateC7C6DD6F
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/org/create/POST/Resource
+  myRewardsApiorgdetailsC0A41CB2:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId:
+        Ref: myRewardsApiorgE7FE8847
+      PathPart: details
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/org/details/Resource
+  myRewardsApiorgdetailsOPTIONSF65B056B:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      ApiKeyRequired: false
+      AuthorizationType: NONE
+      HttpMethod: OPTIONS
+      Integration:
+        IntegrationResponses:
+        - ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'''
+            method.response.header.Access-Control-Allow-Origin: '''*'''
+            method.response.header.Access-Control-Allow-Methods: '''OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'''
+          StatusCode: '204'
+        RequestTemplates:
+          application/json: '{ statusCode: 200 }'
+        Type: MOCK
+      MethodResponses:
+      - ResponseParameters:
+          method.response.header.Access-Control-Allow-Headers: true
+          method.response.header.Access-Control-Allow-Origin: true
+          method.response.header.Access-Control-Allow-Methods: true
+        StatusCode: '204'
+      ResourceId:
+        Ref: myRewardsApiorgdetailsC0A41CB2
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/org/details/OPTIONS/Resource
+  myRewardsApiorgdetailsGETApiPermissionPipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6GETorgdetails1D27C216:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - OrgApiStackNestedStackOrgApiStackNestedStackResource6BA468F9
+        - Outputs.PipelineStackbetaApiGatewayStackOrgApiStackgetorganization1412118EArn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:aws:execute-api:us-east-1:050451385382:'
+          - Ref: myRewardsApi06DB6986
+          - /
+          - Ref: myRewardsApiDeploymentStageprodC7E98F7E
+          - /GET/org/details
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/org/details/GET/ApiPermission.PipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6.GET..org.details
+  myRewardsApiorgdetailsGETApiPermissionTestPipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6GETorgdetails299CC7FB:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - OrgApiStackNestedStackOrgApiStackNestedStackResource6BA468F9
+        - Outputs.PipelineStackbetaApiGatewayStackOrgApiStackgetorganization1412118EArn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:aws:execute-api:us-east-1:050451385382:'
+          - Ref: myRewardsApi06DB6986
+          - /test-invoke-stage/GET/org/details
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/org/details/GET/ApiPermission.Test.PipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6.GET..org.details
+  myRewardsApiorgdetailsGETA6EFFF38:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId:
+        Ref: CognitoAuthorizerBizz863BB425
+      HttpMethod: GET
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Join:
+          - ''
+          - - arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/
+            - Fn::GetAtt:
+              - OrgApiStackNestedStackOrgApiStackNestedStackResource6BA468F9
+              - Outputs.PipelineStackbetaApiGatewayStackOrgApiStackgetorganization1412118EArn
+            - /invocations
+      ResourceId:
+        Ref: myRewardsApiorgdetailsC0A41CB2
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/org/details/GET/Resource
+  myRewardsApiorgbillingD9F6A1AA:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId:
+        Ref: myRewardsApiorgE7FE8847
+      PathPart: billing
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/org/billing/Resource
+  myRewardsApiorgbillingOPTIONS37784C9A:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      ApiKeyRequired: false
+      AuthorizationType: NONE
+      HttpMethod: OPTIONS
+      Integration:
+        IntegrationResponses:
+        - ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'''
+            method.response.header.Access-Control-Allow-Origin: '''*'''
+            method.response.header.Access-Control-Allow-Methods: '''OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'''
+          StatusCode: '204'
+        RequestTemplates:
+          application/json: '{ statusCode: 200 }'
+        Type: MOCK
+      MethodResponses:
+      - ResponseParameters:
+          method.response.header.Access-Control-Allow-Headers: true
+          method.response.header.Access-Control-Allow-Origin: true
+          method.response.header.Access-Control-Allow-Methods: true
+        StatusCode: '204'
+      ResourceId:
+        Ref: myRewardsApiorgbillingD9F6A1AA
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/org/billing/OPTIONS/Resource
+  myRewardsApiorgbillingGETApiPermissionPipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6GETorgbilling2CE161A0:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - OrgApiStackNestedStackOrgApiStackNestedStackResource6BA468F9
+        - Outputs.PipelineStackbetaApiGatewayStackOrgApiStackgetorganizationbilling15555BA4Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:aws:execute-api:us-east-1:050451385382:'
+          - Ref: myRewardsApi06DB6986
+          - /
+          - Ref: myRewardsApiDeploymentStageprodC7E98F7E
+          - /GET/org/billing
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/org/billing/GET/ApiPermission.PipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6.GET..org.billing
+  myRewardsApiorgbillingGETApiPermissionTestPipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6GETorgbillingBFF958CB:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - OrgApiStackNestedStackOrgApiStackNestedStackResource6BA468F9
+        - Outputs.PipelineStackbetaApiGatewayStackOrgApiStackgetorganizationbilling15555BA4Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:aws:execute-api:us-east-1:050451385382:'
+          - Ref: myRewardsApi06DB6986
+          - /test-invoke-stage/GET/org/billing
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/org/billing/GET/ApiPermission.Test.PipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6.GET..org.billing
+  myRewardsApiorgbillingGETFF3DE1CA:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId:
+        Ref: CognitoAuthorizerBizz863BB425
+      HttpMethod: GET
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Join:
+          - ''
+          - - arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/
+            - Fn::GetAtt:
+              - OrgApiStackNestedStackOrgApiStackNestedStackResource6BA468F9
+              - Outputs.PipelineStackbetaApiGatewayStackOrgApiStackgetorganizationbilling15555BA4Arn
+            - /invocations
+      ResourceId:
+        Ref: myRewardsApiorgbillingD9F6A1AA
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/org/billing/GET/Resource
+  myRewardsApiorgaddPayment5DD522DE:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId:
+        Ref: myRewardsApiorgE7FE8847
+      PathPart: addPayment
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/org/addPayment/Resource
+  myRewardsApiorgaddPaymentOPTIONS2A9367E7:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      ApiKeyRequired: false
+      AuthorizationType: NONE
+      HttpMethod: OPTIONS
+      Integration:
+        IntegrationResponses:
+        - ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'''
+            method.response.header.Access-Control-Allow-Origin: '''*'''
+            method.response.header.Access-Control-Allow-Methods: '''OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'''
+          StatusCode: '204'
+        RequestTemplates:
+          application/json: '{ statusCode: 200 }'
+        Type: MOCK
+      MethodResponses:
+      - ResponseParameters:
+          method.response.header.Access-Control-Allow-Headers: true
+          method.response.header.Access-Control-Allow-Origin: true
+          method.response.header.Access-Control-Allow-Methods: true
+        StatusCode: '204'
+      ResourceId:
+        Ref: myRewardsApiorgaddPayment5DD522DE
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/org/addPayment/OPTIONS/Resource
+  myRewardsApiorgaddPaymentPUTApiPermissionPipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6PUTorgaddPaymentB662525C:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - OrgApiStackNestedStackOrgApiStackNestedStackResource6BA468F9
+        - Outputs.PipelineStackbetaApiGatewayStackOrgApiStackorganizationaddPaymentC7DCE0D5Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:aws:execute-api:us-east-1:050451385382:'
+          - Ref: myRewardsApi06DB6986
+          - /
+          - Ref: myRewardsApiDeploymentStageprodC7E98F7E
+          - /PUT/org/addPayment
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/org/addPayment/PUT/ApiPermission.PipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6.PUT..org.addPayment
+  myRewardsApiorgaddPaymentPUTApiPermissionTestPipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6PUTorgaddPaymentEA3138F7:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - OrgApiStackNestedStackOrgApiStackNestedStackResource6BA468F9
+        - Outputs.PipelineStackbetaApiGatewayStackOrgApiStackorganizationaddPaymentC7DCE0D5Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:aws:execute-api:us-east-1:050451385382:'
+          - Ref: myRewardsApi06DB6986
+          - /test-invoke-stage/PUT/org/addPayment
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/org/addPayment/PUT/ApiPermission.Test.PipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6.PUT..org.addPayment
+  myRewardsApiorgaddPaymentPUTC1172292:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId:
+        Ref: CognitoAuthorizerBizz863BB425
+      HttpMethod: PUT
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Join:
+          - ''
+          - - arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/
+            - Fn::GetAtt:
+              - OrgApiStackNestedStackOrgApiStackNestedStackResource6BA468F9
+              - Outputs.PipelineStackbetaApiGatewayStackOrgApiStackorganizationaddPaymentC7DCE0D5Arn
+            - /invocations
+      ResourceId:
+        Ref: myRewardsApiorgaddPayment5DD522DE
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/org/addPayment/PUT/Resource
+  myRewardsApiorgsetDefaultPayment3008D21A:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId:
+        Ref: myRewardsApiorgE7FE8847
+      PathPart: setDefaultPayment
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/org/setDefaultPayment/Resource
+  myRewardsApiorgsetDefaultPaymentOPTIONS0BBF9D98:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      ApiKeyRequired: false
+      AuthorizationType: NONE
+      HttpMethod: OPTIONS
+      Integration:
+        IntegrationResponses:
+        - ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'''
+            method.response.header.Access-Control-Allow-Origin: '''*'''
+            method.response.header.Access-Control-Allow-Methods: '''OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'''
+          StatusCode: '204'
+        RequestTemplates:
+          application/json: '{ statusCode: 200 }'
+        Type: MOCK
+      MethodResponses:
+      - ResponseParameters:
+          method.response.header.Access-Control-Allow-Headers: true
+          method.response.header.Access-Control-Allow-Origin: true
+          method.response.header.Access-Control-Allow-Methods: true
+        StatusCode: '204'
+      ResourceId:
+        Ref: myRewardsApiorgsetDefaultPayment3008D21A
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/org/setDefaultPayment/OPTIONS/Resource
+  ? myRewardsApiorgsetDefaultPaymentPUTApiPermissionPipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6PUTorgsetDefaultPayment7B5C58F2
+  : Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - OrgApiStackNestedStackOrgApiStackNestedStackResource6BA468F9
+        - Outputs.PipelineStackbetaApiGatewayStackOrgApiStackorganizationsetDefaultPayment4ED87731Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:aws:execute-api:us-east-1:050451385382:'
+          - Ref: myRewardsApi06DB6986
+          - /
+          - Ref: myRewardsApiDeploymentStageprodC7E98F7E
+          - /PUT/org/setDefaultPayment
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/org/setDefaultPayment/PUT/ApiPermission.PipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6.PUT..org.setDefaultPayment
+  ? myRewardsApiorgsetDefaultPaymentPUTApiPermissionTestPipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6PUTorgsetDefaultPayment7C30B9E3
+  : Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - OrgApiStackNestedStackOrgApiStackNestedStackResource6BA468F9
+        - Outputs.PipelineStackbetaApiGatewayStackOrgApiStackorganizationsetDefaultPayment4ED87731Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:aws:execute-api:us-east-1:050451385382:'
+          - Ref: myRewardsApi06DB6986
+          - /test-invoke-stage/PUT/org/setDefaultPayment
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/org/setDefaultPayment/PUT/ApiPermission.Test.PipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6.PUT..org.setDefaultPayment
+  myRewardsApiorgsetDefaultPaymentPUTEA4646F1:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId:
+        Ref: CognitoAuthorizerBizz863BB425
+      HttpMethod: PUT
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Join:
+          - ''
+          - - arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/
+            - Fn::GetAtt:
+              - OrgApiStackNestedStackOrgApiStackNestedStackResource6BA468F9
+              - Outputs.PipelineStackbetaApiGatewayStackOrgApiStackorganizationsetDefaultPayment4ED87731Arn
+            - /invocations
+      ResourceId:
+        Ref: myRewardsApiorgsetDefaultPayment3008D21A
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/org/setDefaultPayment/PUT/Resource
+  myRewardsApiorgremovePayment8448A2ED:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId:
+        Ref: myRewardsApiorgE7FE8847
+      PathPart: removePayment
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/org/removePayment/Resource
+  myRewardsApiorgremovePaymentOPTIONS11502285:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      ApiKeyRequired: false
+      AuthorizationType: NONE
+      HttpMethod: OPTIONS
+      Integration:
+        IntegrationResponses:
+        - ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'''
+            method.response.header.Access-Control-Allow-Origin: '''*'''
+            method.response.header.Access-Control-Allow-Methods: '''OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'''
+          StatusCode: '204'
+        RequestTemplates:
+          application/json: '{ statusCode: 200 }'
+        Type: MOCK
+      MethodResponses:
+      - ResponseParameters:
+          method.response.header.Access-Control-Allow-Headers: true
+          method.response.header.Access-Control-Allow-Origin: true
+          method.response.header.Access-Control-Allow-Methods: true
+        StatusCode: '204'
+      ResourceId:
+        Ref: myRewardsApiorgremovePayment8448A2ED
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/org/removePayment/OPTIONS/Resource
+  ? myRewardsApiorgremovePaymentDELETEApiPermissionPipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6DELETEorgremovePayment11694200
+  : Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - OrgApiStackNestedStackOrgApiStackNestedStackResource6BA468F9
+        - Outputs.PipelineStackbetaApiGatewayStackOrgApiStackorganizationremovePayment8CB6F13DArn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:aws:execute-api:us-east-1:050451385382:'
+          - Ref: myRewardsApi06DB6986
+          - /
+          - Ref: myRewardsApiDeploymentStageprodC7E98F7E
+          - /DELETE/org/removePayment
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/org/removePayment/DELETE/ApiPermission.PipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6.DELETE..org.removePayment
+  ? myRewardsApiorgremovePaymentDELETEApiPermissionTestPipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6DELETEorgremovePaymentA00B5360
+  : Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - OrgApiStackNestedStackOrgApiStackNestedStackResource6BA468F9
+        - Outputs.PipelineStackbetaApiGatewayStackOrgApiStackorganizationremovePayment8CB6F13DArn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:aws:execute-api:us-east-1:050451385382:'
+          - Ref: myRewardsApi06DB6986
+          - /test-invoke-stage/DELETE/org/removePayment
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/org/removePayment/DELETE/ApiPermission.Test.PipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6.DELETE..org.removePayment
+  myRewardsApiorgremovePaymentDELETE887AC1A4:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId:
+        Ref: CognitoAuthorizerBizz863BB425
+      HttpMethod: DELETE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Join:
+          - ''
+          - - arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/
+            - Fn::GetAtt:
+              - OrgApiStackNestedStackOrgApiStackNestedStackResource6BA468F9
+              - Outputs.PipelineStackbetaApiGatewayStackOrgApiStackorganizationremovePayment8CB6F13DArn
+            - /invocations
+      ResourceId:
+        Ref: myRewardsApiorgremovePayment8448A2ED
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/org/removePayment/DELETE/Resource
+  myRewardsApishops0A966D25:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId:
+        Fn::GetAtt:
+        - myRewardsApi06DB6986
+        - RootResourceId
+      PathPart: shops
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/shops/Resource
+  myRewardsApishopsOPTIONS6175DA83:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      ApiKeyRequired: false
+      AuthorizationType: NONE
+      HttpMethod: OPTIONS
+      Integration:
+        IntegrationResponses:
+        - ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'''
+            method.response.header.Access-Control-Allow-Origin: '''*'''
+            method.response.header.Access-Control-Allow-Methods: '''OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'''
+          StatusCode: '204'
+        RequestTemplates:
+          application/json: '{ statusCode: 200 }'
+        Type: MOCK
+      MethodResponses:
+      - ResponseParameters:
+          method.response.header.Access-Control-Allow-Headers: true
+          method.response.header.Access-Control-Allow-Origin: true
+          method.response.header.Access-Control-Allow-Methods: true
+        StatusCode: '204'
+      ResourceId:
+        Ref: myRewardsApishops0A966D25
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/shops/OPTIONS/Resource
+  myRewardsApishopscreateC33BAE9C:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId:
+        Ref: myRewardsApishops0A966D25
+      PathPart: create
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/shops/create/Resource
+  myRewardsApishopscreateOPTIONSDBAD253F:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      ApiKeyRequired: false
+      AuthorizationType: NONE
+      HttpMethod: OPTIONS
+      Integration:
+        IntegrationResponses:
+        - ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'''
+            method.response.header.Access-Control-Allow-Origin: '''*'''
+            method.response.header.Access-Control-Allow-Methods: '''OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'''
+          StatusCode: '204'
+        RequestTemplates:
+          application/json: '{ statusCode: 200 }'
+        Type: MOCK
+      MethodResponses:
+      - ResponseParameters:
+          method.response.header.Access-Control-Allow-Headers: true
+          method.response.header.Access-Control-Allow-Origin: true
+          method.response.header.Access-Control-Allow-Methods: true
+        StatusCode: '204'
+      ResourceId:
+        Ref: myRewardsApishopscreateC33BAE9C
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/shops/create/OPTIONS/Resource
+  myRewardsApishopscreatePOSTApiPermissionPipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6POSTshopscreate9DCF1194:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - ShopApiStackNestedStackShopApiStackNestedStackResource98D433C9
+        - Outputs.PipelineStackbetaApiGatewayStackShopApiStackmyhandlerFE26A822Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:aws:execute-api:us-east-1:050451385382:'
+          - Ref: myRewardsApi06DB6986
+          - /
+          - Ref: myRewardsApiDeploymentStageprodC7E98F7E
+          - /POST/shops/create
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/shops/create/POST/ApiPermission.PipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6.POST..shops.create
+  myRewardsApishopscreatePOSTApiPermissionTestPipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6POSTshopscreate4F647E31:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - ShopApiStackNestedStackShopApiStackNestedStackResource98D433C9
+        - Outputs.PipelineStackbetaApiGatewayStackShopApiStackmyhandlerFE26A822Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:aws:execute-api:us-east-1:050451385382:'
+          - Ref: myRewardsApi06DB6986
+          - /test-invoke-stage/POST/shops/create
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/shops/create/POST/ApiPermission.Test.PipelineStackbetaApiGatewayStackmyRewardsApiA1B8A1C6.POST..shops.create
+  myRewardsApishopscreatePOSTF9B42651:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId:
+        Ref: CognitoAuthorizerBizz863BB425
+      HttpMethod: POST
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Join:
+          - ''
+          - - arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/
+            - Fn::GetAtt:
+              - ShopApiStackNestedStackShopApiStackNestedStackResource98D433C9
+              - Outputs.PipelineStackbetaApiGatewayStackShopApiStackmyhandlerFE26A822Arn
+            - /invocations
+      ResourceId:
+        Ref: myRewardsApishopscreateC33BAE9C
+      RestApiId:
+        Ref: myRewardsApi06DB6986
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/myRewardsApi/Default/shops/create/POST/Resource
+  ApiARecordFA826994:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      AliasTarget:
+        DNSName:
+          Fn::GetAtt:
+          - myRewardsApiCustomDomainD6CE5D67
+          - DistributionDomainName
+        HostedZoneId:
+          Fn::GetAtt:
+          - myRewardsApiCustomDomainD6CE5D67
+          - DistributionHostedZoneId
+      HostedZoneId:
+        Fn::ImportValue: beta-API-HostedZoneId
+      Name: beta.api.myrewards.website.
+      Type: A
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/ApiARecord/Resource
+  UsersApiStackNestedStackUsersApiStackNestedStackResourceB3E78E93:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: UsersApiStack/template.yaml
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      SamNormalized: true
+      SamResourceId: UsersApiStack
+      aws:asset:path: ../../cdk.out/assembly-PipelineStack-beta/PipelineStackbetaApiGatewayStackUsersApiStack3D940831.nested.template.json
+      aws:asset:property: TemplateURL
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/UsersApiStack.NestedStack/UsersApiStack.NestedStackResource
+  SquareApiStackNestedStackSquareApiStackNestedStackResource10BED352:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      Parameters:
+        referencetoPipelineStackbetaApiGatewayStackKMSEncryptionKey18B61E1DArn:
+          Fn::GetAtt:
+          - KMSEncryptionKeyE5AE461E
+          - Arn
+        referencetoPipelineStackbetaApiGatewayStackKMSEncryptionKey18B61E1DRef:
+          Ref: KMSEncryptionKeyE5AE461E
+      TemplateURL: SquareApiStack/template.yaml
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      SamNormalized: true
+      SamResourceId: SquareApiStack
+      aws:asset:path: ../../cdk.out/assembly-PipelineStack-beta/PipelineStackbetaApiGatewayStackSquareApiStack4246A96C.nested.template.json
+      aws:asset:property: TemplateURL
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/SquareApiStack.NestedStack/SquareApiStack.NestedStackResource
+  OrgApiStackNestedStackOrgApiStackNestedStackResource6BA468F9:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: OrgApiStack/template.yaml
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      SamNormalized: true
+      SamResourceId: OrgApiStack
+      aws:asset:path: ../../cdk.out/assembly-PipelineStack-beta/PipelineStackbetaApiGatewayStackOrgApiStackBE0F4D8E.nested.template.json
+      aws:asset:property: TemplateURL
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/OrgApiStack.NestedStack/OrgApiStack.NestedStackResource
+  ShopApiStackNestedStackShopApiStackNestedStackResource98D433C9:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      Parameters:
+        referencetoPipelineStackbetaApiGatewayStackKMSEncryptionKey18B61E1DArn:
+          Fn::GetAtt:
+          - KMSEncryptionKeyE5AE461E
+          - Arn
+      TemplateURL: ShopApiStack/template.yaml
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      SamNormalized: true
+      SamResourceId: ShopApiStack
+      aws:asset:path: ../../cdk.out/assembly-PipelineStack-beta/PipelineStackbetaApiGatewayStackShopApiStack3F61F7D9.nested.template.json
+      aws:asset:property: TemplateURL
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/ShopApiStack.NestedStack/ShopApiStack.NestedStackResource
+  CDKMetadata:
+    Type: AWS::CDK::Metadata
+    Properties:
+      Analytics: v2:deflate64:H4sIAAAAAAAA/12QwW7CMAyGn4V7mgHTpF1ZuSEYarXzZFLTmjZxlbhDXdV3n0Jhq3bK/312pD9Z69XrUi8XcA2JKeqkoZMecgFTqwwDd96ggmv4HAx6oTMZELTgoESvh/TPqfTsZjiq2gY97LCPgx32o4KWShC8Qq+HlEtHwh8B/ZG5CZtOKvb0jT6uzyjDIJuWon3ELbYN9xadRDujXKC89ZjCli2QO4C9uRm9QcAjSLWHtiVXxul/9Xh69GqPUnER1+7p92OmVrc8qgbsqQCdnt0RvaUQiJ3y3Am+POthk6FhX0xXYspRxjHieydtJ/feph6V4wL1JTx9rdd6tdLLxSUQJb5zQhZ1Np0/YLcCsbgBAAA=
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/CDKMetadata/Default
+Outputs:
+  myRewardsApiEndpointE2171845:
+    Value:
+      Fn::Join:
+      - ''
+      - - https://
+        - Ref: myRewardsApi06DB6986
+        - .execute-api.us-east-1.
+        - Ref: AWS::URLSuffix
+        - /
+        - Ref: myRewardsApiDeploymentStageprodC7E98F7E
+        - /
+  RestApi:
+    Description: RestApi ID
+    Value:
+      Ref: myRewardsApi06DB6986
+    Export:
+      Name: restApi
+Parameters:
+  BootstrapVersion:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /cdk-bootstrap/hnb659fds/version
+    Description: Version of the CDK Bootstrap resources in this environment, automatically
+      retrieved from SSM Parameter Store. [cdk:skip]
+Rules:
+  CheckBootstrapVersion:
+    Assertions:
+    - Assert:
+        Fn::Not:
+        - Fn::Contains:
+          - - '1'
+            - '2'
+            - '3'
+            - '4'
+            - '5'
+          - Ref: BootstrapVersion
+      AssertDescription: CDK bootstrap stack version 6 required. Please run 'cdk bootstrap'
+        with a recent version of the CDK CLI.

@@ -1,0 +1,253 @@
+Resources:
+  GetCustomerUserServiceRoleF9849519:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+      - Fn::Join:
+        - ''
+        - - 'arn:'
+          - Ref: AWS::Partition
+          - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/UsersApiStack/Get-Customer-User/ServiceRole/Resource
+  GetCustomerUserServiceRoleDefaultPolicy0AFEF4DB:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+        - Action:
+          - dynamodb:BatchGetItem
+          - dynamodb:ConditionCheckItem
+          - dynamodb:DescribeTable
+          - dynamodb:GetItem
+          - dynamodb:GetRecords
+          - dynamodb:GetShardIterator
+          - dynamodb:Query
+          - dynamodb:Scan
+          Effect: Allow
+          Resource:
+          - Fn::ImportValue: UserTableARN
+          - Ref: AWS::NoValue
+        Version: '2012-10-17'
+      PolicyName: GetCustomerUserServiceRoleDefaultPolicy0AFEF4DB
+      Roles:
+      - Ref: GetCustomerUserServiceRoleF9849519
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/UsersApiStack/Get-Customer-User/ServiceRole/DefaultPolicy/Resource
+  GetCustomerUserAAD1B8B5:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: cdk-hnb659fds-assets-050451385382-us-east-1
+        S3Key: c2f71d8f0db5c640a62e73a7ef782859a9d4cb431e34fc13c8c522989e510e36.zip
+      Environment:
+        Variables:
+          USERS_TABLE:
+            Fn::Select:
+            - 1
+            - Fn::Split:
+              - /
+              - Fn::Select:
+                - 5
+                - Fn::Split:
+                  - ':'
+                  - Fn::ImportValue: UserTableARN
+      Handler: index.handler
+      Role:
+        Fn::GetAtt:
+        - GetCustomerUserServiceRoleF9849519
+        - Arn
+      Runtime: nodejs20.x
+    DependsOn:
+    - GetCustomerUserServiceRoleDefaultPolicy0AFEF4DB
+    - GetCustomerUserServiceRoleF9849519
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/UsersApiStack/Get-Customer-User/Resource
+      aws:asset:path: ../../../cdk.out/asset.c2f71d8f0db5c640a62e73a7ef782859a9d4cb431e34fc13c8c522989e510e36
+      aws:asset:is-bundled: true
+      aws:asset:property: Code
+  UpdateCustomerUserServiceRole21731081:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+      - Fn::Join:
+        - ''
+        - - 'arn:'
+          - Ref: AWS::Partition
+          - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/UsersApiStack/Update-Customer-User/ServiceRole/Resource
+  UpdateCustomerUserServiceRoleDefaultPolicy18EF0166:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+        - Action:
+          - dynamodb:BatchGetItem
+          - dynamodb:BatchWriteItem
+          - dynamodb:ConditionCheckItem
+          - dynamodb:DeleteItem
+          - dynamodb:DescribeTable
+          - dynamodb:GetItem
+          - dynamodb:GetRecords
+          - dynamodb:GetShardIterator
+          - dynamodb:PutItem
+          - dynamodb:Query
+          - dynamodb:Scan
+          - dynamodb:UpdateItem
+          Effect: Allow
+          Resource:
+          - Fn::ImportValue: UserTableARN
+          - Ref: AWS::NoValue
+        Version: '2012-10-17'
+      PolicyName: UpdateCustomerUserServiceRoleDefaultPolicy18EF0166
+      Roles:
+      - Ref: UpdateCustomerUserServiceRole21731081
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/UsersApiStack/Update-Customer-User/ServiceRole/DefaultPolicy/Resource
+  UpdateCustomerUserD6E0FB60:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: cdk-hnb659fds-assets-050451385382-us-east-1
+        S3Key: dd6a8f508afeaf6e1f34ca2071ec2426b8fb08efe1ebeeaad445714f03f4eb87.zip
+      Environment:
+        Variables:
+          USERS_TABLE:
+            Fn::Select:
+            - 1
+            - Fn::Split:
+              - /
+              - Fn::Select:
+                - 5
+                - Fn::Split:
+                  - ':'
+                  - Fn::ImportValue: UserTableARN
+      Handler: index.handler
+      Role:
+        Fn::GetAtt:
+        - UpdateCustomerUserServiceRole21731081
+        - Arn
+      Runtime: nodejs20.x
+    DependsOn:
+    - UpdateCustomerUserServiceRoleDefaultPolicy18EF0166
+    - UpdateCustomerUserServiceRole21731081
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/UsersApiStack/Update-Customer-User/Resource
+      aws:asset:path: ../../../cdk.out/asset.dd6a8f508afeaf6e1f34ca2071ec2426b8fb08efe1ebeeaad445714f03f4eb87
+      aws:asset:is-bundled: true
+      aws:asset:property: Code
+  DeleteCustomerUserServiceRole065C6500:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+      - Fn::Join:
+        - ''
+        - - 'arn:'
+          - Ref: AWS::Partition
+          - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/UsersApiStack/Delete-Customer-User/ServiceRole/Resource
+  DeleteCustomerUserServiceRoleDefaultPolicy08FB19DE:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+        - Action:
+          - dynamodb:BatchGetItem
+          - dynamodb:BatchWriteItem
+          - dynamodb:ConditionCheckItem
+          - dynamodb:DeleteItem
+          - dynamodb:DescribeTable
+          - dynamodb:GetItem
+          - dynamodb:GetRecords
+          - dynamodb:GetShardIterator
+          - dynamodb:PutItem
+          - dynamodb:Query
+          - dynamodb:Scan
+          - dynamodb:UpdateItem
+          Effect: Allow
+          Resource:
+          - Fn::ImportValue: UserTableARN
+          - Ref: AWS::NoValue
+        Version: '2012-10-17'
+      PolicyName: DeleteCustomerUserServiceRoleDefaultPolicy08FB19DE
+      Roles:
+      - Ref: DeleteCustomerUserServiceRole065C6500
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/UsersApiStack/Delete-Customer-User/ServiceRole/DefaultPolicy/Resource
+  DeleteCustomerUser69937195:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: cdk-hnb659fds-assets-050451385382-us-east-1
+        S3Key: c7a45e3394ecbc2b8a023c52157adc860cbca4906ea2ddceaea0ca90cdf5b4cb.zip
+      Environment:
+        Variables:
+          USERS_TABLE:
+            Fn::Select:
+            - 1
+            - Fn::Split:
+              - /
+              - Fn::Select:
+                - 5
+                - Fn::Split:
+                  - ':'
+                  - Fn::ImportValue: UserTableARN
+      Handler: index.handler
+      Role:
+        Fn::GetAtt:
+        - DeleteCustomerUserServiceRole065C6500
+        - Arn
+      Runtime: nodejs20.x
+    DependsOn:
+    - DeleteCustomerUserServiceRoleDefaultPolicy08FB19DE
+    - DeleteCustomerUserServiceRole065C6500
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/UsersApiStack/Delete-Customer-User/Resource
+      aws:asset:path: ../../../cdk.out/asset.c7a45e3394ecbc2b8a023c52157adc860cbca4906ea2ddceaea0ca90cdf5b4cb
+      aws:asset:is-bundled: true
+      aws:asset:property: Code
+  CDKMetadata:
+    Type: AWS::CDK::Metadata
+    Properties:
+      Analytics: v2:deflate64:H4sIAAAAAAAA/02OPQ+CQBBEf4v9sgI2tmpiaQzYk+VuNQf3kbB3GkL47waIidWbKeZlSiyOOeY7+kimdJ9Z0+J0Y4ms60iqB/pIM+nRkwu6xQe1ls8kDJZcq6nxQXMneFtxTV5FEzwYcjhVwTJcnn7lPVijxqVuaQY5NCTCUfC0AOSA56R6jn96vDz9TzpDxRLSoBjWQR3pZfxrhuUCdrJ/lyUWBea7TozJhuSjcYzVxi9Eq2oY6AAAAA==
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/UsersApiStack/CDKMetadata/Default
+Outputs:
+  PipelineStackbetaApiGatewayStackUsersApiStackDeleteCustomerUserCC3FEB97Arn:
+    Value:
+      Fn::GetAtt:
+      - DeleteCustomerUser69937195
+      - Arn
+  PipelineStackbetaApiGatewayStackUsersApiStackUpdateCustomerUserE35C227FArn:
+    Value:
+      Fn::GetAtt:
+      - UpdateCustomerUserD6E0FB60
+      - Arn
+  PipelineStackbetaApiGatewayStackUsersApiStackGetCustomerUserCA3EBD9BArn:
+    Value:
+      Fn::GetAtt:
+      - GetCustomerUserAAD1B8B5
+      - Arn

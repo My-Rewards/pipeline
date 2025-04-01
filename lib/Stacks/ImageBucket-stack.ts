@@ -111,6 +111,11 @@ export class ImageBucketStack extends cdk.Stack {
         exportName:'OrganizationImageBucket'
     });
 
+    new cdk.CfnOutput(this, "cloudFrontImageId", {
+        value: distribution.distributionId,
+        exportName:'ImageCloudfrontId'
+    });
+
     new cdk.CfnOutput(this, "OrganizationImageBucketARN", {
         value: imageBucket.bucketArn,
         exportName:'OrganizationImageBucketARN'

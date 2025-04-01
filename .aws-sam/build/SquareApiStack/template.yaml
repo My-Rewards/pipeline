@@ -1,0 +1,240 @@
+Resources:
+  connectSquareServiceRole5F152356:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+      - Fn::Join:
+        - ''
+        - - 'arn:'
+          - Ref: AWS::Partition
+          - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/SquareApiStack/connectSquare/ServiceRole/Resource
+  connectSquareServiceRoleDefaultPolicy96648D05:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+        - Action:
+          - dynamodb:BatchGetItem
+          - dynamodb:ConditionCheckItem
+          - dynamodb:DescribeTable
+          - dynamodb:GetItem
+          - dynamodb:GetRecords
+          - dynamodb:GetShardIterator
+          - dynamodb:Query
+          - dynamodb:Scan
+          Effect: Allow
+          Resource:
+          - Fn::ImportValue: BizzUserTableARN
+          - Ref: AWS::NoValue
+        - Action:
+          - dynamodb:BatchGetItem
+          - dynamodb:BatchWriteItem
+          - dynamodb:ConditionCheckItem
+          - dynamodb:DeleteItem
+          - dynamodb:DescribeTable
+          - dynamodb:GetItem
+          - dynamodb:GetRecords
+          - dynamodb:GetShardIterator
+          - dynamodb:PutItem
+          - dynamodb:Query
+          - dynamodb:Scan
+          - dynamodb:UpdateItem
+          Effect: Allow
+          Resource:
+          - Fn::ImportValue: OrganizationTableARN
+          - Ref: AWS::NoValue
+        - Action:
+          - secretsmanager:DescribeSecret
+          - secretsmanager:GetSecretValue
+          Effect: Allow
+          Resource: arn:aws:secretsmanager:us-east-1:050451385382:secret:square/credentials-??????
+        - Action:
+          - kms:Decrypt
+          - kms:Encrypt
+          - kms:GenerateDataKey*
+          - kms:ReEncrypt*
+          Effect: Allow
+          Resource:
+            Ref: referencetoPipelineStackbetaApiGatewayStackKMSEncryptionKey18B61E1DArn
+        Version: '2012-10-17'
+      PolicyName: connectSquareServiceRoleDefaultPolicy96648D05
+      Roles:
+      - Ref: connectSquareServiceRole5F152356
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/SquareApiStack/connectSquare/ServiceRole/DefaultPolicy/Resource
+  connectSquare3EBBC67A:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: cdk-hnb659fds-assets-050451385382-us-east-1
+        S3Key: dc7859457aaf3b71845bed2eedcc45e484f4b12826583796c0d817d42b78015e.zip
+      Environment:
+        Variables:
+          USER_TABLE:
+            Fn::Select:
+            - 1
+            - Fn::Split:
+              - /
+              - Fn::Select:
+                - 5
+                - Fn::Split:
+                  - ':'
+                  - Fn::ImportValue: BizzUserTableARN
+          ORG_TABLE:
+            Fn::Select:
+            - 1
+            - Fn::Split:
+              - /
+              - Fn::Select:
+                - 5
+                - Fn::Split:
+                  - ':'
+                  - Fn::ImportValue: OrganizationTableARN
+          SQUARE_ARN: arn:aws:secretsmanager:us-east-1:050451385382:secret:square/credentials
+          KMS_KEY_ID:
+            Ref: referencetoPipelineStackbetaApiGatewayStackKMSEncryptionKey18B61E1DRef
+          APP_ENV: beta
+      Handler: index.handler
+      Role:
+        Fn::GetAtt:
+        - connectSquareServiceRole5F152356
+        - Arn
+      Runtime: nodejs20.x
+      Timeout: 10
+    DependsOn:
+    - connectSquareServiceRoleDefaultPolicy96648D05
+    - connectSquareServiceRole5F152356
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/SquareApiStack/connectSquare/Resource
+      aws:asset:path: ../../../cdk.out/asset.dc7859457aaf3b71845bed2eedcc45e484f4b12826583796c0d817d42b78015e
+      aws:asset:is-bundled: true
+      aws:asset:property: Code
+  listshopsServiceRoleACBA9363:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+      - Fn::Join:
+        - ''
+        - - 'arn:'
+          - Ref: AWS::Partition
+          - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/SquareApiStack/list-shops/ServiceRole/Resource
+  listshopsServiceRoleDefaultPolicyB66875D3:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+        - Action:
+          - dynamodb:BatchGetItem
+          - dynamodb:ConditionCheckItem
+          - dynamodb:DescribeTable
+          - dynamodb:GetItem
+          - dynamodb:GetRecords
+          - dynamodb:GetShardIterator
+          - dynamodb:Query
+          - dynamodb:Scan
+          Effect: Allow
+          Resource:
+          - Fn::ImportValue: BizzUserTableARN
+          - Ref: AWS::NoValue
+        - Action:
+          - dynamodb:BatchWriteItem
+          - dynamodb:DeleteItem
+          - dynamodb:DescribeTable
+          - dynamodb:PutItem
+          - dynamodb:UpdateItem
+          Effect: Allow
+          Resource:
+          - Fn::ImportValue: BizzUserTableARN
+          - Ref: AWS::NoValue
+        - Action:
+          - secretsmanager:DescribeSecret
+          - secretsmanager:GetSecretValue
+          Effect: Allow
+          Resource: arn:aws:secretsmanager:us-east-1:050451385382:secret:square/credentials-??????
+        - Action: kms:Decrypt
+          Effect: Allow
+          Resource:
+            Ref: referencetoPipelineStackbetaApiGatewayStackKMSEncryptionKey18B61E1DArn
+        Version: '2012-10-17'
+      PolicyName: listshopsServiceRoleDefaultPolicyB66875D3
+      Roles:
+      - Ref: listshopsServiceRoleACBA9363
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/SquareApiStack/list-shops/ServiceRole/DefaultPolicy/Resource
+  listshops1C98C5E0:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: cdk-hnb659fds-assets-050451385382-us-east-1
+        S3Key: ee453e400cb2ab97d8014558da4fcce171c2f72fe96b727d43af18059d40a36c.zip
+      Environment:
+        Variables:
+          USER_TABLE:
+            Fn::Select:
+            - 1
+            - Fn::Split:
+              - /
+              - Fn::Select:
+                - 5
+                - Fn::Split:
+                  - ':'
+                  - Fn::ImportValue: BizzUserTableARN
+          SQUARE_ARN: arn:aws:secretsmanager:us-east-1:050451385382:secret:square/credentials
+          KMS_KEY_ID:
+            Ref: referencetoPipelineStackbetaApiGatewayStackKMSEncryptionKey18B61E1DRef
+          APP_ENV: beta
+      Handler: index.handler
+      Role:
+        Fn::GetAtt:
+        - listshopsServiceRoleACBA9363
+        - Arn
+      Runtime: nodejs20.x
+      Timeout: 10
+    DependsOn:
+    - listshopsServiceRoleDefaultPolicyB66875D3
+    - listshopsServiceRoleACBA9363
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/SquareApiStack/list-shops/Resource
+      aws:asset:path: ../../../cdk.out/asset.ee453e400cb2ab97d8014558da4fcce171c2f72fe96b727d43af18059d40a36c
+      aws:asset:is-bundled: true
+      aws:asset:property: Code
+  CDKMetadata:
+    Type: AWS::CDK::Metadata
+    Properties:
+      Analytics: v2:deflate64:H4sIAAAAAAAA/02OPQ+CQBBEf4v9sgI2tmpiaQzYk+VuNQf3kbB3GkL47waIidWbKeZlSiyOOeY7+kimdJ9Z0+J0Y4ms60iqB/pIM+nRkwu6xQe1ls8kDJZcq6nxQXMneFtxTV5FEzwYcjhVwTJcnn7lPVijxqVuaQY5NCTCUfC0AOSA56R6jn96vDz9TzpDxRLSoBjWQR3pZfxrhuUCdrJ/lyUWBea7TozJhuSjcYzVxi9Eq2oY6AAAAA==
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/SquareApiStack/CDKMetadata/Default
+Outputs:
+  PipelineStackbetaApiGatewayStackSquareApiStackconnectSquare987FF848Arn:
+    Value:
+      Fn::GetAtt:
+      - connectSquare3EBBC67A
+      - Arn
+  PipelineStackbetaApiGatewayStackSquareApiStacklistshopsD1B4CB3DArn:
+    Value:
+      Fn::GetAtt:
+      - listshops1C98C5E0
+      - Arn
+Parameters:
+  referencetoPipelineStackbetaApiGatewayStackKMSEncryptionKey18B61E1DArn:
+    Type: String
+  referencetoPipelineStackbetaApiGatewayStackKMSEncryptionKey18B61E1DRef:
+    Type: String

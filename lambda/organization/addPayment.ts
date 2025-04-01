@@ -1,27 +1,15 @@
 import { DynamoDBClient} from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { OrganizationProps } from "../Interfaces";
-import { SecretsManagerClient, GetSecretValueCommand} from "@aws-sdk/client-secrets-manager"
 import Stripe from "stripe";
+import { getStripeSecret } from "../constants/validOrganization";
 
 const dynamoClient = new DynamoDBClient({region: "us-east-1"});
 const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
-const secretClient = new SecretsManagerClient({ region: "us-east-1" });
 
 let cachedStripeKey: string | null; 
 let stripe: Stripe| null;
-
-const getStripeSecret = async (stripeArn:string): Promise<string | null> => {
-    const data = await secretClient.send(new GetSecretValueCommand({ SecretId: stripeArn }));
-
-    if (!data.SecretString) {
-        throw new Error("Stripe key not found in Secrets Manager.");
-    }
-
-    const secret = JSON.parse(data.SecretString);
-    return secret.secretKey;
-};
 
 const getIntent = async (stripe_id:string):Promise<{client_secret:string|null, first_pm:boolean}> => {
     try {

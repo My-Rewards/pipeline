@@ -81,14 +81,20 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
                 { 
                     name:organization.name,
                     description:organization.description,
-                    images:organization.images,
+                    images:{
+                        logo:organization.images.logo.url,
+                        preview:organization.images.preview.url,
+                        banner:organization.images.banner.url
+                    },
                     date_registered: organization.date_registered,
+                    tags:organization.tags,
                     paymentSetup:false, 
                     rewards_loyalty:organization.rewards_loyalty,
                     rewards_milestone:organization.rewards_milestone,
                     rl_active: organization.rl_active,
                     rm_active: organization.rm_active,
                     active: organization.active,
+                    linked:organization.linked,
                     shops:shops
                 }
             }),

@@ -1,27 +1,15 @@
 import { DynamoDBClient} from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { OrganizationProps } from "../Interfaces";
-import { SecretsManagerClient, GetSecretValueCommand} from "@aws-sdk/client-secrets-manager"
 import Stripe from "stripe";
+import { dfPM, getStripeSecret } from "../constants/validOrganization";
 
 const dynamoClient = new DynamoDBClient({region: "us-east-1"});
 const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
-const secretClient = new SecretsManagerClient({ region: "us-east-1" });
 
 let cachedStripeKey: string | null; 
 let stripe: Stripe| null;
-
-const getStripeSecret = async (stripeArn:string): Promise<string | null> => {
-    const data = await secretClient.send(new GetSecretValueCommand({ SecretId: stripeArn }));
-
-    if (!data.SecretString) {
-        throw new Error("Stripe key not found in Secrets Manager.");
-    }
-
-    const secret = JSON.parse(data.SecretString);
-    return secret.secretKey;
-};
 
 const removePayment = async (payment_id:string):Promise<{success:boolean}> => {
     try {
@@ -37,7 +25,7 @@ const removePayment = async (payment_id:string):Promise<{success:boolean}> => {
             success: false
         }
       }
-}
+}  
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     try {
@@ -75,7 +63,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const getOrg = new GetCommand({
             TableName: orgTable,
             Key: { id: orgId },
-            ProjectionExpression: "stripe_id, linked",            
+            ProjectionExpression: "stripe_id, linked, active",            
         });
 
         const org = await dynamoDb.send(getOrg);
@@ -104,6 +92,25 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         }
 
         const {success} = await removePayment(paymentId)
+
+        let status = organization.active;
+        const hasDfPM = await dfPM(org.Item.stripe_id, stripe);
+
+        if(!hasDfPM){
+            const updateOrg = new UpdateCommand({
+                TableName: orgTable,
+                Key: { id: orgId },
+                UpdateExpression: 'SET active = :active, updatedAt = :updatedAt',
+                ExpressionAttributeValues: {
+                ':active': false,
+                ':updatedAt': new Date().toISOString()
+                },
+                ReturnValues: 'UPDATED_NEW'
+            });
+            status = !org.Item.active
+        
+            await dynamoDb.send(updateOrg);
+        }
 
         return {
             statusCode: 200,

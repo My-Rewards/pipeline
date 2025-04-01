@@ -1,4 +1,3 @@
-import { SecretsManagerClient, GetSecretValueCommand} from "@aws-sdk/client-secrets-manager"
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { randomUUID } from "crypto";
 import { DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
@@ -7,25 +6,14 @@ import Stripe from "stripe";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { OrganizationProps } from "../Interfaces";
+import { getStripeSecret } from "../constants/validOrganization";
 
-const secretClient = new SecretsManagerClient({ region: "us-east-1" });
 const s3 = new S3Client({ region: "us-east-1" });
 const dynamoClient = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
 
 let cachedStripeKey: string | null; 
 let stripe: Stripe| null;
-
-const getStripeSecret = async (stripeArn:string): Promise<string | null> => {
-    const data = await secretClient.send(new GetSecretValueCommand({ SecretId: stripeArn }));
-
-    if (!data.SecretString) {
-        throw new Error("Stripe key not found in Secrets Manager.");
-    }
-
-    const secret = JSON.parse(data.SecretString);
-    return secret.secretKey;
-};
 
 const getUserEmailFromDynamoDB = async (userId: string, userTable:string): Promise<string | null> => {
     try {
@@ -58,7 +46,7 @@ const getPresignedUrls = async (fileKeys: string[], bucketName:string, types:str
             });
             return {
                 fileKey,
-                url: await getSignedUrl(s3, command, { expiresIn: 300 }),
+                url: await getSignedUrl(s3, command, { expiresIn: 60 }),
                 type:types[index]
             };
         })
@@ -93,7 +81,8 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             rewards_loyalty, 
             rewards_milestone, 
             rl_active, 
-            rm_active 
+            rm_active,
+            businessTags 
         } = JSON.parse(event.body);
 
         const userSub = event.requestContext.authorizer?.claims?.sub;
@@ -150,6 +139,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
                 expiresAt:null,
                 square_merchant_id: null,
                 owner_id:userSub,
+                tags:businessTags,
                 date_registered: new Date().toISOString(),
                 lastUpdate: new Date().toISOString(),
                 rewards_loyalty,
@@ -160,9 +150,18 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
                 rm_active,
                 active:false,
                 images: {
-                    logo: publicUrls[0],
-                    preview: publicUrls[1],
-                    banner: publicUrls[2],
+                    logo:{
+                        url:publicUrls[0],
+                        fileKey: fileKeys[0]
+                    },
+                    preview: {
+                        url:publicUrls[1],
+                        fileKey: fileKeys[1]
+                    },
+                    banner:{
+                        url:publicUrls[2],
+                        fileKey: fileKeys[2]
+                    },
                 },
                 linked:false
             },

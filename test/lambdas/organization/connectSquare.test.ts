@@ -1,4 +1,4 @@
-import { handler } from '../../../lambda/organization/connectSquare';
+import { handler } from '../../../lambda/organization/square/link';
 import { mockClient } from 'aws-sdk-client-mock';
 import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { KMSClient, EncryptCommand } from '@aws-sdk/client-kms';
