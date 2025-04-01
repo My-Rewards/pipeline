@@ -3,21 +3,21 @@ import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
 import { PostConfirmationTriggerEvent } from 'aws-lambda';
 import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 import { readFileSync } from 'fs';
-import { resolve } from 'path';
+import { join } from 'path';
 
 const client = new DynamoDBClient({});
 const ses = new SESClient({ region: 'us-east-1' });
 const dynamoDb = DynamoDBDocumentClient.from(client);
 
-exports.handler = async (event: PostConfirmationTriggerEvent) => {
+export const handler = async (event: PostConfirmationTriggerEvent) => {
   const tableName = process.env.TABLE;
-  const role = process.env.ROLE;
   const emailSender = process.env.EMAIL_SENDER;
+  const email = process.env.EMAIL;
 
   try {
     const { request: { userAttributes } } = event;
 
-    if (!userAttributes.email || !userAttributes.given_name || !userAttributes.family_name || !userAttributes.sub || !role || !tableName) {
+    if (!userAttributes.email || !userAttributes.given_name || !userAttributes.family_name || !userAttributes.sub || !tableName) {
       console.error('Missing required attributes');
       throw new Error('Missing required attributes');
     }
@@ -31,32 +31,24 @@ exports.handler = async (event: PostConfirmationTriggerEvent) => {
         lastName: userAttributes.family_name
       },
       date_created: new Date().toISOString(),
-      role: role,
       newAccount: true,
       preferences: {
         lightMode: true
       },
-      accessToken: null,
-      refreshToken: null,
-      updatedAt: null,
-      orgId: null,
       permissions: {
-        canEditOrg: true,
-        canEditBilling: true,
-        canEditShops: true
+        modifyOrg: true,
+        modifyBilling: true,
+        modifyShops: true,
       },
     };
 
-    const params = {
+    const params = new PutCommand({
       TableName: tableName,
       Item: userData,
       ConditionExpression: 'attribute_not_exists(id)'
-    };
+    });
 
-    await dynamoDb.send(new PutCommand(params));
-
-    const emailHtmlPath = resolve(__dirname, 'EmailTemplate', 'welcome-email-bizz.html');
-    const emailHtmlContent = readFileSync(emailHtmlPath, 'utf-8');
+    await dynamoDb.send(params);
 
     const emailParams = {
       Source: `MyRewards <${emailSender}>`,
@@ -64,7 +56,7 @@ exports.handler = async (event: PostConfirmationTriggerEvent) => {
       Message: {
         Subject: { Data: 'Welcome To MyRewards!' },
         Body: {
-          Html: { Data: emailHtmlContent },
+          Html: { Data: email },
           Text: { Data: 'Setup your account and link with Square if you haven’t! We have a feeling you’re going to like it here.' },
         },
       },

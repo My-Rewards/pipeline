@@ -32,7 +32,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             return { statusCode: 210, body: JSON.stringify({ info: "User not found" }) };
         }
 
-        const orgId = user.Item ? user.Item.org_id : null
+        const orgId = user.Item ? user.Item.orgId : null
 
         if (!orgId) {
             return { statusCode: 404, body: JSON.stringify({ info: "User not found" }) };

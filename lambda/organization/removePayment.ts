@@ -1,7 +1,7 @@
 import { DynamoDBClient} from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { OrganizationProps, ShopProps } from "../Interfaces";
+import { OrganizationProps } from "../Interfaces";
 import { SecretsManagerClient, GetSecretValueCommand} from "@aws-sdk/client-secrets-manager"
 import Stripe from "stripe";
 
@@ -57,7 +57,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const getUser = new GetCommand ({
             TableName: userTable,
             Key: { id: userSub},
-            ProjectionExpression: "org_id, #userPermissions",      
+            ProjectionExpression: "orgId, #userPermissions",      
             ExpressionAttributeNames: { 
                 "#userPermissions": "permissions"
             },      
@@ -65,11 +65,11 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
         const resultUser = await dynamoDb.send(getUser);
 
-        if (!resultUser.Item?.org_id) {
+        if (!resultUser.Item?.orgId) {
             return { statusCode: 210, body: JSON.stringify({ info: "User not Found" }) };
         }
 
-        const orgId = resultUser.Item.org_id ;
+        const orgId = resultUser.Item.orgId ;
         const permissions = resultUser.Item.permissions;
         
         const getOrg = new GetCommand({

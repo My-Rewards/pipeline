@@ -60,25 +60,56 @@ describe('Square Integration Lambda', () => {
     process.env.APP_ENV = 'dev';
   });
 
-  const mockEvent = (body: any): APIGatewayProxyEvent => {
+  const mockEvent = (body: any, user:string|null): APIGatewayProxyEvent => {
     return {
       body: JSON.stringify(body),
       headers: {},
       multiValueHeaders: {},
       httpMethod: 'POST',
+      requestContext: {
+        authorizer: {
+          claims: { sub: user }
+        },
+        accountId: '',
+        apiId: '',
+        protocol: '',
+        httpMethod: '',
+        identity: {
+          accessKey: null,
+          accountId: null,
+          apiKey: null,
+          apiKeyId: null,
+          caller: null,
+          clientCert: null,
+          cognitoAuthenticationProvider: null,
+          cognitoAuthenticationType: null,
+          cognitoIdentityId: null,
+          cognitoIdentityPoolId: null,
+          principalOrgId: null,
+          sourceIp: '',
+          user: null,
+          userAgent: null,
+          userArn: null
+        },
+        path: '',
+        stage: '',
+        requestId: '',
+        requestTimeEpoch: 0,
+        resourceId: '',
+        resourcePath: ''
+      },
       isBase64Encoded: false,
       path: '/square-auth',
       pathParameters: null,
       queryStringParameters: null,
       multiValueQueryStringParameters: null,
       stageVariables: null,
-      requestContext: {} as any,
       resource: ''
     };
   };
 
   test('should return 400 when body is missing', async () => {
-    const event = { ...mockEvent({}), body: null };
+    const event = { ...mockEvent({}, null), body: null };
     const result = await handler(event);
     
     expect(result.statusCode).toBe(400);
@@ -86,19 +117,19 @@ describe('Square Integration Lambda', () => {
   });
 
   test('should return 400 when required fields are missing', async () => {
-    let event = mockEvent({ userSub: 'user123' });
+    let event = mockEvent({}, 'user123');
     let result = await handler(event);
     expect(result.statusCode).toBe(400);
     expect(JSON.parse(result.body).error).toContain('authCode, userId, and codeVerifier are required');
     
-    event = mockEvent({ authCode: 'auth123' });
+    event = mockEvent({}, 'user123');
     result = await handler(event);
     expect(result.statusCode).toBe(400);
     expect(JSON.parse(result.body).error).toContain('authCode, userId, and codeVerifier are required');
   });
 
   test('should return 500 when environment variables are missing', async () => {
-    const event = mockEvent({ authCode: 'auth123', userSub: 'user123' });
+    const event = mockEvent({ authCode: 'auth123'}, 'user123');
     
     process.env.SQUARE_ARN = '';
     let result = await handler(event);
@@ -125,7 +156,7 @@ describe('Square Integration Lambda', () => {
   });
 
   test('should return 210 when user not found', async () => {
-    const event = mockEvent({ authCode: 'auth123', userSub: 'user123' });
+    const event = mockEvent({ authCode: 'auth123'}, 'user123');
     
     ddbMock.on(GetCommand, {
       TableName: 'users-table',
@@ -140,13 +171,13 @@ describe('Square Integration Lambda', () => {
   });
 
   test('should return 210 when organization not found', async () => {
-    const event = mockEvent({ authCode: 'auth123', userSub: 'user123' });
+    const event = mockEvent({ authCode: 'auth123' }, 'user123');
     
     ddbMock.on(GetCommand, {
       TableName: 'users-table',
       Key: { id: 'user123' }
     }).resolves({
-      Item: { org_id: 'org123' }
+      Item: { orgId: 'org123' }
     });
     
     ddbMock.on(GetCommand, {
@@ -161,14 +192,14 @@ describe('Square Integration Lambda', () => {
     expect(JSON.parse(result.body).info).toContain('Organization not found');
   });
 
-  test('should return 404 when user is not the organization owner', async () => {
-    const event = mockEvent({ authCode: 'auth123', userSub: 'user123' });
+  test('should return 401 when user is not the organization owner', async () => {
+    const event = mockEvent({ authCode: 'auth123'}, 'user123');
     
     ddbMock.on(GetCommand, {
       TableName: 'users-table',
       Key: { id: 'user123' }
     }).resolves({
-      Item: { org_id: 'org123' }
+      Item: { orgId: 'org123' }
     });
     
     ddbMock.on(GetCommand, {
@@ -179,18 +210,18 @@ describe('Square Integration Lambda', () => {
     });
     
     const result = await handler(event);
-    expect(result.statusCode).toBe(404);
-    expect(JSON.parse(result.body).error).toContain('Unauthorized');
+    expect(result.statusCode).toBe(401);
+    expect(JSON.parse(result.body).error).toContain('Only Organization owner may delete Organization');
   });
 
   test('should handle Square API error gracefully', async () => {
-    const event = mockEvent({ authCode: 'auth123', userSub: 'user123' });
+    const event = mockEvent({ authCode: 'auth123'}, 'user123');
     
     ddbMock.on(GetCommand, {
       TableName: 'users-table',
       Key: { id: 'user123' }
     }).resolves({
-      Item: { org_id: 'org123' }
+      Item: { orgId: 'org123' }
     });
     
     ddbMock.on(GetCommand, {
@@ -215,13 +246,13 @@ describe('Square Integration Lambda', () => {
   });
 
   test('should return 500 if encryption fails', async () => {
-    const event = mockEvent({ authCode: 'auth123', userSub: 'user123' });
+    const event = mockEvent({ authCode: 'auth123'}, 'user123');
     
     ddbMock.on(GetCommand, {
       TableName: 'users-table',
       Key: { id: 'user123' }
     }).resolves({
-      Item: { org_id: 'org123' }
+      Item: { orgId: 'org123' }
     });
     
     ddbMock.on(GetCommand, {
@@ -258,13 +289,13 @@ describe('Square Integration Lambda', () => {
   });
 
   test('should successfully process the Square auth flow', async () => {
-    const event = mockEvent({ authCode: 'auth123', userSub: 'user123' });
+    const event = mockEvent({ authCode: 'auth123'}, 'user123');
     
     ddbMock.on(GetCommand, {
       TableName: 'users-table',
       Key: { id: 'user123' }
     }).resolves({
-      Item: { org_id: 'org123' }
+      Item: { orgId: 'org123' }
     });
     
     ddbMock.on(GetCommand, {
@@ -322,14 +353,14 @@ describe('Square Integration Lambda', () => {
   });
 
   test('should return 500 if Square obtainToken fails to return tokens', async () => {
-    const event = mockEvent({ authCode: 'auth123', userSub: 'user123' });
+    const event = mockEvent({ authCode: 'auth123'}, 'user123');
     
     // Setup successful DB queries
     ddbMock.on(GetCommand, {
       TableName: 'users-table',
       Key: { id: 'user123' }
     }).resolves({
-      Item: { org_id: 'org123' }
+      Item: { orgId: 'org123' }
     });
     
     ddbMock.on(GetCommand, {
@@ -357,13 +388,13 @@ describe('Square Integration Lambda', () => {
   });
 
   test('should return 404 if merchant data cannot be retrieved', async () => {
-    const event = mockEvent({ authCode: 'auth123', userSub: 'user123' });
+    const event = mockEvent({ authCode: 'auth123'}, 'user123');
     
     ddbMock.on(GetCommand, {
       TableName: 'users-table',
       Key: { id: 'user123' }
     }).resolves({
-      Item: { org_id: 'org123' }
+      Item: { orgId: 'org123' }
     });
     
     ddbMock.on(GetCommand, {

@@ -1,7 +1,7 @@
 import { DynamoDBClient} from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { OrganizationProps, ShopProps } from "../Interfaces";
+import { OrganizationProps } from "../Interfaces";
 import { SecretsManagerClient, GetSecretValueCommand} from "@aws-sdk/client-secrets-manager"
 import Stripe from "stripe";
 
@@ -25,7 +25,6 @@ const getStripeSecret = async (stripeArn:string): Promise<string | null> => {
 
 const getIntent = async (stripe_id:string):Promise<{client_secret:string|null, first_pm:boolean}> => {
     try {
-
         const currPaymentMethods = await stripe?.customers.listPaymentMethods(stripe_id,{
             limit:3
         });
@@ -51,13 +50,14 @@ const getIntent = async (stripe_id:string):Promise<{client_secret:string|null, f
                 usage: "off_session",
                 automatic_payment_methods: {
                     enabled: true
-                  },            
+                  },
             });
         }
 
         return {
             client_secret:activeIntent ? activeIntent?.client_secret: null,
-            first_pm: currPaymentMethods ? currPaymentMethods.data.length>0 : false
+            first_pm: !currPaymentMethods?.data || currPaymentMethods.data.length === 0
+
         };
 
       } catch (error) {
@@ -78,15 +78,15 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const stripeArn = process.env.STRIPE_ARN;
 
         switch(true){
-            case (!orgTable || !userTable): return { statusCode: 404, body: JSON.stringify({ error: "No Org/Shop Table" }) };
-            case ( !userSub): return { statusCode: 404, body: JSON.stringify({ error: "no UserSub id supplied" }) };
-            case (!stripeArn): return { statusCode: 404, body: JSON.stringify({ error: "no Stripe ARN supplied" }) };
+            case (!orgTable || !userTable): return { statusCode: 500, body: JSON.stringify({ error: "No Org/Shop Table" }) };
+            case (!userSub): return { statusCode: 404, body: JSON.stringify({ error: "no UserSub id supplied" }) };
+            case (!stripeArn): return { statusCode: 500, body: JSON.stringify({ error: "no Stripe ARN supplied" }) };
         }
 
         const getUser = new GetCommand ({
             TableName: userTable,
             Key: { id: userSub},
-            ProjectionExpression: "org_id, #userPermissions",      
+            ProjectionExpression: "orgId, #userPermissions",      
             ExpressionAttributeNames: { 
                 "#userPermissions": "permissions"
             },      
@@ -94,11 +94,11 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
         const resultUser = await dynamoDb.send(getUser);
 
-        if (!resultUser.Item?.org_id) {
+        if (!resultUser.Item?.orgId) {
             return { statusCode: 210, body: JSON.stringify({ info: "User not Found" }) };
         }
 
-        const orgId = resultUser.Item.org_id ;
+        const orgId = resultUser.Item.orgId ;
         const permissions = resultUser.Item.permissions;
         
         const getOrg = new GetCommand({
@@ -139,13 +139,13 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             };
         }
 
-        const intent = await getIntent(organization.stripe_id)
+        const {client_secret, first_pm} = await getIntent(organization.stripe_id)
 
         return {
             statusCode: 200,
             body: JSON.stringify({ 
-                client_secret:intent.client_secret,
-                first_pm:true
+                client_secret,
+                first_pm
             })
         };
 

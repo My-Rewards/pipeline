@@ -25,17 +25,17 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="GitHubPullRequestSearchHistory">{
-    &quot;lastFilter&quot;: {
+  &quot;lastFilter&quot;: {
     &quot;state&quot;: &quot;OPEN&quot;,
     &quot;assignee&quot;: &quot;BrianBFarias&quot;
-    }
-    }</component>
+  }
+}</component>
   <component name="GithubPullRequestsUISettings">{
-    &quot;selectedUrlAndAccountId&quot;: {
+  &quot;selectedUrlAndAccountId&quot;: {
     &quot;url&quot;: &quot;https://github.com/My-Rewards/pipeline.git&quot;,
     &quot;accountId&quot;: &quot;7f46a21d-1860-4381-ba4e-9659a1b5727c&quot;
-    }
-    }</component>
+  }
+}</component>
   <component name="ProjectColorInfo">{
     &quot;customColor&quot;: &quot;&quot;,
     &quot;associatedIndex&quot;: 1
@@ -49,7 +49,7 @@
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">{
-    &quot;keyToString&quot;: {
+  &quot;keyToString&quot;: {
     &quot;Jest.createUser Lambda Function.executor&quot;: &quot;Run&quot;,
     &quot;Jest.createUserBusiness.test.ts.executor&quot;: &quot;Run&quot;,
     &quot;Jest.getBilling Lambda Handler.executor&quot;: &quot;Run&quot;,
@@ -68,8 +68,8 @@
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
     &quot;ts.external.directory.path&quot;: &quot;/Users/brian/myRewards/pipeline/node_modules/typescript/lib&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
-    }
-    }</component>
+  }
+}</component>
   <component name="RunManager" selected="Jest.createUserBusiness.test.ts">
     <configuration default="true" type="Python.FlaskServer">
       <module name="pipeline" />
