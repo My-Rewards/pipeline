@@ -16,10 +16,6 @@ export const handler = async (event:PostConfirmationTriggerEvent) => {
 
     try {
         const { request: { userAttributes } } = event;
-        let credentials = {
-            modifyPlans:true,
-            modifyPayments:true,
-        };
 
         if (!userAttributes.email || !userAttributes.given_name || !userAttributes.family_name || !userAttributes.sub || !tableName) {
         console.error('Missing required attributes');
@@ -37,7 +33,6 @@ export const handler = async (event:PostConfirmationTriggerEvent) => {
                 lastName: userAttributes.family_name
             },
             date_created: new Date().toISOString(),
-            credentials,
             newAccount: true,
             preferences:{
                 lightMode:true

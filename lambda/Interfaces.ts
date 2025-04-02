@@ -8,6 +8,7 @@ export interface OrganizationProps {
     updatedAt: string | null;
     expiresAt: string | null;
     square_merchant_id: string | null;
+    tags:Set<string>;
     owner_id:string;
     date_registered: string;
     lastUpdate: string;
@@ -19,9 +20,18 @@ export interface OrganizationProps {
     rm_active: boolean;
     active:boolean;
     images: {
-        logo: string;
-        preview: string;
-        banner: string;
+        logo:{
+            url:string,
+            fileKey:string,
+        }
+        preview:{
+            url:string,
+            fileKey:string,
+        }
+        banner:{
+            url:string,
+            fileKey:string,
+        }
     };
     linked: boolean;
 }
@@ -38,6 +48,7 @@ export interface StripeInvoice {
     created: number;
     period_start: number;
     period_end: number;
+    download:string|null;
     upcoming: boolean;
     paid:boolean
 }

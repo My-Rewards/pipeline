@@ -46,6 +46,7 @@ describe('createUser Lambda Function', () => {
 
         process.env.TABLE = 'UsersTable';
         process.env.EMAIL_SENDER = 'no-reply@example.com';
+        process.env.EMAIL = '<html><body>Welcome!</body></html>';
 
         (fs.readFileSync as jest.Mock).mockReturnValue(mockEmailTemplate);
     });
@@ -82,7 +83,7 @@ describe('createUser Lambda Function', () => {
         expect(putParams.Item?.birthdate).toBeDefined();
         expect(typeof putParams.Item?.birthdate).toBe('string');
 
-        expect(putParams.Item?.orgId).toBeNull();
+        expect(putParams.Item?.orgId).toBe(undefined);
         expect(putParams.Item?.permissions).toEqual({
             modifyOrg: true,
             modifyBilling: true,

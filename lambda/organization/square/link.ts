@@ -4,7 +4,7 @@ import { DynamoDBDocumentClient, GetCommand, UpdateCommand, } from '@aws-sdk/lib
 import { KMSClient, EncryptCommand } from '@aws-sdk/client-kms';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { SecretsManagerClient, GetSecretValueCommand} from "@aws-sdk/client-secrets-manager"
-import { OrganizationProps } from '../Interfaces';
+import { OrganizationProps } from '../../Interfaces';
 
 const dynamoClient = new DynamoDBClient({region: "us-east-1" });
 const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
@@ -73,7 +73,10 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const getUser = new GetCommand({
       TableName: userTable,
       Key: { id: userSub},
-      ProjectionExpression: "orgId",
+      ProjectionExpression: "orgId, #userPermissions",      
+      ExpressionAttributeNames: { 
+        "#userPermissions": "permissions"
+      }
     });
 
     const userResult = await dynamoDb.send(getUser);
@@ -96,7 +99,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const organization = orgResult.Item as OrganizationProps
 
     if(organization.owner_id !== userSub ){
-      return { statusCode: 401, body: JSON.stringify({ error: "Only Organization owner may delete Organization" }) };
+      return { statusCode: 401, body: JSON.stringify({ error: "Only Organization owner may link Organization" }) };
     }
         
     const client = new square.SquareClient({

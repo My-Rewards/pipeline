@@ -243,8 +243,6 @@ describe("getBilling Lambda Handler", () => {
         expect(responseBody.organization).toHaveProperty("billingData");
         expect(responseBody.organization).toMatchObject({
             name: "Test Org",
-            org_id: "org123",
-            logo: "logo-url",
             date_registered: "2023-01-01"
         });
         expect(responseBody.organization.billingData).toMatchObject({

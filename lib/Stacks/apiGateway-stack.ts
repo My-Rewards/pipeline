@@ -27,14 +27,14 @@ export class ApiGatewayStack extends cdk.Stack {
     });
 
     const certificate = new acm.Certificate(this, 'Certificate', {
-        domainName:`${props.apiDomain}.${DOMAIN}`,
-        validation: acm.CertificateValidation.fromDns(hostedZone),
+      domainName:`${props.apiDomain}.${DOMAIN}`,
+      validation: acm.CertificateValidation.fromDns(hostedZone)
     });
 
     this.encryptionKey = new kms.Key(this, 'KMSEncryptionKey', {
       enableKeyRotation: true,
       description: 'KMS Key for encrypting token data for database',
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      removalPolicy: cdk.RemovalPolicy.DESTROY
     });
 
     const userPoolId = cdk.Fn.importValue(UP_CUSTOMER_ID);
@@ -65,7 +65,12 @@ export class ApiGatewayStack extends cdk.Stack {
         allowOrigins: apigateway.Cors.ALL_ORIGINS,
         allowMethods: apigateway.Cors.ALL_METHODS,
         allowHeaders: apigateway.Cors.DEFAULT_HEADERS
-      }
+      },
+      deployOptions: {
+        stageName: 'prod',
+        throttlingRateLimit: 20,
+        throttlingBurstLimit: 40,
+      },
     });
 
     new route53.ARecord(this, 'ApiARecord', {

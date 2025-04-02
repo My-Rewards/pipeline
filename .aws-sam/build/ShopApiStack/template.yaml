@@ -1,0 +1,109 @@
+Resources:
+  myhandlerServiceRole284F0B3E:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+      - Fn::Join:
+        - ''
+        - - 'arn:'
+          - Ref: AWS::Partition
+          - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/ShopApiStack/my-handler/ServiceRole/Resource
+  myhandlerServiceRoleDefaultPolicy0450935A:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+        - Action:
+          - dynamodb:BatchGetItem
+          - dynamodb:ConditionCheckItem
+          - dynamodb:DescribeTable
+          - dynamodb:GetItem
+          - dynamodb:GetRecords
+          - dynamodb:GetShardIterator
+          - dynamodb:Query
+          - dynamodb:Scan
+          Effect: Allow
+          Resource:
+          - Fn::ImportValue: BizzUserTableARN
+          - Fn::ImportValue: ShopTableARN
+          - Ref: AWS::NoValue
+        - Action:
+          - dynamodb:BatchWriteItem
+          - dynamodb:DeleteItem
+          - dynamodb:DescribeTable
+          - dynamodb:PutItem
+          - dynamodb:UpdateItem
+          Effect: Allow
+          Resource:
+          - Fn::ImportValue: BizzUserTableARN
+          - Ref: AWS::NoValue
+        - Action:
+          - kms:Decrypt
+          - kms:Encrypt
+          - kms:GenerateDataKey*
+          - kms:ReEncrypt*
+          Effect: Allow
+          Resource:
+            Ref: referencetoPipelineStackbetaApiGatewayStackKMSEncryptionKey18B61E1DArn
+        Version: '2012-10-17'
+      PolicyName: myhandlerServiceRoleDefaultPolicy0450935A
+      Roles:
+      - Ref: myhandlerServiceRole284F0B3E
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/ShopApiStack/my-handler/ServiceRole/DefaultPolicy/Resource
+  myhandler42A6C3AB:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: cdk-hnb659fds-assets-050451385382-us-east-1
+        S3Key: 4c2c5cad9c265d35657c97276fd2d9a130108f604380ee19bef75361946a4fad.zip
+      Environment:
+        Variables:
+          SHOP_TABLE:
+            Fn::Select:
+            - 1
+            - Fn::Split:
+              - /
+              - Fn::Select:
+                - 5
+                - Fn::Split:
+                  - ':'
+                  - Fn::ImportValue: ShopTableARN
+      Handler: index.handler
+      Role:
+        Fn::GetAtt:
+        - myhandlerServiceRole284F0B3E
+        - Arn
+      Runtime: nodejs20.x
+    DependsOn:
+    - myhandlerServiceRoleDefaultPolicy0450935A
+    - myhandlerServiceRole284F0B3E
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/ShopApiStack/my-handler/Resource
+      aws:asset:path: ../../../cdk.out/asset.4c2c5cad9c265d35657c97276fd2d9a130108f604380ee19bef75361946a4fad
+      aws:asset:is-bundled: true
+      aws:asset:property: Code
+  CDKMetadata:
+    Type: AWS::CDK::Metadata
+    Properties:
+      Analytics: v2:deflate64:H4sIAAAAAAAA/02OPQ+CQBBEf4v9sgI2tmpiaQzYk+VuNQf3kbB3GkL47waIidWbKeZlSiyOOeY7+kimdJ9Z0+J0Y4ms60iqB/pIM+nRkwu6xQe1ls8kDJZcq6nxQXMneFtxTV5FEzwYcjhVwTJcnn7lPVijxqVuaQY5NCTCUfC0AOSA56R6jn96vDz9TzpDxRLSoBjWQR3pZfxrhuUCdrJ/lyUWBea7TozJhuSjcYzVxi9Eq2oY6AAAAA==
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/ShopApiStack/CDKMetadata/Default
+Outputs:
+  PipelineStackbetaApiGatewayStackShopApiStackmyhandlerFE26A822Arn:
+    Value:
+      Fn::GetAtt:
+      - myhandler42A6C3AB
+      - Arn
+Parameters:
+  referencetoPipelineStackbetaApiGatewayStackKMSEncryptionKey18B61E1DArn:
+    Type: String

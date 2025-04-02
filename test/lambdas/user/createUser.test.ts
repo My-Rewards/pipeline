@@ -46,6 +46,7 @@ describe('createUser Lambda Function', () => {
 
         process.env.TABLE = 'UsersTable';
         process.env.EMAIL_SENDER = 'no-reply@example.com';
+        process.env.EMAIL = '<html><body>Welcome!</body></html>';
 
         (fs.readFileSync as jest.Mock).mockReturnValue(mockEmailTemplate);
     });

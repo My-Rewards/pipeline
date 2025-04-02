@@ -1,0 +1,633 @@
+Resources:
+  createorganizationServiceRoleF105C047:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+      - Fn::Join:
+        - ''
+        - - 'arn:'
+          - Ref: AWS::Partition
+          - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/OrgApiStack/create-organization/ServiceRole/Resource
+  createorganizationServiceRoleDefaultPolicy150C1FD2:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+        - Action:
+          - dynamodb:BatchGetItem
+          - dynamodb:BatchWriteItem
+          - dynamodb:ConditionCheckItem
+          - dynamodb:DeleteItem
+          - dynamodb:DescribeTable
+          - dynamodb:GetItem
+          - dynamodb:GetRecords
+          - dynamodb:GetShardIterator
+          - dynamodb:PutItem
+          - dynamodb:Query
+          - dynamodb:Scan
+          - dynamodb:UpdateItem
+          Effect: Allow
+          Resource:
+          - Fn::ImportValue: BizzUserTableARN
+          - Fn::ImportValue: OrganizationTableARN
+          - Ref: AWS::NoValue
+        - Action:
+          - secretsmanager:DescribeSecret
+          - secretsmanager:GetSecretValue
+          Effect: Allow
+          Resource: arn:aws:secretsmanager:us-east-1:050451385382:secret:stripe/credentials-??????
+        - Action:
+          - s3:GetObject
+          - s3:GetObjectVersion
+          - s3:PutObject
+          Effect: Allow
+          Resource:
+            Fn::Join:
+            - ''
+            - - Fn::ImportValue: OrganizationImageBucketARN
+              - /*
+        Version: '2012-10-17'
+      PolicyName: createorganizationServiceRoleDefaultPolicy150C1FD2
+      Roles:
+      - Ref: createorganizationServiceRoleF105C047
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/OrgApiStack/create-organization/ServiceRole/DefaultPolicy/Resource
+  createorganization4F87112A:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: cdk-hnb659fds-assets-050451385382-us-east-1
+        S3Key: dc2b66445b40adbb0169d344e02309cd75fdcc6adc03599ba35d7bd75dd987d5.zip
+      Environment:
+        Variables:
+          ORG_TABLE:
+            Fn::Select:
+            - 1
+            - Fn::Split:
+              - /
+              - Fn::Select:
+                - 5
+                - Fn::Split:
+                  - ':'
+                  - Fn::ImportValue: OrganizationTableARN
+          USER_TABLE:
+            Fn::Select:
+            - 1
+            - Fn::Split:
+              - /
+              - Fn::Select:
+                - 5
+                - Fn::Split:
+                  - ':'
+                  - Fn::ImportValue: BizzUserTableARN
+          BUCKET_NAME:
+            Fn::ImportValue: OrganizationImageBucket
+          IMAGE_DOMAIN:
+            Fn::ImportValue: ImageDomain
+          STRIPE_ARN: arn:aws:secretsmanager:us-east-1:050451385382:secret:stripe/credentials
+      Handler: index.handler
+      Role:
+        Fn::GetAtt:
+        - createorganizationServiceRoleF105C047
+        - Arn
+      Runtime: nodejs20.x
+      Timeout: 5
+    DependsOn:
+    - createorganizationServiceRoleDefaultPolicy150C1FD2
+    - createorganizationServiceRoleF105C047
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/OrgApiStack/create-organization/Resource
+      aws:asset:path: ../../../cdk.out/asset.dc2b66445b40adbb0169d344e02309cd75fdcc6adc03599ba35d7bd75dd987d5
+      aws:asset:is-bundled: true
+      aws:asset:property: Code
+  getorganizationServiceRole4421A6D6:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+      - Fn::Join:
+        - ''
+        - - 'arn:'
+          - Ref: AWS::Partition
+          - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/OrgApiStack/get-organization/ServiceRole/Resource
+  getorganizationServiceRoleDefaultPolicy3949FF3A:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+        - Action:
+          - dynamodb:BatchGetItem
+          - dynamodb:ConditionCheckItem
+          - dynamodb:DescribeTable
+          - dynamodb:GetItem
+          - dynamodb:GetRecords
+          - dynamodb:GetShardIterator
+          - dynamodb:Query
+          - dynamodb:Scan
+          Effect: Allow
+          Resource:
+          - Fn::ImportValue: OrganizationTableARN
+          - Fn::ImportValue: ShopTableARN
+          - Ref: AWS::NoValue
+        - Action:
+          - dynamodb:BatchGetItem
+          - dynamodb:BatchWriteItem
+          - dynamodb:ConditionCheckItem
+          - dynamodb:DeleteItem
+          - dynamodb:DescribeTable
+          - dynamodb:GetItem
+          - dynamodb:GetRecords
+          - dynamodb:GetShardIterator
+          - dynamodb:PutItem
+          - dynamodb:Query
+          - dynamodb:Scan
+          - dynamodb:UpdateItem
+          Effect: Allow
+          Resource:
+          - Fn::ImportValue: BizzUserTableARN
+          - Ref: AWS::NoValue
+        - Action: dynamodb:Query
+          Effect: Allow
+          Resource:
+            Fn::Join:
+            - ''
+            - - Fn::ImportValue: ShopTableARN
+              - /index/OrgIndex
+        Version: '2012-10-17'
+      PolicyName: getorganizationServiceRoleDefaultPolicy3949FF3A
+      Roles:
+      - Ref: getorganizationServiceRole4421A6D6
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/OrgApiStack/get-organization/ServiceRole/DefaultPolicy/Resource
+  getorganization68CE7DF6:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: cdk-hnb659fds-assets-050451385382-us-east-1
+        S3Key: 3952d9de93474c7798e47eb184adfd3d73bf2d484a072689fb2bae023cfefcbc.zip
+      Environment:
+        Variables:
+          ORG_TABLE:
+            Fn::Select:
+            - 1
+            - Fn::Split:
+              - /
+              - Fn::Select:
+                - 5
+                - Fn::Split:
+                  - ':'
+                  - Fn::ImportValue: OrganizationTableARN
+          SHOP_TABLE:
+            Fn::Select:
+            - 1
+            - Fn::Split:
+              - /
+              - Fn::Select:
+                - 5
+                - Fn::Split:
+                  - ':'
+                  - Fn::ImportValue: ShopTableARN
+          USER_TABLE:
+            Fn::Select:
+            - 1
+            - Fn::Split:
+              - /
+              - Fn::Select:
+                - 5
+                - Fn::Split:
+                  - ':'
+                  - Fn::ImportValue: BizzUserTableARN
+      Handler: index.handler
+      Role:
+        Fn::GetAtt:
+        - getorganizationServiceRole4421A6D6
+        - Arn
+      Runtime: nodejs20.x
+      Timeout: 5
+    DependsOn:
+    - getorganizationServiceRoleDefaultPolicy3949FF3A
+    - getorganizationServiceRole4421A6D6
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/OrgApiStack/get-organization/Resource
+      aws:asset:path: ../../../cdk.out/asset.3952d9de93474c7798e47eb184adfd3d73bf2d484a072689fb2bae023cfefcbc
+      aws:asset:is-bundled: true
+      aws:asset:property: Code
+  getorganizationbillingServiceRoleFF03037B:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+      - Fn::Join:
+        - ''
+        - - 'arn:'
+          - Ref: AWS::Partition
+          - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/OrgApiStack/get-organization-billing/ServiceRole/Resource
+  getorganizationbillingServiceRoleDefaultPolicy3183E68F:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+        - Action:
+          - dynamodb:BatchGetItem
+          - dynamodb:ConditionCheckItem
+          - dynamodb:DescribeTable
+          - dynamodb:GetItem
+          - dynamodb:GetRecords
+          - dynamodb:GetShardIterator
+          - dynamodb:Query
+          - dynamodb:Scan
+          Effect: Allow
+          Resource:
+          - Fn::ImportValue: BizzUserTableARN
+          - Fn::ImportValue: OrganizationTableARN
+          - Ref: AWS::NoValue
+        - Action:
+          - secretsmanager:DescribeSecret
+          - secretsmanager:GetSecretValue
+          Effect: Allow
+          Resource: arn:aws:secretsmanager:us-east-1:050451385382:secret:stripe/credentials-??????
+        Version: '2012-10-17'
+      PolicyName: getorganizationbillingServiceRoleDefaultPolicy3183E68F
+      Roles:
+      - Ref: getorganizationbillingServiceRoleFF03037B
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/OrgApiStack/get-organization-billing/ServiceRole/DefaultPolicy/Resource
+  getorganizationbillingA64FEA36:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: cdk-hnb659fds-assets-050451385382-us-east-1
+        S3Key: 2c2d52516b6b77b92e868101aa68b59629cad8e2c7e0a53caa3f58a8407a8b8c.zip
+      Environment:
+        Variables:
+          ORG_TABLE:
+            Fn::Select:
+            - 1
+            - Fn::Split:
+              - /
+              - Fn::Select:
+                - 5
+                - Fn::Split:
+                  - ':'
+                  - Fn::ImportValue: OrganizationTableARN
+          USER_TABLE:
+            Fn::Select:
+            - 1
+            - Fn::Split:
+              - /
+              - Fn::Select:
+                - 5
+                - Fn::Split:
+                  - ':'
+                  - Fn::ImportValue: BizzUserTableARN
+          STRIPE_ARN: arn:aws:secretsmanager:us-east-1:050451385382:secret:stripe/credentials
+      Handler: index.handler
+      Role:
+        Fn::GetAtt:
+        - getorganizationbillingServiceRoleFF03037B
+        - Arn
+      Runtime: nodejs20.x
+    DependsOn:
+    - getorganizationbillingServiceRoleDefaultPolicy3183E68F
+    - getorganizationbillingServiceRoleFF03037B
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/OrgApiStack/get-organization-billing/Resource
+      aws:asset:path: ../../../cdk.out/asset.2c2d52516b6b77b92e868101aa68b59629cad8e2c7e0a53caa3f58a8407a8b8c
+      aws:asset:is-bundled: true
+      aws:asset:property: Code
+  organizationaddPaymentServiceRoleCEE025C3:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+      - Fn::Join:
+        - ''
+        - - 'arn:'
+          - Ref: AWS::Partition
+          - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/OrgApiStack/organization-addPayment/ServiceRole/Resource
+  organizationaddPaymentServiceRoleDefaultPolicy0B51C909:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+        - Action:
+          - dynamodb:BatchGetItem
+          - dynamodb:ConditionCheckItem
+          - dynamodb:DescribeTable
+          - dynamodb:GetItem
+          - dynamodb:GetRecords
+          - dynamodb:GetShardIterator
+          - dynamodb:Query
+          - dynamodb:Scan
+          Effect: Allow
+          Resource:
+          - Fn::ImportValue: BizzUserTableARN
+          - Fn::ImportValue: OrganizationTableARN
+          - Ref: AWS::NoValue
+        - Action:
+          - secretsmanager:DescribeSecret
+          - secretsmanager:GetSecretValue
+          Effect: Allow
+          Resource: arn:aws:secretsmanager:us-east-1:050451385382:secret:stripe/credentials-??????
+        Version: '2012-10-17'
+      PolicyName: organizationaddPaymentServiceRoleDefaultPolicy0B51C909
+      Roles:
+      - Ref: organizationaddPaymentServiceRoleCEE025C3
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/OrgApiStack/organization-addPayment/ServiceRole/DefaultPolicy/Resource
+  organizationaddPaymentAEFB71C7:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: cdk-hnb659fds-assets-050451385382-us-east-1
+        S3Key: 26ac96ef4795cceb453f7a99aff89e49b9be0b50ae44280639e4d838e22fd170.zip
+      Environment:
+        Variables:
+          ORG_TABLE:
+            Fn::Select:
+            - 1
+            - Fn::Split:
+              - /
+              - Fn::Select:
+                - 5
+                - Fn::Split:
+                  - ':'
+                  - Fn::ImportValue: OrganizationTableARN
+          USER_TABLE:
+            Fn::Select:
+            - 1
+            - Fn::Split:
+              - /
+              - Fn::Select:
+                - 5
+                - Fn::Split:
+                  - ':'
+                  - Fn::ImportValue: BizzUserTableARN
+          STRIPE_ARN: arn:aws:secretsmanager:us-east-1:050451385382:secret:stripe/credentials
+      Handler: index.handler
+      Role:
+        Fn::GetAtt:
+        - organizationaddPaymentServiceRoleCEE025C3
+        - Arn
+      Runtime: nodejs20.x
+    DependsOn:
+    - organizationaddPaymentServiceRoleDefaultPolicy0B51C909
+    - organizationaddPaymentServiceRoleCEE025C3
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/OrgApiStack/organization-addPayment/Resource
+      aws:asset:path: ../../../cdk.out/asset.26ac96ef4795cceb453f7a99aff89e49b9be0b50ae44280639e4d838e22fd170
+      aws:asset:is-bundled: true
+      aws:asset:property: Code
+  organizationsetDefaultPaymentServiceRole945B2BB0:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+      - Fn::Join:
+        - ''
+        - - 'arn:'
+          - Ref: AWS::Partition
+          - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/OrgApiStack/organization-setDefaultPayment/ServiceRole/Resource
+  organizationsetDefaultPaymentServiceRoleDefaultPolicyDC1CB78D:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+        - Action:
+          - dynamodb:BatchGetItem
+          - dynamodb:ConditionCheckItem
+          - dynamodb:DescribeTable
+          - dynamodb:GetItem
+          - dynamodb:GetRecords
+          - dynamodb:GetShardIterator
+          - dynamodb:Query
+          - dynamodb:Scan
+          Effect: Allow
+          Resource:
+          - Fn::ImportValue: BizzUserTableARN
+          - Fn::ImportValue: OrganizationTableARN
+          - Ref: AWS::NoValue
+        - Action:
+          - secretsmanager:DescribeSecret
+          - secretsmanager:GetSecretValue
+          Effect: Allow
+          Resource: arn:aws:secretsmanager:us-east-1:050451385382:secret:stripe/credentials-??????
+        Version: '2012-10-17'
+      PolicyName: organizationsetDefaultPaymentServiceRoleDefaultPolicyDC1CB78D
+      Roles:
+      - Ref: organizationsetDefaultPaymentServiceRole945B2BB0
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/OrgApiStack/organization-setDefaultPayment/ServiceRole/DefaultPolicy/Resource
+  organizationsetDefaultPayment5997AC55:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: cdk-hnb659fds-assets-050451385382-us-east-1
+        S3Key: 65f971065a189b1cfad4c07704b071c5e92139370ce757410f9d0f59a992ebab.zip
+      Environment:
+        Variables:
+          ORG_TABLE:
+            Fn::Select:
+            - 1
+            - Fn::Split:
+              - /
+              - Fn::Select:
+                - 5
+                - Fn::Split:
+                  - ':'
+                  - Fn::ImportValue: OrganizationTableARN
+          USER_TABLE:
+            Fn::Select:
+            - 1
+            - Fn::Split:
+              - /
+              - Fn::Select:
+                - 5
+                - Fn::Split:
+                  - ':'
+                  - Fn::ImportValue: BizzUserTableARN
+          STRIPE_ARN: arn:aws:secretsmanager:us-east-1:050451385382:secret:stripe/credentials
+          METER_PRICE: price_1QliStLvDQv3Uhkh2z03QWbK
+      Handler: index.handler
+      Role:
+        Fn::GetAtt:
+        - organizationsetDefaultPaymentServiceRole945B2BB0
+        - Arn
+      Runtime: nodejs20.x
+    DependsOn:
+    - organizationsetDefaultPaymentServiceRoleDefaultPolicyDC1CB78D
+    - organizationsetDefaultPaymentServiceRole945B2BB0
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/OrgApiStack/organization-setDefaultPayment/Resource
+      aws:asset:path: ../../../cdk.out/asset.65f971065a189b1cfad4c07704b071c5e92139370ce757410f9d0f59a992ebab
+      aws:asset:is-bundled: true
+      aws:asset:property: Code
+  organizationremovePaymentServiceRole8E4B9295:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+      - Fn::Join:
+        - ''
+        - - 'arn:'
+          - Ref: AWS::Partition
+          - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/OrgApiStack/organization-removePayment/ServiceRole/Resource
+  organizationremovePaymentServiceRoleDefaultPolicy88035693:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+        - Action:
+          - dynamodb:BatchGetItem
+          - dynamodb:ConditionCheckItem
+          - dynamodb:DescribeTable
+          - dynamodb:GetItem
+          - dynamodb:GetRecords
+          - dynamodb:GetShardIterator
+          - dynamodb:Query
+          - dynamodb:Scan
+          Effect: Allow
+          Resource:
+          - Fn::ImportValue: BizzUserTableARN
+          - Fn::ImportValue: OrganizationTableARN
+          - Ref: AWS::NoValue
+        - Action:
+          - secretsmanager:DescribeSecret
+          - secretsmanager:GetSecretValue
+          Effect: Allow
+          Resource: arn:aws:secretsmanager:us-east-1:050451385382:secret:stripe/credentials-??????
+        Version: '2012-10-17'
+      PolicyName: organizationremovePaymentServiceRoleDefaultPolicy88035693
+      Roles:
+      - Ref: organizationremovePaymentServiceRole8E4B9295
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/OrgApiStack/organization-removePayment/ServiceRole/DefaultPolicy/Resource
+  organizationremovePaymentC3FF41F6:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: cdk-hnb659fds-assets-050451385382-us-east-1
+        S3Key: c694d4f4e3bfa16032ed9ed79d68e6be688b2554b4d0437f16b9f57dcff33432.zip
+      Environment:
+        Variables:
+          ORG_TABLE:
+            Fn::Select:
+            - 1
+            - Fn::Split:
+              - /
+              - Fn::Select:
+                - 5
+                - Fn::Split:
+                  - ':'
+                  - Fn::ImportValue: OrganizationTableARN
+          USER_TABLE:
+            Fn::Select:
+            - 1
+            - Fn::Split:
+              - /
+              - Fn::Select:
+                - 5
+                - Fn::Split:
+                  - ':'
+                  - Fn::ImportValue: BizzUserTableARN
+          STRIPE_ARN: arn:aws:secretsmanager:us-east-1:050451385382:secret:stripe/credentials
+      Handler: index.handler
+      Role:
+        Fn::GetAtt:
+        - organizationremovePaymentServiceRole8E4B9295
+        - Arn
+      Runtime: nodejs20.x
+    DependsOn:
+    - organizationremovePaymentServiceRoleDefaultPolicy88035693
+    - organizationremovePaymentServiceRole8E4B9295
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/OrgApiStack/organization-removePayment/Resource
+      aws:asset:path: ../../../cdk.out/asset.c694d4f4e3bfa16032ed9ed79d68e6be688b2554b4d0437f16b9f57dcff33432
+      aws:asset:is-bundled: true
+      aws:asset:property: Code
+  CDKMetadata:
+    Type: AWS::CDK::Metadata
+    Properties:
+      Analytics: v2:deflate64:H4sIAAAAAAAA/02OPQ+CQBBEf4v9sgI2tmpiaQzYk+VuNQf3kbB3GkL47waIidWbKeZlSiyOOeY7+kimdJ9Z0+J0Y4ms60iqB/pIM+nRkwu6xQe1ls8kDJZcq6nxQXMneFtxTV5FEzwYcjhVwTJcnn7lPVijxqVuaQY5NCTCUfC0AOSA56R6jn96vDz9TzpDxRLSoBjWQR3pZfxrhuUCdrJ/lyUWBea7TozJhuSjcYzVxi9Eq2oY6AAAAA==
+    Metadata:
+      aws:cdk:path: PipelineStack/beta/ApiGateway-Stack/OrgApiStack/CDKMetadata/Default
+Outputs:
+  PipelineStackbetaApiGatewayStackOrgApiStackcreateorganizationAA376AA4Arn:
+    Value:
+      Fn::GetAtt:
+      - createorganization4F87112A
+      - Arn
+  PipelineStackbetaApiGatewayStackOrgApiStackgetorganization1412118EArn:
+    Value:
+      Fn::GetAtt:
+      - getorganization68CE7DF6
+      - Arn
+  PipelineStackbetaApiGatewayStackOrgApiStackgetorganizationbilling15555BA4Arn:
+    Value:
+      Fn::GetAtt:
+      - getorganizationbillingA64FEA36
+      - Arn
+  PipelineStackbetaApiGatewayStackOrgApiStackorganizationaddPaymentC7DCE0D5Arn:
+    Value:
+      Fn::GetAtt:
+      - organizationaddPaymentAEFB71C7
+      - Arn
+  PipelineStackbetaApiGatewayStackOrgApiStackorganizationsetDefaultPayment4ED87731Arn:
+    Value:
+      Fn::GetAtt:
+      - organizationsetDefaultPayment5997AC55
+      - Arn
+  PipelineStackbetaApiGatewayStackOrgApiStackorganizationremovePayment8CB6F13DArn:
+    Value:
+      Fn::GetAtt:
+      - organizationremovePaymentC3FF41F6
+      - Arn
