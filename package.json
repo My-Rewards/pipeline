@@ -11,7 +11,8 @@
     "cdk": "cdk",
     "synth": "cdk synth --output ./infrastructure/output",
     "beta": "cdk deploy 'PipelineStack/beta/*' --require-approval never",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "preinstall": "npx npm-force-resolutions"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.147",
@@ -22,6 +23,7 @@
     "cdk-assets": "^3.2.0",
     "esbuild": "^0.24.2",
     "jest": "^29.7.0",
+    "npm-force-resolutions": "^0.0.10",
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
     "typescript": "~5.6.2"
@@ -48,9 +50,7 @@
     "square": "^41.0.0",
     "stripe": "^17.6.0"
   },
-  "overrides": {
-    "cdk-assets": {
-      "@aws-cdk/cloud-assembly-schema": "^41.0.0"
-    }
+  "resolutions": {
+    "**/cdk-assets/@aws-cdk/cloud-assembly-schema": "41.0.0"
   }
 }
