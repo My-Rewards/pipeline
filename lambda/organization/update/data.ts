@@ -99,7 +99,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       if (!cachedStripeKey) return { statusCode: 404, body: JSON.stringify({ error: "Failed to retrieve Stripe secret key" }) };
     }
     if(!stripe){
-      stripe = new Stripe(cachedStripeKey, { apiVersion: "2025-01-27.acacia" });
+      stripe = new Stripe(cachedStripeKey, { apiVersion: "2025-02-24.acacia" });
       if (!stripe) return { statusCode: 500, body: JSON.stringify({ error: "Failed to open stripe Client" }) };
     }
 

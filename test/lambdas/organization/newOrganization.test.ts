@@ -105,7 +105,7 @@ describe("Organization Lambda Handler", () => {
             },
         };
 
-        const stripe = new Stripe("test_secret_key", { apiVersion: "2025-01-27.acacia" });
+        const stripe = new Stripe("test_secret_key", { apiVersion: "2025-02-24.acacia" });
 
         const response = await handler(testEvent as any);
         const responseBody = JSON.parse(response.body);
