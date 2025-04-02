@@ -29,7 +29,6 @@
   "dependencies": {
     "@aws-cdk/aws-amplify-alpha": "^2.177.0-alpha.0",
     "@aws-cdk/cloud-assembly-schema": "^43.0.0",
-    "@aws-cdk/core": "1.204.0",
     "@aws-sdk/client-cloudfront": "^3.777.0",
     "@aws-sdk/client-cognito-identity-provider": "^3.734.0",
     "@aws-sdk/client-dynamodb": "^3.751.0",
