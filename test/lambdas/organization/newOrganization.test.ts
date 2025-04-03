@@ -6,6 +6,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import Stripe from "stripe";
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { randomUUID } from "crypto";
+import { STRIPE_API_VERSION } from "../../../global/constants";
 
 jest.mock("@aws-sdk/client-secrets-manager");
 jest.mock("@aws-sdk/client-s3");
@@ -105,7 +106,7 @@ describe("Organization Lambda Handler", () => {
             },
         };
 
-        const stripe = new Stripe("test_secret_key", { apiVersion: "2025-01-27.acacia" });
+        const stripe = new Stripe("test_secret_key", { apiVersion: STRIPE_API_VERSION });
 
         const response = await handler(testEvent as any);
         const responseBody = JSON.parse(response.body);

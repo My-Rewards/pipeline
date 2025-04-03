@@ -5,6 +5,7 @@ export const AWS_PROD_ACCOUNT = '396608803858'
 export const AWS_CENTRAL_ACCOUNT = '417975668372'
 export const AWS_PIPELINE_ACCOUNT = '724772076019';
 export const ORGANIZATION = 'r-cj7q'
+export const STRIPE_API_VERSION = '2025-02-24.acacia'
 
 export const GITHUB_ARN = 'arn:aws:codeconnections:us-east-1:724772076019:connection/3ef879ca-fc54-4ce4-b9c8-d4a0d3d16288'
 

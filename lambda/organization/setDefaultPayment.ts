@@ -4,6 +4,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { OrganizationProps } from "../Interfaces";
 import Stripe from "stripe";
 import { getStripeSecret } from "../constants/validOrganization";
+import { STRIPE_API_VERSION } from "../../global/constants";
 
 const dynamoClient = new DynamoDBClient({region: "us-east-1"});
 const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
@@ -115,7 +116,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         } 
 
         if(!stripe){
-            stripe = new Stripe(cachedStripeKey, { apiVersion: "2025-01-27.acacia" });
+            stripe = new Stripe(cachedStripeKey, { apiVersion: STRIPE_API_VERSION });
             if (!stripe) return { statusCode: 404, body: JSON.stringify({ error: "Failed to open stripe Client" }) };
         }
 
