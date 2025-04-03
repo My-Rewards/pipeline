@@ -47,15 +47,5 @@
     "source-map-support": "^0.5.21",
     "square": "^41.0.0",
     "stripe": "^17.6.0"
-  },
-  "overrides": {
-    "@aws-cdk/cloud-assembly-schema": "41.0.0",
-    "cdk-assets": {
-      "@aws-cdk/cloud-assembly-schema": "41.0.0",
-      "@aws-cdk/cx-api": "^2.187.0"
-    },
-    "@aws-cdk/cx-api": {
-      "@aws-cdk/cloud-assembly-schema": "41.0.0"
-    }
   }
 }
