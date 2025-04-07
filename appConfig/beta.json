@@ -1,3 +1,5 @@
 {
-    "isBeta": true
+    "CUSTOMER_GET_ENDPOINT": "https://beta.api.myrewards.website/customer/user",
+    "CUSTOMER_UPDATE_ENDPOINT": "https://beta.api.myrewards.website/customer/user/update",
+    "CUSTOMER_DELETE_ENDPOINT": "https://beta.api.myrewards.website/customer/user/delete"
 }
