@@ -1,7 +1,8 @@
 import {DynamoDBClient} from "@aws-sdk/client-dynamodb";
 import {UpdateCommand, DynamoDBDocumentClient} from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent } from "aws-lambda";
-
+import { updateUserSchema } from "@/utils/validation/validationTypes";
+import { ZodError } from "zod";
 const client = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(client);
 
@@ -27,6 +28,17 @@ exports.handler = async (event: APIGatewayProxyEvent) => {
     }
 
     const { firstName, lastName } = body.fullname;
+    const fullname = {firstName, lastName};
+    try {
+        updateUserSchema.parse({fullname});
+    } catch(error: unknown) {
+        if(error instanceof ZodError){
+            const message = error.errors[0].message;
+            console.log("Error parsing Zod schema: ", message);
+        } else {
+            console.log("Error parsing request body:", error);
+        }
+    }
     if (!firstName && !lastName) {
         return {
             statusCode: 400,
