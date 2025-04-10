@@ -1,5 +1,5 @@
 import { DynamoDBClient, QueryCommandInput, ScanCommand } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, QueryCommand } from "@aws-sdk/licdkb-dynamodb";
+import { DynamoDBDocumentClient, GetCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 
 const dynamoClient = new DynamoDBClient({});
