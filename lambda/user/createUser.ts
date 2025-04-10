@@ -1,5 +1,5 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 import { PostConfirmationTriggerEvent } from 'aws-lambda';
 
@@ -14,7 +14,18 @@ export const handler = async (event:PostConfirmationTriggerEvent) => {
 
     try {
         const { request: { userAttributes } } = event;
+        
+        const getUserParams = {
+            TableName: tableName,
+            Key: { id: userAttributes.sub },
+        };
+        const existingUser = await dynamoDb.send(new GetCommand(getUserParams));
 
+        if (existingUser.Item) {
+            console.log('User already exists');
+            return event;
+        }
+        
         if (!userAttributes.email || !userAttributes.given_name || !userAttributes.family_name || !userAttributes.sub || !tableName) {
             console.error('Missing required attributes');
             throw new Error('Missing required attributes');
@@ -43,7 +54,15 @@ export const handler = async (event:PostConfirmationTriggerEvent) => {
             ConditionExpression: 'attribute_not_exists(id)'
         });
 
-        await dynamoDb.send(params);
+        try {
+            await dynamoDb.send(params);
+        } catch (error: any) {
+            if (error.name === 'ConditionalCheckFailedException') {
+                console.log('PutCommand failed: user already exists. Skipping insert.');
+                return event;
+            }
+            throw error;
+        }        
 
         const emailParams = {
             Source: `MyRewards <${emailSender}>`,
