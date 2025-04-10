@@ -1,5 +1,5 @@
-const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { GetCommand, DynamoDBDocumentClient } = require("@aws-sdk/lib-dynamodb");
+import {DynamoDBClient} from "@aws-sdk/client-dynamodb";
+import {GetCommand, DynamoDBDocumentClient} from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent } from "aws-lambda";
 
 const client = new DynamoDBClient({});

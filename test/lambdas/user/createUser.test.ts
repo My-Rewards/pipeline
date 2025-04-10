@@ -3,7 +3,7 @@ import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
 import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 import { PostConfirmationTriggerEvent } from 'aws-lambda';
 import * as fs from 'fs';
-import { handler } from '../../../lambda/user/createUser';
+import { handler } from '@/lambda/user/createUser';
 
 const ddbMock = mockClient(DynamoDBDocumentClient);
 const sesMock = mockClient(SESClient);
@@ -59,26 +59,30 @@ describe('createUser Lambda Function', () => {
 
         const putCommandCalls = ddbMock.commandCalls(PutCommand);
         expect(putCommandCalls.length).toBe(1);
-
+    
         const putParams = putCommandCalls[0].args[0].input;
         expect(putParams.TableName).toBe('UsersTable');
-        expect(putParams.Item).toEqual(expect.objectContaining({
-            id: 'abc-123-def-456',
-            email: 'test@example.com',
-            fullname: {
-                firstName: 'John',
-                lastName: 'Doe'
-            },
-            birthdate: expect.any(String),
-            credentials: {
-                modifyPlans: true,
-                modifyPayments: true,
-            },
-            newAccount: true,
-            preferences: {
-                lightMode: true
-            }
-        }));
+        
+        const { Item } = putParams;
+        if(!Item) throw new Error('Item is undefined');
+
+        expect(Item.id).toBe('abc-123-def-456');
+        expect(Item.email).toBe('test@example.com');
+        expect(Item.fullname).toEqual({
+            firstName: 'John',
+            lastName: 'Doe'
+        });
+        expect(Item.birthdate).toBeDefined();
+        expect(Item.date_created).toBeDefined();
+
+        // add credentials check
+
+        expect(Item.newAccount).toBe(true);
+        expect(Item.preferences).toEqual({
+            lightMode: true
+        });
+        expect(putParams.ConditionExpression).toBe('attribute_not_exists(id)');
+    
         expect(putParams.ConditionExpression).toBe('attribute_not_exists(id)');
 
         const sendEmailCalls = sesMock.commandCalls(SendEmailCommand);

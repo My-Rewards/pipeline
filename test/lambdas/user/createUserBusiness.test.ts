@@ -3,7 +3,7 @@ import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
 import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 import { PostConfirmationTriggerEvent } from 'aws-lambda';
 import * as fs from 'fs';
-import { handler } from '../../../lambda/user/createUserBusiness';
+import { handler } from '@/lambda/user/createUserBusiness';
 
 const ddbMock = mockClient(DynamoDBDocumentClient);
 const sesMock = mockClient(SESClient);

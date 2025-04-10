@@ -9,11 +9,13 @@ import * as nodejs from 'aws-cdk-lib/aws-lambda-nodejs'
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 
 export class CloudWatchStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: CloudWatchStackProps) {
+  constructor(scope: Construct, id: string, props: CloudWatchStackProps) {
     super(scope, id, props);
 
     const orgTable = dynamodb.Table.fromTableArn(this, 'ImportedOrganizationTableARN', cdk.Fn.importValue('OrganizationTableARN'));
-    const stripeData = cdk.aws_secretsmanager.Secret.fromSecretNameV2(this, 'fetchStripeCredentials', 'stripe/credentials');
+    const kmsKey = cdk.aws_kms.Key.fromKeyArn(this, 'ImportedKMSKey', cdk.Fn.importValue('kmsId'));
+
+    const secretData = cdk.aws_secretsmanager.Secret.fromSecretNameV2(this, 'fetchSquareSecret', 'square/credentials');
 
     const lambdaFunction = new nodejs.NodejsFunction(this, "get-organization-billing",{
       runtime: lambda.Runtime.NODEJS_20_X,
@@ -21,13 +23,19 @@ export class CloudWatchStack extends cdk.Stack {
       handler: 'handler',
       environment: {
         ORG_TABLE: orgTable.tableName,
-        STRIPE_ARN: stripeData.secretArn
+        KMS_KEY: kmsKey.keyId,
+        APP_ENV: props.stageName,
+        SQUARE_ARN: secretData.secretArn,
       },
       bundling: {
         externalModules: ['aws-sdk'],
-        nodeModules: ['stripe']
+        nodeModules: ['square']
       },
+      timeout: cdk.Duration.minutes(3)
     })
+    orgTable.grantReadWriteData(lambdaFunction);
+    secretData.grantRead(lambdaFunction);
+    kmsKey.grantEncryptDecrypt(lambdaFunction);
 
     const rule = new events.Rule(this, 'DailyTriggerRule', {
       schedule: events.Schedule.expression('cron(59 23 * * ? *)'), 

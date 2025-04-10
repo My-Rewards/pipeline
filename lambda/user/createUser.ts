@@ -2,8 +2,6 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
 import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 import { PostConfirmationTriggerEvent } from 'aws-lambda';
-import { readFileSync } from 'fs';
-import { join } from 'path';
 
 const client = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(client);
@@ -18,8 +16,8 @@ export const handler = async (event:PostConfirmationTriggerEvent) => {
         const { request: { userAttributes } } = event;
 
         if (!userAttributes.email || !userAttributes.given_name || !userAttributes.family_name || !userAttributes.sub || !tableName) {
-        console.error('Missing required attributes');
-        throw new Error('Missing required attributes');
+            console.error('Missing required attributes');
+            throw new Error('Missing required attributes');
         }
 
         // look for invites

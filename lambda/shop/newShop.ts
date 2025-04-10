@@ -42,7 +42,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             };
         }
 
-
         const getUser = new GetCommand({
             TableName: userTable,
             Key: { id: userSub },

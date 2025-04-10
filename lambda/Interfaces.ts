@@ -36,11 +36,6 @@ export interface OrganizationProps {
     linked: boolean;
 }
 
-export interface ShopProps {
-    id: string;
-    orgId: string;
-}
-
 export interface StripeInvoice {
     id?: string;
     total: number;
@@ -52,6 +47,13 @@ export interface StripeInvoice {
     upcoming: boolean;
     paid:boolean
 }
+
+export interface ShopHour {
+    day: string;
+    open: string | null;
+    close: string | null;
+}
+  
 
 export interface StripeBillingProps {
     total: number | null;
@@ -65,3 +67,56 @@ export interface StripeBillingProps {
     invoices: StripeInvoice[];
     paymentMethods: Stripe.PaymentMethod[];
 }
+
+export interface RMProps {
+    expenditure: number;
+    rewardsOptions: string[];
+};
+
+export interface Tier {
+    id: string;
+    rewards: string[];
+}
+export interface RLProps{
+    [tier: number]: Tier;
+};
+  
+export interface RewardSystem {
+    rewards_loyalty?: RLProps
+    rewards_milestone?: RMProps
+}
+
+export interface PlanProps {
+    id:string,
+    reward_plan:RewardSystem,
+    visits:number,
+    points:number,
+    organization_id:string
+    rl_active:boolean,
+    rm_active:boolean,
+    name:string,
+    firstPlan:boolean,
+    activePlan:boolean,
+    redeemableRewards:string[],
+    active:boolean
+}
+
+export interface ShopProps {
+    shop_id: string; 
+    organization_id: string; 
+    name:string;
+    banner: string;
+    logo:string;
+    favorite:boolean;
+    menu:string|undefined;
+    phoneNumber:string;
+    description:string;
+    shop_hours: ShopHour[];
+    location:{
+      city:string,
+      state:string,
+      address:string
+    };
+    latitude: number;
+    longitude: number;
+  }
