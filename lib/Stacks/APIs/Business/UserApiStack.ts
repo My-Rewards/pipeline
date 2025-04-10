@@ -18,7 +18,7 @@ export class UsersApiStack extends cdk.NestedStack {
     const orgTable = dynamodb.Table.fromTableArn(this, 'ImportedOrganizationTableARN', cdk.Fn.importValue('OrganizationTableARN'));
     
     // getAccount Lambda
-    const getBizzAccountLambda = new nodejs.NodejsFunction(this, "organization-get-account",{
+    const getBizzAccountLambda = new nodejs.NodejsFunction(this, "business-get-account",{
       runtime: lambda.Runtime.NODEJS_20_X,
       entry: 'lambda/organization/getAccount.ts',
       handler: 'handler',
@@ -34,7 +34,7 @@ export class UsersApiStack extends cdk.NestedStack {
     userTable.grantReadData(getBizzAccountLambda);
     
      // updateAccount Lambda
-    const updateBizzAccountLambda = new nodejs.NodejsFunction(this, "organization-update-account",{
+    const updateBizzAccountLambda = new nodejs.NodejsFunction(this, "business-update-account",{
       runtime: lambda.Runtime.NODEJS_20_X,
       entry: 'lambda/organization/update/account.ts',
       handler: 'handler',

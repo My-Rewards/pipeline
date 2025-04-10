@@ -230,39 +230,6 @@ export class OrgApiStack extends cdk.NestedStack {
         ],
       })
     );
-    
-    // getAccount Lambda
-    const getBizzAccountLambda = new nodejs.NodejsFunction(this, "organization-get-account",{
-      runtime: lambda.Runtime.NODEJS_20_X,
-      entry: 'lambda/organization/getAccount.ts',
-      handler: 'handler',
-      environment: {
-        ORG_TABLE: orgTable.tableName,
-        USER_TABLE: orgTable.tableName,
-      },
-      bundling: {
-        externalModules: ['aws-sdk']
-      },
-    })
-    orgTable.grantReadData(getBizzAccountLambda);
-    userTable.grantReadData(getBizzAccountLambda);
-    
-     // updateAccount Lambda
-    const updateBizzAccountLambda = new nodejs.NodejsFunction(this, "organization-update-account",{
-      runtime: lambda.Runtime.NODEJS_20_X,
-      entry: 'lambda/organization/update/account.ts',
-      handler: 'handler',
-      environment: {
-        ORG_TABLE: orgTable.tableName,
-        USER_TABLE: orgTable.tableName,
-      },
-      bundling: {
-        externalModules: ['aws-sdk']
-      },
-    })
-    orgTable.grantReadWriteData(updateBizzAccountLambda);
-    userTable.grantReadWriteData(updateBizzAccountLambda);
-
     const orgApi = props.api.root.addResource('org'); 
     const updateOrgApi = orgApi.addResource('update'); 
 
@@ -273,12 +240,10 @@ export class OrgApiStack extends cdk.NestedStack {
     const addPayment = orgApi.addResource('addPayment'); 
     const setDefaultPayment = orgApi.addResource('setDefaultPayment'); 
     const removePayment = orgApi.addResource('removePayment'); 
-    const getBusinessUser = orgApi.addResource('user'); 
 
     const updateOrg = updateOrgApi.addResource('details'); 
     const updateImage = updateOrgApi.addResource('image'); 
-    const updateStatus = updateOrgApi.addResource('status');
-    const updateBusinessUser = updateOrgApi.addResource('user');  
+    const updateStatus = updateOrgApi.addResource('status');  
 
     // API-Gateway lambda Integration
     const createOrgMethod = new apigateway.LambdaIntegration(createOrgLambda);
@@ -290,10 +255,6 @@ export class OrgApiStack extends cdk.NestedStack {
     const updateImageMethod = new apigateway.LambdaIntegration(updateOrgImageLambda);
     const updateDetailsMethod = new apigateway.LambdaIntegration(updateOrgDetailsLambda);
     const updateStatusMethod = new apigateway.LambdaIntegration(updateOrgStatusLambda);
-    const getBusinessUserMethod = new apigateway.LambdaIntegration(getBizzAccountLambda);
-	  const updateBusinessUserMethod = new apigateway.LambdaIntegration(updateBizzAccountLambda)
-	
-
     // API-Gateway Path Integration
     createOrg.addMethod('POST', createOrgMethod, {
       authorizer: props.authorizer,
@@ -328,14 +289,6 @@ export class OrgApiStack extends cdk.NestedStack {
       authorizationType: apigateway.AuthorizationType.COGNITO,
     });
     updateStatus.addMethod('PUT', updateStatusMethod, {
-      authorizer: props.authorizer,
-      authorizationType: apigateway.AuthorizationType.COGNITO,
-    });
-    getBusinessUser.addMethod('GET', getBusinessUserMethod, {
-      authorizer: props.authorizer,
-      authorizationType: apigateway.AuthorizationType.COGNITO,
-    });
-    updateBusinessUser.addMethod('PUT', updateBusinessUserMethod, {
       authorizer: props.authorizer,
       authorizationType: apigateway.AuthorizationType.COGNITO,
     });
