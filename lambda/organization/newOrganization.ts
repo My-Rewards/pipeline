@@ -8,12 +8,13 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { OrganizationProps } from "../Interfaces";
 import { getStripeSecret } from "../constants/validOrganization";
 import { STRIPE_API_VERSION } from "../../global/constants";
+import { Customer } from "square/api";
 
 const s3 = new S3Client({ region: "us-east-1" });
 const dynamoClient = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
 
-let cachedStripeKey: string | null; 
+let cachedStripeKey: string | null;
 let stripe: Stripe| null;
 
 const getUserEmailFromDynamoDB = async (userId: string, userTable:string): Promise<string | null> => {
@@ -31,7 +32,7 @@ const getUserEmailFromDynamoDB = async (userId: string, userTable:string): Promi
         }
 
         return response.Item.email;
-        
+
     } catch (error) {
         return null;
     }
@@ -76,14 +77,14 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     }
 
     try {
-        const { 
-            org_name, 
-            description, 
-            rewards_loyalty, 
-            rewards_milestone, 
-            rl_active, 
+        const {
+            org_name,
+            description,
+            rewards_loyalty,
+            rewards_milestone,
+            rl_active,
             rm_active,
-            businessTags 
+            businessTags
         } = JSON.parse(event.body);
 
         const userSub = event.requestContext.authorizer?.claims?.sub;
@@ -122,7 +123,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         });
 
         if(!stripeCustomer){
-            throw Error('Stripe failed')
+            return { statusCode: 500, body: JSON.stringify({ error: "Stripe Failed to create Customer" }) };
         }
 
         const fileKeys = [`${organization_id}/logo`, `${organization_id}/preview`, `${organization_id}/banner`];
@@ -167,7 +168,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
                 linked:false
             },
         });
-        
+
         await dynamoDb.send(dynamoDbItem);
 
         const updateUser = new UpdateCommand({
@@ -179,7 +180,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             },
             ReturnValues: 'UPDATED_NEW'
         });
-    
+
         await dynamoDb.send(updateUser);
 
         const preSignedUrls = await getPresignedUrls(fileKeys, bucketName, types);

@@ -4,7 +4,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import Stripe from "stripe";
 import { StripeBillingProps, StripeInvoice } from "../Interfaces";
 import { getStripeSecret } from "../constants/validOrganization";
-import { STRIPE_API_VERSION } from "../../global/constants";
+import { STRIPE_API_VERSION } from "@/global/constants";
 
 const dynamoClient = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
@@ -187,8 +187,10 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             return { statusCode: 211, body: JSON.stringify({ info: "Organization not Linked" }) };
         }
 
+
         if (!cachedStripeKey) {
             cachedStripeKey = await getStripeSecret(stripeArn);
+            console.log(cachedStripeKey);
             if (!cachedStripeKey) return { statusCode: 404, body: JSON.stringify({ error: "Failed to retrieve Stripe secret key" }) };
         } 
 
@@ -212,7 +214,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         })};
 
     } catch (error) {
-        console.error("Error fetching organization:", error);
-        return { statusCode: 500, body: JSON.stringify({ error }) };
+        console.error("Error fetching Billing:", error);
+        return { statusCode: 500, body: JSON.stringify({ error:'Error fetching Billing' }) };
     }
 };

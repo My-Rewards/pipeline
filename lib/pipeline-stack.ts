@@ -80,7 +80,7 @@ export class PipelineStack extends cdk.Stack {
       }),
       synthCodeBuildDefaults: {
         buildEnvironment: {
-          computeType: codebuild.ComputeType.SMALL
+          computeType: codebuild.ComputeType.MEDIUM
         },
         partialBuildSpec: BuildSpec.fromObject({
           phases: {
@@ -93,7 +93,7 @@ export class PipelineStack extends cdk.Stack {
         }),
         timeout: cdk.Duration.minutes(20), 
       },
-      publishAssetsInParallel:false
+      publishAssetsInParallel:true
     });
 
     pipeline.addStage(new PipelineCentralStage(this, "central", {
@@ -113,7 +113,9 @@ export class PipelineStack extends cdk.Stack {
       subDomain: 'www'
     }), {
       pre: [
-        new ManualApprovalStep('ManualApprovalBeforeProd')
+        new ManualApprovalStep('ManualApprovalBeforeProd', {
+          comment: 'Please approve to push from beta to production'
+        })
       ]
     });
   }

@@ -4,6 +4,7 @@
     "module": "commonjs",
     "lib": ["es2020", "dom"],
     "declarationDir": "./dist/types",
+    "types": ["jest", "node"],
     "declaration": true,
     "strict": true,
     "noImplicitAny": true,
@@ -20,7 +21,12 @@
     "strictPropertyInitialization": false,
     "typeRoots": ["./node_modules/@types"],
     "outDir": "./dist",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    }
+
   },
   "exclude": ["node_modules", "cdk.out", "./dist/**/*"],
   "include": ["./**/*"]
