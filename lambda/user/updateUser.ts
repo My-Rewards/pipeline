@@ -1,5 +1,5 @@
-const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { UpdateCommand, DynamoDBDocumentClient } = require("@aws-sdk/lib-dynamodb");
+import {DynamoDBClient} from "@aws-sdk/client-dynamodb";
+import {UpdateCommand, DynamoDBDocumentClient} from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent } from "aws-lambda";
 
 const client = new DynamoDBClient({});
@@ -51,17 +51,17 @@ exports.handler = async (event: APIGatewayProxyEvent) => {
 
     const updateExpression = `SET ${updateExpressionParts.join(", ")}`;
 
-    const params = {
+    const params = new UpdateCommand({
         TableName: tableName,
         Key: { id },
         UpdateExpression: updateExpression,
         ExpressionAttributeValues: expressionAttributeValues,
         ExpressionAttributeNames: expressionAttributeNames,
         ReturnValues: "UPDATED_NEW",
-    };
+    });
 
     try {
-        const result = await dynamoDb.send(new UpdateCommand(params));
+        const result = await dynamoDb.send(params);
 
         return {
             statusCode: 200,

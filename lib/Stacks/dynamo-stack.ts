@@ -67,8 +67,10 @@ export class DynamoStack extends cdk.Stack {
     });
 
     // plans Table
+    /* PK = USER  SK = ORG */
     const planTable = new aws_dynamodb.Table(this, 'PlanTable', {
-      partitionKey: { name: 'id', type: aws_dynamodb.AttributeType.STRING }, 
+      partitionKey: { name: 'PK', type: aws_dynamodb.AttributeType.STRING },
+      sortKey: { name: 'SK', type: aws_dynamodb.AttributeType.STRING },
       tableName: `Plans`,
       billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
@@ -78,14 +80,13 @@ export class DynamoStack extends cdk.Stack {
       deletionProtection:true
     });
     planTable.addGlobalSecondaryIndex({
-      indexName: "UserIndex",
-      partitionKey: { name: "userId", type: aws_dynamodb.AttributeType.STRING },
-      projectionType: aws_dynamodb.ProjectionType.ALL,
+      indexName: 'PlanIndex',
+      partitionKey: { name: 'SK', type: aws_dynamodb.AttributeType.STRING },
+      sortKey: { name: 'PK', type: aws_dynamodb.AttributeType.STRING },
     });
     planTable.addGlobalSecondaryIndex({
-      indexName: "OrgIndex",
-      partitionKey: { name: "orgId", type: aws_dynamodb.AttributeType.STRING },
-      projectionType: aws_dynamodb.ProjectionType.ALL,
+      indexName: 'Plan_id',
+      partitionKey: { name: 'id', type: aws_dynamodb.AttributeType.STRING },
     });
     
     // visits Table
@@ -96,14 +97,29 @@ export class DynamoStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
       deletionProtection:true
     });
+    visitTable.addGlobalSecondaryIndex({
+      indexName: 'user_id',
+      partitionKey: { name: 'id', type: aws_dynamodb.AttributeType.STRING },
+    });
+    visitTable.addGlobalSecondaryIndex({
+      indexName: 'org_id',
+      partitionKey: { name: 'id', type: aws_dynamodb.AttributeType.STRING },
+    });
 
-    // Likes TabledeletionProtection:true
+    // Likes Table
+    /* PK = USER  SK = SHOP */
     const likesTable = new aws_dynamodb.Table(this, 'LikesTable', {
-      partitionKey: { name: 'id', type: aws_dynamodb.AttributeType.STRING }, 
       tableName: `Likes`,
+      partitionKey: { name: 'PK', type: aws_dynamodb.AttributeType.STRING },
+      sortKey: { name: 'SK', type: aws_dynamodb.AttributeType.STRING },
       billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
       deletionProtection:true
+    });
+    likesTable.addGlobalSecondaryIndex({
+      indexName: 'ShopLikes',
+      partitionKey: { name: 'SK', type: aws_dynamodb.AttributeType.STRING },
+      sortKey: { name: 'PK', type: aws_dynamodb.AttributeType.STRING },
     });
 
     // Rewards Table

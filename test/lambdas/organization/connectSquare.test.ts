@@ -1,9 +1,10 @@
-import { handler } from '../../../lambda/organization/square/link';
+import { handler } from '@/lambda/organization/square/link';
 import { mockClient } from 'aws-sdk-client-mock';
 import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { KMSClient, EncryptCommand } from '@aws-sdk/client-kms';
 import { SecretsManagerClient, GetSecretValueCommand } from '@aws-sdk/client-secrets-manager';
 import { APIGatewayProxyEvent } from 'aws-lambda';
+import * as square from 'square';
 
 const ddbMock = mockClient(DynamoDBDocumentClient);
 const kmsMock = mockClient(KMSClient);
@@ -29,7 +30,6 @@ jest.mock('square', () => {
   };
 });
 
-import * as square from 'square';
 
 describe('Square Integration Lambda', () => {
   let mockObtainToken: jest.Mock;
@@ -211,7 +211,7 @@ describe('Square Integration Lambda', () => {
     
     const result = await handler(event);
     expect(result.statusCode).toBe(401);
-    expect(JSON.parse(result.body).error).toContain('Only Organization owner may delete Organization');
+    expect(JSON.parse(result.body).error).toContain('Only Organization owner may link Organization');
   });
 
   test('should handle Square API error gracefully', async () => {

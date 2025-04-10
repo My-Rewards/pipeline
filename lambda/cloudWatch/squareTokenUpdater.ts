@@ -12,7 +12,7 @@ interface OrganizationSquare {
     squareRefreshToken?: string;
 }
 
-exports.handler = async () => {
+export const handler = async () => {
     try {
         const orgTable = process.env.ORG_TABLE;
         const squareSecretArn = process.env.SQUARE_ARN
