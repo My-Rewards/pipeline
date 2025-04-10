@@ -58,7 +58,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const client = new square.SquareClient({
             environment: appEnv === 'prod'? square.SquareEnvironment.Production : square.SquareEnvironment.Sandbox,
             token:squareAccessToken
-
         });
 
         const shops = client.locations.list();

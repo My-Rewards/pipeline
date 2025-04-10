@@ -107,5 +107,11 @@ export class ApiGatewayStack extends cdk.Stack {
             description: 'RestApi ID',
             exportName: 'restApi',
         });
+
+        new cdk.CfnOutput(this, 'kmsARN', {
+            value: this.encryptionKey.keyArn,
+            description: 'kmsARN',
+            exportName: 'kmsARN',
+        });
     }
 }
