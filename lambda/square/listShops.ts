@@ -31,9 +31,8 @@ async function decryptKMS(encryptedBase64:String, kmsKey:string) {
 }
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    if (!event.queryStringParameters || !event.queryStringParameters.owner_id) {
-        return { statusCode: 400, body: JSON.stringify({ error: "Missing owner_id query parameter" }) };
-    }
+
+
 
     const userTable = process.env.USER_TABLE;
     const appEnv = process.env.APP_ENV;
@@ -45,7 +44,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         case !kmsKey: return { statusCode: 500, body: JSON.stringify({ error: "KMS key Missing" }) };
     }
 
-    const user_id = event.queryStringParameters.owner_id;
+    const user_id = event.requestContext.authorizer?.claims?.sub;
 
     try {
         const params: GetCommandInput = {

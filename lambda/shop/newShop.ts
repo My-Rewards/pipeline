@@ -41,48 +41,39 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
                 body: JSON.stringify({ error: "Missing required fields" }),
             };
         }
-
-
+        
         const getUser = new GetCommand({
             TableName: userTable,
             Key: { id: userSub },
-            ProjectionExpression: "org_id, #userPermissions",
+            ProjectionExpression: "orgId, #userPermissions",
             ExpressionAttributeNames: { "#userPermissions": "permissions" },
         });
         const resultUser = await dynamoDb.send(getUser);
 
+        console.log("User record from DynamoDB:", JSON.stringify(resultUser, null, 2));
+
         if (!resultUser.Item) {
             return { statusCode: 210, body: JSON.stringify({ error: "User email not found in database or User already linked to Organization" }) };
-        } else if (!resultUser.Item.org_id) {
-            return { statusCode: 210, body: JSON.stringify({ error: "Organization not found" }) };
+        } else if (!resultUser.Item.orgId) {
+            return { statusCode: 210, body: JSON.stringify({ error: "Organization not linked" }) };
         }
 
-        const orgId = resultUser.Item.org_id;
+        const orgId = resultUser.Item.orgId;
 
-
+        // Lookup organization record in organizations table (primary key "id")
         const orgResult = await dynamoDb.send(new GetCommand({
             TableName: orgTable,
             Key: { id: orgId },
         }));
+        console.log("Organization record from DynamoDB:", JSON.stringify(orgResult, null, 2));
+
         if (!orgResult.Item) {
             return {
                 statusCode: 210,
                 body: JSON.stringify({ error: "Organization not found" }),
             };
         }
-
-
-        const userResult = await dynamoDb.send(new GetCommand({
-            TableName: userTable,
-            Key: { id: userSub },
-            ProjectionExpression: "org_id",
-        }));
-        if (!userResult.Item || userResult.Item.org_id !== orgId) {
-            return {
-                statusCode: 403,
-                body: JSON.stringify({ error: "User is not associated with the specified Organization" }),
-            };
-        }
+        
 
         const shopId = randomUUID();
 
@@ -90,7 +81,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             TableName: shopTable,
             Item: {
                 id: shopId,
-                org_id: orgId,
+                organization_id: orgId,  // Changed attribute name for shops table
                 square_id,
                 latitude,
                 longitude,
@@ -100,14 +91,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
                 updated_at: new Date().toISOString(),
             },
         }));
-
-
-        await dynamoDb.send(new UpdateCommand({
-            TableName: orgTable,
-            Key: { id: orgId },
-            UpdateExpression: "SET shopId = :shopId",
-            ExpressionAttributeValues: { ":shopId": shopId },
-        }));
+        
 
         return {
             statusCode: 201,

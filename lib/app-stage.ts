@@ -74,8 +74,8 @@ export class PipelineAppStage extends cdk.Stage {
 
       let apiGatewayProps = this.createApiProps(props, this.stageName, apiDomain);
       const apiGateway_stack = new ApiGatewayStack(this, 'ApiGateway-Stack', apiGatewayProps);
-      apiGateway_stack.addDependency(userPool_stack);
-      apiGateway_stack.addDependency(imageBucket_stack);
+      //apiGateway_stack.addDependency(userPool_stack);
+      //apiGateway_stack.addDependency(imageBucket_stack);
 
       let cloudWatchProp = this.createCloudWatchProps(props, this.stageName);
       const cloudWatchStack = new CloudWatchStack(this, 'CloudWatch-Stack', cloudWatchProp);
