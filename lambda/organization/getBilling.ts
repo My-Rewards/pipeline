@@ -4,7 +4,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import Stripe from "stripe";
 import { StripeBillingProps, StripeInvoice } from "../Interfaces";
 import { getStripeSecret } from "../constants/validOrganization";
-import { STRIPE_API_VERSION } from "../../global/constants";
+import { STRIPE_API_VERSION } from "@/global/constants";
 
 const dynamoClient = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
