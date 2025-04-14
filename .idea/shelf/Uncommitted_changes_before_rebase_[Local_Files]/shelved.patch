@@ -1,0 +1,344 @@
+Index: .idea/workspace.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<project version=\"4\">\n  <component name=\"AutoImportSettings\">\n    <option name=\"autoReloadType\" value=\"SELECTIVE\" />\n  </component>\n  <component name=\"ChangeListManager\">\n    <list default=\"true\" id=\"b04b976d-ae26-4b57-a83b-27f2462796d1\" name=\"Changes\" comment=\"create subsciption on addPayment\">\n      <change beforePath=\"$PROJECT_DIR$/.idea/workspace.xml\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/.idea/workspace.xml\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/lambda/organization/connectSquare.ts\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/lambda/organization/connectSquare.ts\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/lib/Stacks/apiGateway-stack.ts\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/lib/Stacks/apiGateway-stack.ts\" afterDir=\"false\" />\n    </list>\n    <option name=\"SHOW_DIALOG\" value=\"false\" />\n    <option name=\"HIGHLIGHT_CONFLICTS\" value=\"true\" />\n    <option name=\"HIGHLIGHT_NON_ACTIVE_CHANGELIST\" value=\"false\" />\n    <option name=\"LAST_RESOLUTION\" value=\"IGNORE\" />\n  </component>\n  <component name=\"FileTemplateManagerImpl\">\n    <option name=\"RECENT_TEMPLATES\">\n      <list>\n        <option value=\"TypeScript File\" />\n      </list>\n    </option>\n  </component>\n  <component name=\"Git.Settings\">\n    <option name=\"RECENT_GIT_ROOT_PATH\" value=\"$PROJECT_DIR$\" />\n  </component>\n  <component name=\"GitHubPullRequestSearchHistory\">{\n  &quot;lastFilter&quot;: {\n    &quot;state&quot;: &quot;OPEN&quot;,\n    &quot;assignee&quot;: &quot;BrianBFarias&quot;\n  }\n}</component>\n  <component name=\"GithubPullRequestsUISettings\">{\n  &quot;selectedUrlAndAccountId&quot;: {\n    &quot;url&quot;: &quot;https://github.com/My-Rewards/pipeline.git&quot;,\n    &quot;accountId&quot;: &quot;7f46a21d-1860-4381-ba4e-9659a1b5727c&quot;\n  }\n}</component>\n  <component name=\"ProjectColorInfo\">{\n    &quot;customColor&quot;: &quot;&quot;,\n    &quot;associatedIndex&quot;: 1\n    }</component>\n  <component name=\"ProjectId\" id=\"2sPvgavNmeopLW2vRn1RTGmS1MA\" />\n  <component name=\"ProjectLevelVcsManager\">\n    <ConfirmationsSetting value=\"1\" id=\"Add\" />\n  </component>\n  <component name=\"ProjectViewState\">\n    <option name=\"hideEmptyMiddlePackages\" value=\"true\" />\n    <option name=\"showLibraryContents\" value=\"true\" />\n  </component>\n  <component name=\"PropertiesComponent\">{\n  &quot;keyToString&quot;: {\n    &quot;Jest.createUser Lambda Function.executor&quot;: &quot;Run&quot;,\n    &quot;Jest.createUserBusiness.test.ts.executor&quot;: &quot;Run&quot;,\n    &quot;Jest.getBilling Lambda Handler.executor&quot;: &quot;Run&quot;,\n    &quot;Jest.getBilling Lambda Handler.should return inactive billing data when user has no active subscriptions.executor&quot;: &quot;Run&quot;,\n    &quot;Jest.getOrg.test.ts.executor&quot;: &quot;Run&quot;,\n    &quot;Node.js.business-website-stack.ts.executor&quot;: &quot;Run&quot;,\n    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,\n    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,\n    &quot;git-widget-placeholder&quot;: &quot;Brian&quot;,\n    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,\n    &quot;last_opened_file_path&quot;: &quot;/Users/brian/myRewards/pipeline&quot;,\n    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,\n    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,\n    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,\n    &quot;nodejs.jest.jest_package&quot;: &quot;/Users/brian/myRewards/pipeline/node_modules/jest&quot;,\n    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,\n    &quot;ts.external.directory.path&quot;: &quot;/Users/brian/myRewards/pipeline/node_modules/typescript/lib&quot;,\n    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;\n  }\n}</component>\n  <component name=\"RunManager\" selected=\"Jest.createUserBusiness.test.ts\">\n    <configuration default=\"true\" type=\"Python.FlaskServer\">\n      <module name=\"pipeline\" />\n      <option name=\"ENV_FILES\" value=\"\" />\n      <option name=\"INTERPRETER_OPTIONS\" value=\"\" />\n      <option name=\"PARENT_ENVS\" value=\"true\" />\n      <option name=\"SDK_HOME\" value=\"\" />\n      <option name=\"WORKING_DIRECTORY\" value=\"\" />\n      <option name=\"IS_MODULE_SDK\" value=\"false\" />\n      <option name=\"ADD_CONTENT_ROOTS\" value=\"true\" />\n      <option name=\"ADD_SOURCE_ROOTS\" value=\"true\" />\n      <EXTENSION ID=\"PythonCoverageRunConfigurationExtension\" runner=\"coverage.py\" />\n      <option name=\"launchJavascriptDebuger\" value=\"false\" />\n      <method v=\"2\" />\n    </configuration>\n    <configuration default=\"true\" type=\"docs\" factoryName=\"Docutils task\">\n      <module name=\"pipeline\" />\n      <option name=\"ENV_FILES\" value=\"\" />\n      <option name=\"INTERPRETER_OPTIONS\" value=\"\" />\n      <option name=\"PARENT_ENVS\" value=\"true\" />\n      <option name=\"SDK_HOME\" value=\"\" />\n      <option name=\"WORKING_DIRECTORY\" value=\"\" />\n      <option name=\"IS_MODULE_SDK\" value=\"false\" />\n      <option name=\"ADD_CONTENT_ROOTS\" value=\"true\" />\n      <option name=\"ADD_SOURCE_ROOTS\" value=\"true\" />\n      <option name=\"docutils_input_file\" value=\"\" />\n      <option name=\"docutils_output_file\" value=\"\" />\n      <option name=\"docutils_params\" value=\"\" />\n      <option name=\"docutils_task\" value=\"\" />\n      <option name=\"docutils_open_in_browser\" value=\"false\" />\n      <method v=\"2\" />\n    </configuration>\n    <configuration default=\"true\" type=\"docs\" factoryName=\"Sphinx task\">\n      <module name=\"pipeline\" />\n      <option name=\"ENV_FILES\" value=\"\" />\n      <option name=\"INTERPRETER_OPTIONS\" value=\"\" />\n      <option name=\"PARENT_ENVS\" value=\"true\" />\n      <option name=\"SDK_HOME\" value=\"\" />\n      <option name=\"WORKING_DIRECTORY\" value=\"\" />\n      <option name=\"IS_MODULE_SDK\" value=\"false\" />\n      <option name=\"ADD_CONTENT_ROOTS\" value=\"true\" />\n      <option name=\"ADD_SOURCE_ROOTS\" value=\"true\" />\n      <option name=\"docutils_input_file\" value=\"\" />\n      <option name=\"docutils_output_file\" value=\"\" />\n      <option name=\"docutils_params\" value=\"\" />\n      <option name=\"docutils_task\" value=\"\" />\n      <option name=\"docutils_open_in_browser\" value=\"false\" />\n      <method v=\"2\" />\n    </configuration>\n    <configuration name=\"createUser Lambda Function\" type=\"JavaScriptTestRunnerJest\" temporary=\"true\" nameIsGenerated=\"true\">\n      <node-interpreter value=\"project\" />\n      <jest-package value=\"$PROJECT_DIR$/node_modules/jest\" />\n      <working-dir value=\"$PROJECT_DIR$\" />\n      <envs />\n      <scope-kind value=\"SUITE\" />\n      <test-file value=\"$PROJECT_DIR$/test/lambdas/user/createUser.test.ts\" />\n      <test-names>\n        <test-name value=\"createUser Lambda Function\" />\n      </test-names>\n      <method v=\"2\" />\n    </configuration>\n    <configuration name=\"createUserBusiness.test.ts\" type=\"JavaScriptTestRunnerJest\" temporary=\"true\" nameIsGenerated=\"true\">\n      <node-interpreter value=\"project\" />\n      <jest-package value=\"$PROJECT_DIR$/node_modules/jest\" />\n      <working-dir value=\"$PROJECT_DIR$\" />\n      <envs />\n      <scope-kind value=\"TEST_FILE\" />\n      <test-file value=\"$PROJECT_DIR$/test/lambdas/user/createUserBusiness.test.ts\" />\n      <method v=\"2\" />\n    </configuration>\n    <configuration name=\"getBilling Lambda Handler\" type=\"JavaScriptTestRunnerJest\" temporary=\"true\" nameIsGenerated=\"true\">\n      <node-interpreter value=\"project\" />\n      <jest-package value=\"$PROJECT_DIR$/node_modules/jest\" />\n      <working-dir value=\"$PROJECT_DIR$\" />\n      <envs />\n      <scope-kind value=\"SUITE\" />\n      <test-file value=\"$PROJECT_DIR$/test/lambdas/organization/getBilling.test.ts\" />\n      <test-names>\n        <test-name value=\"getBilling Lambda Handler\" />\n      </test-names>\n      <method v=\"2\" />\n    </configuration>\n    <configuration name=\"getBilling Lambda Handler.should return inactive billing data when user has no active subscriptions\" type=\"JavaScriptTestRunnerJest\" temporary=\"true\" nameIsGenerated=\"true\">\n      <node-interpreter value=\"project\" />\n      <jest-package value=\"$PROJECT_DIR$/node_modules/jest\" />\n      <working-dir value=\"$PROJECT_DIR$\" />\n      <envs />\n      <scope-kind value=\"TEST\" />\n      <test-file value=\"$PROJECT_DIR$/test/lambdas/organization/getBilling.test.ts\" />\n      <test-names>\n        <test-name value=\"getBilling Lambda Handler\" />\n        <test-name value=\"should return inactive billing data when user has no active subscriptions\" />\n      </test-names>\n      <method v=\"2\" />\n    </configuration>\n    <configuration name=\"getOrg.test.ts\" type=\"JavaScriptTestRunnerJest\" temporary=\"true\" nameIsGenerated=\"true\">\n      <node-interpreter value=\"project\" />\n      <jest-package value=\"$PROJECT_DIR$/node_modules/jest\" />\n      <working-dir value=\"$PROJECT_DIR$\" />\n      <envs />\n      <scope-kind value=\"TEST_FILE\" />\n      <test-file value=\"$PROJECT_DIR$/test/lambdas/organization/getOrg.test.ts\" />\n      <method v=\"2\" />\n    </configuration>\n    <configuration default=\"true\" type=\"KotlinStandaloneScriptRunConfigurationType\">\n      <module name=\"pipeline\" />\n      <option name=\"filePath\" />\n      <method v=\"2\">\n        <option name=\"Make\" enabled=\"true\" />\n      </method>\n    </configuration>\n    <configuration default=\"true\" type=\"PythonConfigurationType\" factoryName=\"Python\">\n      <module name=\"pipeline\" />\n      <option name=\"ENV_FILES\" value=\"\" />\n      <option name=\"INTERPRETER_OPTIONS\" value=\"\" />\n      <option name=\"PARENT_ENVS\" value=\"true\" />\n      <envs>\n        <env name=\"PYTHONUNBUFFERED\" value=\"1\" />\n      </envs>\n      <option name=\"SDK_HOME\" value=\"\" />\n      <option name=\"WORKING_DIRECTORY\" value=\"\" />\n      <option name=\"IS_MODULE_SDK\" value=\"false\" />\n      <option name=\"ADD_CONTENT_ROOTS\" value=\"true\" />\n      <option name=\"ADD_SOURCE_ROOTS\" value=\"true\" />\n      <EXTENSION ID=\"PythonCoverageRunConfigurationExtension\" runner=\"coverage.py\" />\n      <option name=\"SCRIPT_NAME\" value=\"\" />\n      <option name=\"PARAMETERS\" value=\"\" />\n      <option name=\"SHOW_COMMAND_LINE\" value=\"false\" />\n      <option name=\"EMULATE_TERMINAL\" value=\"false\" />\n      <option name=\"MODULE_MODE\" value=\"false\" />\n      <option name=\"REDIRECT_INPUT\" value=\"false\" />\n      <option name=\"INPUT_FILE\" value=\"\" />\n      <method v=\"2\" />\n    </configuration>\n    <configuration default=\"true\" type=\"Tox\" factoryName=\"Tox\">\n      <module name=\"pipeline\" />\n      <option name=\"ENV_FILES\" value=\"\" />\n      <option name=\"INTERPRETER_OPTIONS\" value=\"\" />\n      <option name=\"PARENT_ENVS\" value=\"true\" />\n      <option name=\"SDK_HOME\" value=\"\" />\n      <option name=\"WORKING_DIRECTORY\" value=\"\" />\n      <option name=\"IS_MODULE_SDK\" value=\"false\" />\n      <option name=\"ADD_CONTENT_ROOTS\" value=\"true\" />\n      <option name=\"ADD_SOURCE_ROOTS\" value=\"true\" />\n      <EXTENSION ID=\"PythonCoverageRunConfigurationExtension\" runner=\"coverage.py\" />\n      <method v=\"2\" />\n    </configuration>\n    <recent_temporary>\n      <list>\n        <item itemvalue=\"Jest.createUserBusiness.test.ts\" />\n        <item itemvalue=\"Jest.getOrg.test.ts\" />\n        <item itemvalue=\"Jest.createUser Lambda Function\" />\n        <item itemvalue=\"Jest.getBilling Lambda Handler\" />\n        <item itemvalue=\"Jest.getBilling Lambda Handler.should return inactive billing data when user has no active subscriptions\" />\n      </list>\n    </recent_temporary>\n  </component>\n  <component name=\"SharedIndexes\">\n    <attachedChunks>\n      <set>\n        <option value=\"bundled-jdk-9823dce3aa75-a94e463ab2e7-intellij.indexing.shared.core-IU-243.26053.27\" />\n        <option value=\"bundled-js-predefined-d6986cc7102b-1632447f56bf-JavaScript-IU-243.26053.27\" />\n      </set>\n    </attachedChunks>\n  </component>\n  <component name=\"SpellCheckerSettings\" RuntimeDictionaries=\"0\" Folders=\"0\" CustomDictionaries=\"0\" DefaultDictionary=\"application-level\" UseSingleDictionary=\"true\" transferred=\"true\" />\n  <component name=\"TaskManager\">\n    <task active=\"true\" id=\"Default\" summary=\"Default task\">\n      <changelist id=\"b04b976d-ae26-4b57-a83b-27f2462796d1\" name=\"Changes\" comment=\"\" />\n      <created>1738370138276</created>\n      <option name=\"number\" value=\"Default\" />\n      <option name=\"presentableId\" value=\"Default\" />\n      <updated>1738370138276</updated>\n      <workItem from=\"1738370139768\" duration=\"10896000\" />\n      <workItem from=\"1738629148426\" duration=\"58000\" />\n      <workItem from=\"1738694962107\" duration=\"2569000\" />\n      <workItem from=\"1738698143599\" duration=\"15009000\" />\n      <workItem from=\"1742169581051\" duration=\"10265000\" />\n      <workItem from=\"1742351800759\" duration=\"83000\" />\n      <workItem from=\"1742351897516\" duration=\"601000\" />\n      <workItem from=\"1742509726423\" duration=\"174000\" />\n    </task>\n    <task id=\"LOCAL-00001\" summary=\"billing page testing and subscription creation update\">\n      <option name=\"closed\" value=\"true\" />\n      <created>1742184649334</created>\n      <option name=\"number\" value=\"00001\" />\n      <option name=\"presentableId\" value=\"LOCAL-00001\" />\n      <option name=\"project\" value=\"LOCAL\" />\n      <updated>1742184649334</updated>\n    </task>\n    <task id=\"LOCAL-00002\" summary=\"billing page testing and subscription creation update\">\n      <option name=\"closed\" value=\"true\" />\n      <created>1742184670726</created>\n      <option name=\"number\" value=\"00002\" />\n      <option name=\"presentableId\" value=\"LOCAL-00002\" />\n      <option name=\"project\" value=\"LOCAL\" />\n      <updated>1742184670726</updated>\n    </task>\n    <task id=\"LOCAL-00003\" summary=\"create subsciption on addPayment\">\n      <option name=\"closed\" value=\"true\" />\n      <created>1742344260298</created>\n      <option name=\"number\" value=\"00003\" />\n      <option name=\"presentableId\" value=\"LOCAL-00003\" />\n      <option name=\"project\" value=\"LOCAL\" />\n      <updated>1742344260298</updated>\n    </task>\n    <option name=\"localTasksCounter\" value=\"4\" />\n    <servers />\n  </component>\n  <component name=\"TypeScriptGeneratedFilesManager\">\n    <option name=\"version\" value=\"3\" />\n    <option name=\"exactExcludedFiles\">\n      <list>\n        <option value=\"$PROJECT_DIR$/lib/Stacks/amplify-hosting-stack.d.ts\" />\n        <option value=\"$PROJECT_DIR$/lib/Stacks/amplify-hosting-stack.js\" />\n      </list>\n    </option>\n  </component>\n  <component name=\"Vcs.Log.Tabs.Properties\">\n    <option name=\"TAB_STATES\">\n      <map>\n        <entry key=\"MAIN\">\n          <value>\n            <State />\n          </value>\n        </entry>\n      </map>\n    </option>\n  </component>\n  <component name=\"VcsManagerConfiguration\">\n    <MESSAGE value=\"billing page testing and subscription creation update\" />\n    <MESSAGE value=\"create subsciption on addPayment\" />\n    <option name=\"LAST_COMMIT_MESSAGE\" value=\"create subsciption on addPayment\" />\n  </component>\n  <component name=\"XDebuggerManager\">\n    <breakpoint-manager>\n      <breakpoints>\n        <line-breakpoint enabled=\"true\" type=\"javascript\">\n          <url>file://$PROJECT_DIR$/test/lambdas/organization/getBilling.test.ts</url>\n          <line>184</line>\n          <option name=\"timeStamp\" value=\"4\" />\n        </line-breakpoint>\n      </breakpoints>\n    </breakpoint-manager>\n  </component>\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/workspace.xml b/.idea/workspace.xml
+--- a/.idea/workspace.xml	(revision 4d1ab2d6f9ab847113f1ab55512f00470ab2b8d4)
++++ b/.idea/workspace.xml	(date 1744322939745)
+@@ -1,13 +1,28 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <project version="4">
++  <component name="AIAssistantCustomInstructionsStorage">
++    <option name="instructions">
++      <map>
++        <entry key="AIAssistant.VCS.GenerateCommitMessage">
++          <value>
++            <AIAssistantStoredInstruction>
++              <option name="actionId" value="AIAssistant.VCS.GenerateCommitMessage" />
++              <option name="content" value="Can you list major updates in this commit, be sure each item in the list is no more than 1 word for every 5 lines of code regarding that topic, unless it deals with security or infastructure" />
++            </AIAssistantStoredInstruction>
++          </value>
++        </entry>
++      </map>
++    </option>
++  </component>
+   <component name="AutoImportSettings">
+     <option name="autoReloadType" value="SELECTIVE" />
+   </component>
+   <component name="ChangeListManager">
+-    <list default="true" id="b04b976d-ae26-4b57-a83b-27f2462796d1" name="Changes" comment="create subsciption on addPayment">
++    <list default="true" id="b04b976d-ae26-4b57-a83b-27f2462796d1" name="Changes" comment="- **Refactor:** Refactored mocking strategy for tests, including AWS SDK clients and external libraries like `Stripe`, `square`, and `crypto`.&#10;- **Tests:** Expanded test coverage in `newOrganization` and `squareTokenUpdater` lambdas for error handling and validations.&#10;- **Interfaces:** Adjusted interfaces in `lambda/Interfaces.ts` to better structure reward systems and shop details.&#10;- **Path Updates:** Updated import paths across files for better aliasing using TypeScript configuration.&#10;- **Concurrency:** Enhanced `squareTokenUpdater` for concurrent token refresh and validation.">
+       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/lambda/organization/connectSquare.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/connectSquare.ts" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/lambda/square/listShops.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/square/listShops.ts" afterDir="false" />
+       <change beforePath="$PROJECT_DIR$/lib/Stacks/apiGateway-stack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/apiGateway-stack.ts" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/lib/Stacks/cloudWatch-stack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/cloudWatch-stack.ts" afterDir="false" />
+     </list>
+     <option name="SHOW_DIALOG" value="false" />
+     <option name="HIGHLIGHT_CONFLICTS" value="true" />
+@@ -23,6 +38,7 @@
+   </component>
+   <component name="Git.Settings">
+     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
++    <option name="SIGN_OFF_COMMIT" value="true" />
+   </component>
+   <component name="GitHubPullRequestSearchHistory">{
+   &quot;lastFilter&quot;: {
+@@ -30,12 +46,29 @@
+     &quot;assignee&quot;: &quot;BrianBFarias&quot;
+   }
+ }</component>
+-  <component name="GithubPullRequestsUISettings">{
+-  &quot;selectedUrlAndAccountId&quot;: {
+-    &quot;url&quot;: &quot;https://github.com/My-Rewards/pipeline.git&quot;,
+-    &quot;accountId&quot;: &quot;7f46a21d-1860-4381-ba4e-9659a1b5727c&quot;
+-  }
+-}</component>
++  <component name="GithubPullRequestsUISettings"><![CDATA[{
++  "selectedUrlAndAccountId": {
++    "url": "https://github.com/My-Rewards/pipeline.git",
++    "accountId": "7f46a21d-1860-4381-ba4e-9659a1b5727c"
++  },
++  "recentNewPullRequestHead": {
++    "server": {
++      "useHttp": false,
++      "host": "github.com",
++      "port": null,
++      "suffix": null
++    },
++    "owner": "My-Rewards",
++    "repository": "pipeline"
++  }
++}]]></component>
++  <component name="HighlightingSettingsPerFile">
++    <setting file="file://$PROJECT_DIR$/test/lambdas/constant/validOrganization.test.ts" root0="FORCE_HIGHLIGHTING" />
++  </component>
++  <component name="KubernetesApiPersistence"><![CDATA[{}]]></component>
++  <component name="KubernetesApiProvider"><![CDATA[{
++  "isMigrated": true
++}]]></component>
+   <component name="ProjectColorInfo">{
+     &quot;customColor&quot;: &quot;&quot;,
+     &quot;associatedIndex&quot;: 1
+@@ -48,29 +81,48 @@
+     <option name="hideEmptyMiddlePackages" value="true" />
+     <option name="showLibraryContents" value="true" />
+   </component>
+-  <component name="PropertiesComponent">{
+-  &quot;keyToString&quot;: {
+-    &quot;Jest.createUser Lambda Function.executor&quot;: &quot;Run&quot;,
+-    &quot;Jest.createUserBusiness.test.ts.executor&quot;: &quot;Run&quot;,
+-    &quot;Jest.getBilling Lambda Handler.executor&quot;: &quot;Run&quot;,
+-    &quot;Jest.getBilling Lambda Handler.should return inactive billing data when user has no active subscriptions.executor&quot;: &quot;Run&quot;,
+-    &quot;Jest.getOrg.test.ts.executor&quot;: &quot;Run&quot;,
+-    &quot;Node.js.business-website-stack.ts.executor&quot;: &quot;Run&quot;,
+-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+-    &quot;git-widget-placeholder&quot;: &quot;Brian&quot;,
+-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+-    &quot;last_opened_file_path&quot;: &quot;/Users/brian/myRewards/pipeline&quot;,
+-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+-    &quot;nodejs.jest.jest_package&quot;: &quot;/Users/brian/myRewards/pipeline/node_modules/jest&quot;,
+-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+-    &quot;ts.external.directory.path&quot;: &quot;/Users/brian/myRewards/pipeline/node_modules/typescript/lib&quot;,
+-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
++  <component name="PropertiesComponent"><![CDATA[{
++  "keyToString": {
++    "Jest.Helper Functions.executor": "Run",
++    "Jest.Lambda Handler - Merging shop/org/likes.executor": "Run",
++    "Jest.Shop Creation Lambda Handler.executor": "Run",
++    "Jest.createOrganization Lambda Handler.executor": "Run",
++    "Jest.createOrganization Lambda Handler.should handle Stripe failure.executor": "Run",
++    "Jest.createOrganization Lambda Handler.should handle unexpected errors gracefully.executor": "Run",
++    "Jest.createOrganization Lambda Handler.should successfully create an organization.executor": "Debug",
++    "Jest.createUser Lambda Function.executor": "Run",
++    "Jest.createUserBusiness.test.ts.executor": "Run",
++    "Jest.getBilling Lambda Handler.executor": "Run",
++    "Jest.getBilling Lambda Handler.should return inactive billing data when user has no active subscriptions.executor": "Run",
++    "Jest.getBilling Lambda.executor": "Run",
++    "Jest.getOrg Lambda.executor": "Run",
++    "Jest.getOrg Lambda.should return 200 and organization details with active subscription.executor": "Run",
++    "Jest.getOrg Lambda.should return 404 when Stripe secret retrieval fails.executor": "Run",
++    "Jest.getOrg.test.ts.executor": "Run",
++    "Jest.getPlan Lambda Handler.executor": "Run",
++    "Jest.validOrganization Functions.executor": "Run",
++    "Node.js.business-website-stack.ts.executor": "Run",
++    "RunOnceActivity.ShowReadmeOnStart": "true",
++    "RunOnceActivity.git.unshallow": "true",
++    "git-widget-placeholder": "#53 on Brian",
++    "kotlin-language-version-configured": "true",
++    "last_opened_file_path": "/Users/brian/myRewards/pipeline",
++    "node.js.detected.package.eslint": "true",
++    "node.js.selected.package.eslint": "(autodetect)",
++    "node.js.selected.package.tslint": "(autodetect)",
++    "nodejs.jest.jest_package": "/Users/brian/myRewards/pipeline/node_modules/jest",
++    "nodejs_package_manager_path": "npm",
++    "settings.editor.selected.configurable": "settings.typescriptcompiler",
++    "ts.external.directory.path": "/Users/brian/myRewards/pipeline/node_modules/typescript/lib",
++    "vue.rearranger.settings.migration": "true"
+   }
+-}</component>
+-  <component name="RunManager" selected="Jest.createUserBusiness.test.ts">
++}]]></component>
++  <component name="RecentsManager">
++    <key name="MoveFile.RECENT_KEYS">
++      <recent name="$PROJECT_DIR$/test/lambdas/shop" />
++    </key>
++  </component>
++  <component name="RunManager" selected="Jest.getBilling Lambda">
+     <configuration default="true" type="Python.FlaskServer">
+       <module name="pipeline" />
+       <option name="ENV_FILES" value="" />
+@@ -119,28 +171,41 @@
+       <option name="docutils_open_in_browser" value="false" />
+       <method v="2" />
+     </configuration>
+-    <configuration name="createUser Lambda Function" type="JavaScriptTestRunnerJest" temporary="true" nameIsGenerated="true">
++    <configuration name="Shop Creation Lambda Handler" type="JavaScriptTestRunnerJest" temporary="true" nameIsGenerated="true">
++      <config-file value="$PROJECT_DIR$/jest.config.ts" />
+       <node-interpreter value="project" />
+       <jest-package value="$PROJECT_DIR$/node_modules/jest" />
+       <working-dir value="$PROJECT_DIR$" />
+       <envs />
+       <scope-kind value="SUITE" />
+-      <test-file value="$PROJECT_DIR$/test/lambdas/user/createUser.test.ts" />
++      <test-file value="$PROJECT_DIR$/test/lambdas/shop/newShop.test.ts" />
+       <test-names>
+-        <test-name value="createUser Lambda Function" />
++        <test-name value="Shop Creation Lambda Handler" />
+       </test-names>
+       <method v="2" />
+     </configuration>
+-    <configuration name="createUserBusiness.test.ts" type="JavaScriptTestRunnerJest" temporary="true" nameIsGenerated="true">
++    <configuration default="true" type="JavaScriptTestRunnerJest">
++      <config-file value="$PROJECT_DIR$/jest.config.ts" />
++      <node-interpreter value="project" />
++      <envs />
++      <scope-kind value="ALL" />
++      <method v="2" />
++    </configuration>
++    <configuration name="getBilling Lambda" type="JavaScriptTestRunnerJest" temporary="true" nameIsGenerated="true">
++      <config-file value="$PROJECT_DIR$/jest.config.ts" />
+       <node-interpreter value="project" />
+       <jest-package value="$PROJECT_DIR$/node_modules/jest" />
+       <working-dir value="$PROJECT_DIR$" />
+       <envs />
+-      <scope-kind value="TEST_FILE" />
+-      <test-file value="$PROJECT_DIR$/test/lambdas/user/createUserBusiness.test.ts" />
++      <scope-kind value="SUITE" />
++      <test-file value="$PROJECT_DIR$/test/lambdas/organization/getBilling.test.ts" />
++      <test-names>
++        <test-name value="getBilling Lambda" />
++      </test-names>
+       <method v="2" />
+     </configuration>
+-    <configuration name="getBilling Lambda Handler" type="JavaScriptTestRunnerJest" temporary="true" nameIsGenerated="true">
++    <configuration name="getOrg Lambda" type="JavaScriptTestRunnerJest" temporary="true" nameIsGenerated="true">
++      <config-file value="$PROJECT_DIR$/jest.config.ts" />
+       <node-interpreter value="project" />
+       <jest-package value="$PROJECT_DIR$/node_modules/jest" />
+       <working-dir value="$PROJECT_DIR$" />
+@@ -148,11 +213,12 @@
+       <scope-kind value="SUITE" />
+       <test-file value="$PROJECT_DIR$/test/lambdas/organization/getBilling.test.ts" />
+       <test-names>
+-        <test-name value="getBilling Lambda Handler" />
++        <test-name value="getOrg Lambda" />
+       </test-names>
+       <method v="2" />
+     </configuration>
+-    <configuration name="getBilling Lambda Handler.should return inactive billing data when user has no active subscriptions" type="JavaScriptTestRunnerJest" temporary="true" nameIsGenerated="true">
++    <configuration name="getOrg Lambda.should return 200 and organization details with active subscription" type="JavaScriptTestRunnerJest" temporary="true" nameIsGenerated="true">
++      <config-file value="$PROJECT_DIR$/jest.config.ts" />
+       <node-interpreter value="project" />
+       <jest-package value="$PROJECT_DIR$/node_modules/jest" />
+       <working-dir value="$PROJECT_DIR$" />
+@@ -160,18 +226,23 @@
+       <scope-kind value="TEST" />
+       <test-file value="$PROJECT_DIR$/test/lambdas/organization/getBilling.test.ts" />
+       <test-names>
+-        <test-name value="getBilling Lambda Handler" />
+-        <test-name value="should return inactive billing data when user has no active subscriptions" />
++        <test-name value="getOrg Lambda" />
++        <test-name value="should return 200 and organization details with active subscription" />
+       </test-names>
+       <method v="2" />
+     </configuration>
+-    <configuration name="getOrg.test.ts" type="JavaScriptTestRunnerJest" temporary="true" nameIsGenerated="true">
++    <configuration name="getOrg Lambda.should return 404 when Stripe secret retrieval fails" type="JavaScriptTestRunnerJest" temporary="true" nameIsGenerated="true">
++      <config-file value="$PROJECT_DIR$/jest.config.ts" />
+       <node-interpreter value="project" />
+       <jest-package value="$PROJECT_DIR$/node_modules/jest" />
+       <working-dir value="$PROJECT_DIR$" />
+       <envs />
+-      <scope-kind value="TEST_FILE" />
+-      <test-file value="$PROJECT_DIR$/test/lambdas/organization/getOrg.test.ts" />
++      <scope-kind value="TEST" />
++      <test-file value="$PROJECT_DIR$/test/lambdas/organization/getBilling.test.ts" />
++      <test-names>
++        <test-name value="getOrg Lambda" />
++        <test-name value="should return 404 when Stripe secret retrieval fails" />
++      </test-names>
+       <method v="2" />
+     </configuration>
+     <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+@@ -219,11 +290,11 @@
+     </configuration>
+     <recent_temporary>
+       <list>
+-        <item itemvalue="Jest.createUserBusiness.test.ts" />
+-        <item itemvalue="Jest.getOrg.test.ts" />
+-        <item itemvalue="Jest.createUser Lambda Function" />
+-        <item itemvalue="Jest.getBilling Lambda Handler" />
+-        <item itemvalue="Jest.getBilling Lambda Handler.should return inactive billing data when user has no active subscriptions" />
++        <item itemvalue="Jest.getBilling Lambda" />
++        <item itemvalue="Jest.getOrg Lambda" />
++        <item itemvalue="Jest.getOrg Lambda.should return 404 when Stripe secret retrieval fails" />
++        <item itemvalue="Jest.getOrg Lambda.should return 200 and organization details with active subscription" />
++        <item itemvalue="Jest.Shop Creation Lambda Handler" />
+       </list>
+     </recent_temporary>
+   </component>
+@@ -251,6 +322,10 @@
+       <workItem from="1742351800759" duration="83000" />
+       <workItem from="1742351897516" duration="601000" />
+       <workItem from="1742509726423" duration="174000" />
++      <workItem from="1744254840120" duration="142000" />
++      <workItem from="1744255577851" duration="393000" />
++      <workItem from="1744256004925" duration="1912000" />
++      <workItem from="1744258083420" duration="20703000" />
+     </task>
+     <task id="LOCAL-00001" summary="billing page testing and subscription creation update">
+       <option name="closed" value="true" />
+@@ -276,17 +351,19 @@
+       <option name="project" value="LOCAL" />
+       <updated>1742344260298</updated>
+     </task>
+-    <option name="localTasksCounter" value="4" />
++    <task id="LOCAL-00004" summary="- **Refactor:** Refactored mocking strategy for tests, including AWS SDK clients and external libraries like `Stripe`, `square`, and `crypto`.&#10;- **Tests:** Expanded test coverage in `newOrganization` and `squareTokenUpdater` lambdas for error handling and validations.&#10;- **Interfaces:** Adjusted interfaces in `lambda/Interfaces.ts` to better structure reward systems and shop details.&#10;- **Path Updates:** Updated import paths across files for better aliasing using TypeScript configuration.&#10;- **Concurrency:** Enhanced `squareTokenUpdater` for concurrent token refresh and validation.">
++      <option name="closed" value="true" />
++      <created>1744302268569</created>
++      <option name="number" value="00004" />
++      <option name="presentableId" value="LOCAL-00004" />
++      <option name="project" value="LOCAL" />
++      <updated>1744302268569</updated>
++    </task>
++    <option name="localTasksCounter" value="5" />
+     <servers />
+   </component>
+   <component name="TypeScriptGeneratedFilesManager">
+     <option name="version" value="3" />
+-    <option name="exactExcludedFiles">
+-      <list>
+-        <option value="$PROJECT_DIR$/lib/Stacks/amplify-hosting-stack.d.ts" />
+-        <option value="$PROJECT_DIR$/lib/Stacks/amplify-hosting-stack.js" />
+-      </list>
+-    </option>
+   </component>
+   <component name="Vcs.Log.Tabs.Properties">
+     <option name="TAB_STATES">
+@@ -302,17 +379,35 @@
+   <component name="VcsManagerConfiguration">
+     <MESSAGE value="billing page testing and subscription creation update" />
+     <MESSAGE value="create subsciption on addPayment" />
+-    <option name="LAST_COMMIT_MESSAGE" value="create subsciption on addPayment" />
++    <MESSAGE value="- **Refactor:** Refactored mocking strategy for tests, including AWS SDK clients and external libraries like `Stripe`, `square`, and `crypto`.&#10;- **Tests:** Expanded test coverage in `newOrganization` and `squareTokenUpdater` lambdas for error handling and validations.&#10;- **Interfaces:** Adjusted interfaces in `lambda/Interfaces.ts` to better structure reward systems and shop details.&#10;- **Path Updates:** Updated import paths across files for better aliasing using TypeScript configuration.&#10;- **Concurrency:** Enhanced `squareTokenUpdater` for concurrent token refresh and validation." />
++    <option name="LAST_COMMIT_MESSAGE" value="- **Refactor:** Refactored mocking strategy for tests, including AWS SDK clients and external libraries like `Stripe`, `square`, and `crypto`.&#10;- **Tests:** Expanded test coverage in `newOrganization` and `squareTokenUpdater` lambdas for error handling and validations.&#10;- **Interfaces:** Adjusted interfaces in `lambda/Interfaces.ts` to better structure reward systems and shop details.&#10;- **Path Updates:** Updated import paths across files for better aliasing using TypeScript configuration.&#10;- **Concurrency:** Enhanced `squareTokenUpdater` for concurrent token refresh and validation." />
+   </component>
+   <component name="XDebuggerManager">
+     <breakpoint-manager>
+       <breakpoints>
++        <line-breakpoint enabled="true" type="javascript">
++          <url>file://$PROJECT_DIR$/lambda/organization/getBilling.ts</url>
++          <line>19</line>
++          <properties lambdaOrdinal="-1" />
++          <option name="timeStamp" value="18" />
++        </line-breakpoint>
++        <line-breakpoint enabled="true" type="javascript">
++          <url>file://$PROJECT_DIR$/test/lambdas/organization/getBilling.test.ts</url>
++          <line>366</line>
++          <properties lambdaOrdinal="-1" />
++          <option name="timeStamp" value="20" />
++        </line-breakpoint>
+         <line-breakpoint enabled="true" type="javascript">
+           <url>file://$PROJECT_DIR$/test/lambdas/organization/getBilling.test.ts</url>
+-          <line>184</line>
+-          <option name="timeStamp" value="4" />
++          <line>78</line>
++          <properties lambdaOrdinal="-1" />
++          <option name="timeStamp" value="22" />
+         </line-breakpoint>
+       </breakpoints>
+     </breakpoint-manager>
+   </component>
++  <component name="XSLT-Support.FileAssociations.UIState">
++    <expand />
++    <select />
++  </component>
+ </project>
+\ No newline at end of file
