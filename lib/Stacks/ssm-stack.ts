@@ -85,9 +85,9 @@ export class SSMStack extends cdk.Stack {
     new ssm.StringParameter(this, 'AppConfig', {
       parameterName: `/myRewardsApp/${props.stageName}/appConfig`,
       stringValue: JSON.stringify({
-        applicationId: '6hq9cal',
-        environmentId: '1yh2vb8',
-        configProfileId: '9pmpwp2',
+        applicationId: cdk.Fn.importValue('AppConfigApplicationId'),
+        environmentId: cdk.Fn.importValue('AppConfigEnvironmentId'),
+        configProfileId: cdk.Fn.importValue('AppConfigProfileId'),
       })
     });
 
