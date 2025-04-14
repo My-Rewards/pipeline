@@ -196,8 +196,17 @@ export class UserPoolStack extends cdk.Stack {
           flows: {
             authorizationCodeGrant: true,
           },
-          callbackUrls: ['exp://127.0.0.1:19000/--/'],
-          logoutUrls: ['exp://127.0.0.1:19000/--/'],
+          callbackUrls:
+              [
+                'exp://127.0.0.1:19000/--/',
+                'myrewards://oauthredirect'
+              ],
+          logoutUrls:
+              [
+                  'exp://127.0.0.1:19000/--/',
+                  'myrewards://signout'
+
+              ],
         }
       });
 

@@ -68,7 +68,7 @@ export class ApiGatewayStack extends cdk.Stack {
                 allowHeaders: apigateway.Cors.DEFAULT_HEADERS
             },
             deployOptions: {
-                stageName: 'prod',
+                stageName: props.stageName,
                 throttlingRateLimit: 20,
                 throttlingBurstLimit: 40,
             },

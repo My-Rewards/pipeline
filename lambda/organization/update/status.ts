@@ -4,6 +4,8 @@ import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from "@aws-sdk/lib-
 import Stripe from "stripe";
 import { dfPM, getStripeSecret } from "../../constants/validOrganization";
 import { STRIPE_API_VERSION } from "../../../global/constants";
+import {Client} from "pg";
+import {connectToAurora} from "@/lambda/constants/aurora";
 
 const dynamoClient = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
@@ -15,14 +17,14 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
   const orgTable = process.env.ORG_TABLE;
   const userTable = process.env.USER_TABLE;
   const stripeArn = process.env.STRIPE_ARN;
+  const clusterSecretArn = process.env.CLUSTER_SECRET_ARN
 
   const userSub = event.requestContext.authorizer?.claims?.sub;
 
   switch(true){
-    case (!orgTable || !userTable || !stripeArn):
-      return { statusCode: 500, body: "Missing env variables" };
-    case (!userSub):
-      return { statusCode: 500, body: "Missing User id" };  
+    case (!orgTable || !userTable || !stripeArn): return { statusCode: 500, body: "Missing env variables" };
+    case (!userSub): return { statusCode: 500, body: "Missing User id" };
+    case !clusterSecretArn: return{statusCode:404, body:'Missing Aurora Secret ARN'};
   }
 
   try {
@@ -64,10 +66,17 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         cachedStripeKey = await getStripeSecret(stripeArn);
         if (!cachedStripeKey) return { statusCode: 404, body: JSON.stringify({ error: "Failed to retrieve Stripe secret key" }) };
     }
+
     if(!stripe){
         stripe = new Stripe(cachedStripeKey, { apiVersion: STRIPE_API_VERSION });
         if (!stripe) return { statusCode: 500, body: JSON.stringify({ error: "Failed to open stripe Client" }) };
     }
+
+  const auroraClient = await connectToAurora(clusterSecretArn);
+
+  if(!auroraClient){
+      return { statusCode: 500, body: JSON.stringify({ error: "Failed to connect to Aurora" }) };
+  }
 
     let status = org.Item.active;
     const hasDfPM = await dfPM(org.Item.stripe_id, stripe);
@@ -84,7 +93,9 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             ReturnValues: 'UPDATED_NEW'
         });
         status = !org.Item.active
-    
+
+        await auroraClient.query('UPDATE organization SET active = $1 WHERE id = $2', [status, orgId]);
+
         await dynamoDb.send(updateOrg);
     }
 
