@@ -6,6 +6,7 @@ import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as nodejs from 'aws-cdk-lib/aws-lambda-nodejs'
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { METER_PRICE } from '../../../../global/constants';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
 
 interface OrgApiStackProps extends cdk.NestedStackProps {
   api: apigateway.RestApi;
@@ -21,11 +22,33 @@ export class OrgApiStack extends cdk.NestedStack {
     const shopTable = dynamodb.Table.fromTableArn(this, 'ImportedShopsTableARN', cdk.Fn.importValue('ShopTableARN'));
     
     const stripeData = cdk.aws_secretsmanager.Secret.fromSecretNameV2(this, 'fetchStripeCredentials', 'stripe/credentials');
+    const clusterSecret = cdk.aws_secretsmanager.Secret.fromSecretCompleteArn(this, 'auroraSecret', cdk.Fn.importValue('AuroraSecretARN'));
 
     const ImageDomain = cdk.Fn.importValue('ImageDomain');
     const ImageBucketName = cdk.Fn.importValue('OrganizationImageBucket');
     const ImageBucketARN = cdk.Fn.importValue('OrganizationImageBucketARN');
-    const ImageCloudfrontId = cdk.Fn.importValue('ImageCloudfrontId')
+    const ImageCloudfrontId = cdk.Fn.importValue('ImageCloudfrontId');
+
+    const subnet1 = cdk.Fn.importValue('PrivateSubnet1Id');
+    const subnet2 = cdk.Fn.importValue('PrivateSubnet2Id');
+
+    const vpc = ec2.Vpc.fromVpcAttributes(this, 'ImportedVPC', {
+      vpcId: cdk.Fn.importValue('ClusterVPCId'),
+      availabilityZones: cdk.Fn.getAzs(),
+      isolatedSubnetIds: [
+        subnet1,
+        subnet2
+      ]
+    });
+
+    const securityGroupResolvers = ec2.SecurityGroup.fromSecurityGroupId(
+        this,
+        'ImportedSecurityGroupResolvers',
+        cdk.Fn.importValue('SecurityGroupResolversId'),
+        { allowAllOutbound: true }
+    );
+
+    const clusterRole = iam.Role.fromRoleArn(this, 'ImportedRole', cdk.Fn.importValue('ClusterRoleARN'));
 
     // Create ORG Lambda
     const createOrgLambda = new nodejs.NodejsFunction(this, "create-organization",{
@@ -33,12 +56,19 @@ export class OrgApiStack extends cdk.NestedStack {
       entry: 'lambda/organization/newOrganization.ts',
       timeout:cdk.Duration.seconds(5),
       handler: 'handler',
+      role:clusterRole,
+      securityGroups:[securityGroupResolvers],
+      vpcSubnets: {
+        subnetType: ec2.SubnetType.PRIVATE_ISOLATED
+      },
+      vpc,
       environment: {
         ORG_TABLE: orgTable.tableName,
         USER_TABLE: userTable.tableName,
         BUCKET_NAME: ImageBucketName,
         IMAGE_DOMAIN: ImageDomain,
-        STRIPE_ARN: stripeData.secretArn
+        STRIPE_ARN: stripeData.secretArn,
+        CLUSTER_SECRET_ARN: clusterSecret.secretArn,
     },
       bundling: {
         externalModules: ['aws-sdk'],
@@ -50,14 +80,15 @@ export class OrgApiStack extends cdk.NestedStack {
     stripeData.grantRead(createOrgLambda);
     createOrgLambda.addToRolePolicy(
       new iam.PolicyStatement({
-        actions: [    
+        actions: [
           "s3:GetObject",
           "s3:PutObject",
-          "s3:GetObjectVersion"
+          "s3:GetObjectVersion",
         ],
         resources: [`${ImageBucketARN}/*`],
       })
     );
+    clusterSecret.grantRead(createOrgLambda);
 
     // Get Org Lambda
     const getOrgLambda = new nodejs.NodejsFunction(this, "get-organization",{
@@ -189,6 +220,7 @@ export class OrgApiStack extends cdk.NestedStack {
         ORG_TABLE: orgTable.tableName,
         USER_TABLE: userTable.tableName,
         STRIPE_ARN: stripeData.secretArn,
+        CLUSTER_SECRET_ARN: clusterSecret.secretArn,
       },
       bundling: {
         externalModules: ['aws-sdk'],
@@ -198,6 +230,7 @@ export class OrgApiStack extends cdk.NestedStack {
     orgTable.grantReadWriteData(updateOrgStatusLambda);
     userTable.grantReadData(updateOrgStatusLambda);
     stripeData.grantRead(updateOrgStatusLambda);
+    clusterSecret.grantRead(updateOrgStatusLambda);
 
     // Update Organization Lambda
     const updateOrgImageLambda = new nodejs.NodejsFunction(this, "organization-update-images",{

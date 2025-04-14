@@ -14,7 +14,7 @@ export const AWS_REGION = 'us-east-1'
 export const DOMAIN = 'myrewards.website'
 
 export const METER_PRICE = 'price_1QliStLvDQv3Uhkh2z03QWbK'
-
+export const DATABASE_NAME = 'myrewardsdb'
 // Resource export names
 export const UP_CUSTOMER_ID = 'customerUserPoolID';
 export const UPC_CUSTOMER = 'customerUserPoolClientID';

@@ -12,6 +12,7 @@ import {
     IDENTITY_POOL_CUSTOMER,
     IDENTITY_POOL_BUSINESS
 } from '../../global/constants';
+import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 
 export class SSMStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: SSMStackProps) {
@@ -22,6 +23,9 @@ export class SSMStack extends cdk.Stack {
 
     const squareData = cdk.aws_secretsmanager.Secret.fromSecretNameV2(this, 'fetchSquareCredentials', 'square/credentials');
     const square_clientId = squareData.secretValueFromJson('client_id').unsafeUnwrap();
+
+    const secretData =  secretsmanager.Secret.fromSecretNameV2(this, 'GoogleAPI', 'google/api');
+    const googleMapsKey = secretData.secretValueFromJson('maps_key');
 
     // Customer User Pool Parameters
     new ssm.StringParameter(this, 'CustomerUserPoolId', {
@@ -85,6 +89,11 @@ export class SSMStack extends cdk.Stack {
         environmentId: '1yh2vb8',
         configProfileId: '9pmpwp2',
       })
+    });
+
+    new ssm.StringParameter(this, 'GoogleMapsKey', {
+      parameterName: `/myRewardsApp/${props.stageName}/googleMapsKey`,
+      stringValue: googleMapsKey.unsafeUnwrap(),
     });
   }
 }

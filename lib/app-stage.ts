@@ -7,97 +7,104 @@ import { ApiGatewayStack } from './Stacks/apiGateway-stack';
 import { UserPoolStack } from './Stacks/userPool-stack';
 import { SSMStack } from './Stacks/ssm-stack';
 import { WebsiteStack } from './Stacks/website-stack';
-import { 
-  AmplifyStackProps,
-  ApiStackProps,
-  AppConfigStackProps,
-  CustomEmailProps,
-  DynamoStackProps, 
-  HostedZoneProps, 
-  SSMStackProps, 
-  StageProps, 
-  UserPoolStackProps, 
-  WebsiteStackProps,
-  BusinessWebsiteStackProps,
-  ImageBucketProps
-} from '../global/props';
+import {
+    AmplifyStackProps,
+    ApiStackProps,
+    AppConfigStackProps,
+    CustomEmailProps,
+    DynamoStackProps,
+    HostedZoneProps,
+    SSMStackProps,
+    StageProps,
+    UserPoolStackProps,
+    WebsiteStackProps,
+    BusinessWebsiteStackProps,
+    ImageBucketProps,
+    AuroraStackProps
+} from '@/global/props';
 import { HostedZoneStack } from './Stacks/hostedZone-stack';
 import { AppConfigStack } from './Stacks/appConfigStack';
 import { BusinessWebsiteStack } from './Stacks/business-website-stack';
 import { ImageBucketStack } from './Stacks/ImageBucket-stack';
 import { CloudWatchStack } from './Stacks/cloudWatch-stack';
+import { AuroraStack } from './Stacks/aurora-stack';
 
 export class PipelineAppStage extends cdk.Stage {
     constructor(scope: Construct, id: string, props: StageProps) {
-      super(scope, id, props);
+        super(scope, id, props);
 
-      let businessDomain;
-      let apiDomain;
-      let authDomain;
-      let imageDomain;
+        let businessDomain;
+        let apiDomain;
+        let authDomain;
+        let imageDomain;
 
-      if(props.stageName === 'beta'){
-          businessDomain=`${props.stageName}.business`;
-          authDomain=`${props.stageName}.auth`;
-          apiDomain=`${props.stageName}.api`;
-          imageDomain=`${props.stageName}.assets`;
-      }else{
-          businessDomain=`business`;
-          authDomain=`auth`;
-          apiDomain=`api`;
-          imageDomain='assets'
-      }
+        if(props.stageName === 'beta'){
+            businessDomain=`${props.stageName}.business`;
+            authDomain=`${props.stageName}.auth`;
+            apiDomain=`${props.stageName}.api`;
+            imageDomain=`${props.stageName}.assets`;
+        }else{
+            businessDomain=`business`;
+            authDomain=`auth`;
+            apiDomain=`api`;
+            imageDomain='assets'
+        }
 
-      let hostedZoneProps = this.createHostedZoneProps(props, this.stageName, authDomain, businessDomain, apiDomain, imageDomain);
-      const hostedZone_stack = new HostedZoneStack(this, 'HostedZone-Stack', hostedZoneProps);
-      hostedZone_stack.terminationProtection = true;
+        let hostedZoneProps = this.createHostedZoneProps(props, this.stageName, authDomain, businessDomain, apiDomain, imageDomain);
+        const hostedZone_stack = new HostedZoneStack(this, 'HostedZone-Stack', hostedZoneProps);
+        hostedZone_stack.terminationProtection = true;
 
-      let dynamoDbProp = this.createDynamoProps(props, this.stageName);
-      const dynamo_stack = new DynamoStack(this, 'Dynamo-Stack', dynamoDbProp);
-      dynamo_stack.terminationProtection = true;
+        let dynamoDbProp = this.createDynamoProps(props, this.stageName);
+        const dynamo_stack = new DynamoStack(this, 'Dynamo-Stack', dynamoDbProp);
+        dynamo_stack.terminationProtection = true;
 
-      let appConfigProps = this.createAppConfigProps(props, this.stageName);
-      const appConfigStack = new AppConfigStack(this, 'AppConfig-Stack', appConfigProps);
+        let auroraStackProps = this.createAuroraStackProps(props, this.stageName);
+        const auroraStack = new AuroraStack(this, 'Aurora-Stack', auroraStackProps);
+        auroraStack.terminationProtection = true;
 
-      let customEmailProps = this.createCustomEmailProps(props, this.stageName, authDomain);
-      const customEmail_stack = new CustomEmailStack(this, 'CustomEmail-Stack', customEmailProps);
-      customEmail_stack.addDependency(hostedZone_stack);
+        let appConfigProps = this.createAppConfigProps(props, this.stageName);
+        const appConfigStack = new AppConfigStack(this, 'AppConfig-Stack', appConfigProps);
 
-      let userPoolProps = this.createUserPoolProps(props, this.stageName, authDomain, businessDomain);
-      const userPool_stack = new UserPoolStack(this, 'UserPool-Stack', userPoolProps);
-      userPool_stack.addDependency(customEmail_stack);
-      userPool_stack.terminationProtection = true;
+        let customEmailProps = this.createCustomEmailProps(props, this.stageName, authDomain);
+        const customEmail_stack = new CustomEmailStack(this, 'CustomEmail-Stack', customEmailProps);
+        customEmail_stack.addDependency(hostedZone_stack);
 
-      let imageBucketProps = this.createImageBucketProps(props, this.stageName, imageDomain, businessDomain);
-      const imageBucket_stack = new ImageBucketStack(this, 'ImageBucket-Stack', imageBucketProps);
-      imageBucket_stack.addDependency(userPool_stack);
+        let userPoolProps = this.createUserPoolProps(props, this.stageName, authDomain, businessDomain);
+        const userPool_stack = new UserPoolStack(this, 'UserPool-Stack', userPoolProps);
+        userPool_stack.addDependency(customEmail_stack);
+        userPool_stack.terminationProtection = true;
 
-      let apiGatewayProps = this.createApiProps(props, this.stageName, apiDomain);
-      const apiGateway_stack = new ApiGatewayStack(this, 'ApiGateway-Stack', apiGatewayProps);
-      apiGateway_stack.addDependency(userPool_stack);
-      apiGateway_stack.addDependency(imageBucket_stack);
+        let imageBucketProps = this.createImageBucketProps(props, this.stageName, imageDomain, businessDomain);
+        const imageBucket_stack = new ImageBucketStack(this, 'ImageBucket-Stack', imageBucketProps);
+        imageBucket_stack.addDependency(userPool_stack);
 
-      let cloudWatchProp = this.createCloudWatchProps(props, this.stageName);
-      const cloudWatchStack = new CloudWatchStack(this, 'CloudWatch-Stack', cloudWatchProp);
-      cloudWatchStack.addDependency(apiGateway_stack);
+        let apiGatewayProps = this.createApiProps(props, this.stageName, apiDomain);
+        const apiGateway_stack = new ApiGatewayStack(this, 'ApiGateway-Stack', apiGatewayProps);
+        apiGateway_stack.addDependency(userPool_stack);
+        apiGateway_stack.addDependency(imageBucket_stack);
+        apiGateway_stack.addDependency(auroraStack);
 
-      let amplifyProp = this.createAmplifyProps(props, this.stageName);
-      const amplify_stack = new AmplifyStack(this, 'Amplify-Stack', amplifyProp);
-      amplify_stack.addDependency(apiGateway_stack);
+        let cloudWatchProp = this.createCloudWatchProps(props, this.stageName);
+        const cloudWatchStack = new CloudWatchStack(this, 'CloudWatch-Stack', cloudWatchProp);
+        cloudWatchStack.addDependency(apiGateway_stack);
 
-      let ssmProps = this.createSSMProps(props, this.stageName);
-      const ssm_Stack = new SSMStack(this, 'Ssm-Stack', ssmProps);
-      ssm_Stack.addDependency(amplify_stack);
+        let amplifyProp = this.createAmplifyProps(props, this.stageName);
+        const amplify_stack = new AmplifyStack(this, 'Amplify-Stack', amplifyProp);
+        amplify_stack.addDependency(apiGateway_stack);
 
-      let mainWebsiteProps = this.mainWebsiteProps(props, this.stageName, authDomain);
-      const website_stack = new WebsiteStack(this, "Website-Stack", mainWebsiteProps)
-      website_stack.addDependency(ssm_Stack);
-      website_stack.addDependency(appConfigStack)
+        let ssmProps = this.createSSMProps(props, this.stageName);
+        const ssm_Stack = new SSMStack(this, 'Ssm-Stack', ssmProps);
+        ssm_Stack.addDependency(amplify_stack);
 
-      let mainBusinessWebsiteProps = this.mainBusinessWebsiteProps(props, this.stageName, businessDomain, apiDomain);
-      const business_website_stack = new BusinessWebsiteStack(this, "Business-Website-Stack", mainBusinessWebsiteProps);
-      business_website_stack.addDependency(ssm_Stack)
-      business_website_stack.addDependency(appConfigStack)
+        let mainWebsiteProps = this.mainWebsiteProps(props, this.stageName, authDomain);
+        const website_stack = new WebsiteStack(this, "Website-Stack", mainWebsiteProps)
+        website_stack.addDependency(ssm_Stack);
+        website_stack.addDependency(appConfigStack)
+
+        let mainBusinessWebsiteProps = this.mainBusinessWebsiteProps(props, this.stageName, businessDomain, apiDomain);
+        const business_website_stack = new BusinessWebsiteStack(this, "Business-Website-Stack", mainBusinessWebsiteProps);
+        business_website_stack.addDependency(ssm_Stack)
+        business_website_stack.addDependency(appConfigStack)
     }
 
   createHostedZoneProps(props:StageProps, stage:string, authDomain:string, businessDomain:string, apiDomain:string, imageDomain:string):HostedZoneProps{
@@ -124,6 +131,16 @@ export class PipelineAppStage extends cdk.Stage {
         stageName: stage
     }
   }
+
+  createAuroraStackProps(props:StageProps, stage:string):AuroraStackProps{
+    return{
+        env: {
+            account: props.env?.account,
+            region: props.env?.region
+        },
+            stageName: stage
+        }
+    }
 
   createAppConfigProps(props:StageProps, stage:string):AppConfigStackProps{
     return{

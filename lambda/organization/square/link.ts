@@ -150,7 +150,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       });
       const encrypted = await kmsClient.send(command);
       if(!encrypted.CiphertextBlob) return null;
-      return String.fromCharCode(...encrypted.CiphertextBlob);
+      return Buffer.from(encrypted.CiphertextBlob).toString('hex');
     };
 
     const encryptedAccessToken = await encryptToken(accessToken);
