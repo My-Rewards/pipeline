@@ -55,6 +55,22 @@ export class AppConfigStack extends cdk.Stack {
         configurationVersion: appConfigVersion.ref,
         deploymentStrategyId: deploymentStrategy.ref
       });
+
+    new cdk.CfnOutput(this, 'APPCONFIG_APP_ID', {
+        value: appConfigApplication.ref,
+        description: 'Id of AppConfig application',
+        exportName: 'AppConfigApplicationId',
+    });
+    new cdk.CfnOutput(this, 'APPCONFIG_ENV_ID', {
+        value: appConfigEnvironment.ref,
+        description: 'Id of the AppConfig environment',
+        exportName: 'AppConfigEnvironmentId',
+    });
+    new cdk.CfnOutput(this, 'APPCONFIG_PROFILE_ID', {
+        value: appConfigProfile.ref,
+        description: 'Id of the AppConfig profile',
+        exportName: 'AppConfigProfileId',
+    });
     }
 }
 
