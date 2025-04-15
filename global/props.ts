@@ -21,6 +21,10 @@ export interface AuroraStackProps extends cdk.StackProps {
   stageName: string;
 }
 
+export interface VpcStackProps extends cdk.StackProps {
+  stageName: string;
+}
+
 export interface CustomEmailProps extends cdk.StackProps {
   stageName: string;
   authDomain:string;
