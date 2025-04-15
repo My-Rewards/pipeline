@@ -100,7 +100,8 @@ export class PipelineAppStage extends cdk.Stage {
         let ssmProps = this.createSSMProps(props, this.stageName);
         const ssm_Stack = new SSMStack(this, 'Ssm-Stack', ssmProps);
         ssm_Stack.addDependency(amplify_stack);
-
+        ssm_Stack.addDependency(appConfigStack);
+        
         let mainWebsiteProps = this.mainWebsiteProps(props, this.stageName, authDomain);
         const website_stack = new WebsiteStack(this, "Website-Stack", mainWebsiteProps)
         website_stack.addDependency(ssm_Stack);
