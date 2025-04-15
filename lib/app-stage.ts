@@ -28,6 +28,7 @@ import { BusinessWebsiteStack } from './Stacks/business-website-stack';
 import { ImageBucketStack } from './Stacks/ImageBucket-stack';
 import { CloudWatchStack } from './Stacks/cloudWatch-stack';
 import { AuroraStack } from './Stacks/aurora-stack';
+import { VpcStack } from './Stacks/vpc-stack';
 
 export class PipelineAppStage extends cdk.Stage {
     constructor(scope: Construct, id: string, props: StageProps) {
@@ -58,9 +59,13 @@ export class PipelineAppStage extends cdk.Stage {
         const dynamo_stack = new DynamoStack(this, 'Dynamo-Stack', dynamoDbProp);
         dynamo_stack.terminationProtection = true;
 
+        let vpcStackProps = this.createVpcStackProps(props, this.stageName);
+        const vpcStack = new VpcStack(this, 'Vpc-Stack', vpcStackProps);
+
         let auroraStackProps = this.createAuroraStackProps(props, this.stageName);
         const auroraStack = new AuroraStack(this, 'Aurora-Stack', auroraStackProps);
         auroraStack.terminationProtection = true;
+        auroraStack.addDependency(vpcStack);
 
         let appConfigProps = this.createAppConfigProps(props, this.stageName);
         const appConfigStack = new AppConfigStack(this, 'AppConfig-Stack', appConfigProps);
@@ -82,7 +87,7 @@ export class PipelineAppStage extends cdk.Stage {
         const apiGateway_stack = new ApiGatewayStack(this, 'ApiGateway-Stack', apiGatewayProps);
         apiGateway_stack.addDependency(userPool_stack);
         apiGateway_stack.addDependency(imageBucket_stack);
-        apiGateway_stack.addDependency(auroraStack);
+        // apiGateway_stack.addDependency(auroraStack);
 
         let cloudWatchProp = this.createCloudWatchProps(props, this.stageName);
         const cloudWatchStack = new CloudWatchStack(this, 'CloudWatch-Stack', cloudWatchProp);
@@ -107,7 +112,7 @@ export class PipelineAppStage extends cdk.Stage {
         business_website_stack.addDependency(appConfigStack)
     }
 
-  createHostedZoneProps(props:StageProps, stage:string, authDomain:string, businessDomain:string, apiDomain:string, imageDomain:string):HostedZoneProps{
+    createHostedZoneProps(props:StageProps, stage:string, authDomain:string, businessDomain:string, apiDomain:string, imageDomain:string):HostedZoneProps{
     return{
       env: {
           account: props.env?.account,
@@ -120,52 +125,61 @@ export class PipelineAppStage extends cdk.Stage {
       apiDomain,
       imageDomain
     }
-  }
-
-  createDynamoProps(props:StageProps, stage:string):DynamoStackProps{
-    return{
-        env: {
-            account: props.env?.account,
-            region: props.env?.region
-        },
-        stageName: stage
     }
-  }
 
-  createAuroraStackProps(props:StageProps, stage:string):AuroraStackProps{
-    return{
-        env: {
-            account: props.env?.account,
-            region: props.env?.region
-        },
+    createDynamoProps(props:StageProps, stage:string):DynamoStackProps{
+        return{
+            env: {
+                account: props.env?.account,
+                region: props.env?.region
+            },
             stageName: stage
         }
     }
 
-  createAppConfigProps(props:StageProps, stage:string):AppConfigStackProps{
-    return{
-        env: {
-            account: props.env?.account,
-            region: props.env?.region
-        },
-        stageName: stage
+    createVpcStackProps(props:StageProps, stage:string):AuroraStackProps{
+        return{
+            env: {
+                account: props.env?.account,
+                region: props.env?.region
+            },
+            stageName: stage
+        }
     }
-  }
 
-  createImageBucketProps(props:StageProps, stage:string, imageDomain:string, businessDomain:string):ImageBucketProps{
-    return{
-        env: {
-            account: props.env?.account,
-            region: props.env?.region
-        },
-        stageName: stage,
-        imageDomain,
-        businessDomain
-
+    createAuroraStackProps(props:StageProps, stage:string):AuroraStackProps{
+        return{
+            env: {
+                account: props.env?.account,
+                region: props.env?.region
+            },
+                stageName: stage
+        }
     }
-  }
 
-  createCustomEmailProps(props:StageProps, stage:string, authDomain:string):CustomEmailProps{
+    createAppConfigProps(props:StageProps, stage:string):AppConfigStackProps{
+        return{
+            env: {
+                account: props.env?.account,
+                region: props.env?.region
+            },
+            stageName: stage
+        }
+    }
+
+    createImageBucketProps(props:StageProps, stage:string, imageDomain:string, businessDomain:string):ImageBucketProps{
+        return{
+            env: {
+                account: props.env?.account,
+                region: props.env?.region
+            },
+            stageName: stage,
+            imageDomain,
+            businessDomain
+        }
+    }
+
+    createCustomEmailProps(props:StageProps, stage:string, authDomain:string):CustomEmailProps{
     return{
         env: {
             account: props.env?.account,
@@ -174,9 +188,9 @@ export class PipelineAppStage extends cdk.Stage {
         stageName: stage,
         authDomain,
     }
-  }
+    }
 
-  createUserPoolProps(props:StageProps, stage:string, authDomain:string, businessDomain:string):UserPoolStackProps{
+    createUserPoolProps(props:StageProps, stage:string, authDomain:string, businessDomain:string):UserPoolStackProps{
     return{
         env: {
             account: props.env?.account,
@@ -186,9 +200,9 @@ export class PipelineAppStage extends cdk.Stage {
         authDomain,
         businessDomain
     }
-  }
+    }
 
-  createApiProps(props:StageProps, stage:string, apiDomain:string):ApiStackProps{
+    createApiProps(props:StageProps, stage:string, apiDomain:string):ApiStackProps{
     return{
         env: {
             account: props.env?.account,
@@ -198,9 +212,9 @@ export class PipelineAppStage extends cdk.Stage {
         subDomain:props.subDomain,
         apiDomain
     }
-  }
+    }
 
-  createAmplifyProps(props:StageProps, stage:string):AmplifyStackProps{
+    createAmplifyProps(props:StageProps, stage:string):AmplifyStackProps{
     return{
         env: {
             account: props.env?.account,
@@ -208,9 +222,9 @@ export class PipelineAppStage extends cdk.Stage {
         },
         stageName: stage
     }
-  }
+    }
 
-  createSSMProps(props:StageProps, stage:string):SSMStackProps{
+    createSSMProps(props:StageProps, stage:string):SSMStackProps{
     return{
         env: {
             account: props.env?.account,
@@ -218,9 +232,9 @@ export class PipelineAppStage extends cdk.Stage {
         },
         stageName: stage
     }
-  }
+    }
 
-  createCloudWatchProps(props:StageProps, stage:string):SSMStackProps{
+    createCloudWatchProps(props:StageProps, stage:string):SSMStackProps{
     return{
         env: {
             account: props.env?.account,
@@ -228,8 +242,8 @@ export class PipelineAppStage extends cdk.Stage {
         },
         stageName: stage
     }
-  }
-  mainWebsiteProps(props:StageProps, stage:string, authDomain:string):WebsiteStackProps{
+    }
+    mainWebsiteProps(props:StageProps, stage:string, authDomain:string):WebsiteStackProps{
     return{
       env: {
           account: props.env?.account,
@@ -241,11 +255,11 @@ export class PipelineAppStage extends cdk.Stage {
       githubRepo: 'my-rewards-website',
       githubBranch: stage,
       buildCommand: 'npm run build',
-      authDomain, 
+      authDomain,
     }
-  }
+    }
 
-  mainBusinessWebsiteProps(props:StageProps, stage:string, businessDomain:string, apiDomain:string):BusinessWebsiteStackProps{
+    mainBusinessWebsiteProps(props:StageProps, stage:string, businessDomain:string, apiDomain:string):BusinessWebsiteStackProps{
     return{
         env: {
             account: props.env?.account,
@@ -259,5 +273,5 @@ export class PipelineAppStage extends cdk.Stage {
         buildCommand: 'npm run build',
         apiDomain
     }
-  }
+    }
 }

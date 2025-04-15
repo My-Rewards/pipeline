@@ -4,7 +4,6 @@ import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from "@aws-sdk/lib-
 import Stripe from "stripe";
 import { dfPM, getStripeSecret } from "../../constants/validOrganization";
 import { STRIPE_API_VERSION } from "../../../global/constants";
-import {Client} from "pg";
 import {connectToAurora} from "@/lambda/constants/aurora";
 
 const dynamoClient = new DynamoDBClient({});
