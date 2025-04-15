@@ -1,16 +1,16 @@
 import { Handler } from 'aws-lambda';
-import { SecretsManager } from 'aws-sdk';
 import { Client } from 'pg';
-import {DATABASE_NAME} from "../../global/constants";
+import {GetSecretValueCommand, SecretsManagerClient} from "@aws-sdk/client-secrets-manager";
 
-const secrets = new SecretsManager();
+const secretClient = new SecretsManagerClient({ region: "us-east-1" });
 
 export const handler: Handler = async () => {
     const SECRET_ARN = process.env.SECRET_ARN!;
+    const DATABASE_NAME = process.env.DATABASE_NAME!;
 
     try {
         console.log('retrieving admin credentials...');
-        const adminSecret = await secrets.getSecretValue({ SecretId: SECRET_ARN }).promise();
+        const adminSecret = await secretClient.send(new GetSecretValueCommand({ SecretId: SECRET_ARN }));
         const admin = JSON.parse(adminSecret.SecretString as string);
 
         const adminClient = new Client({
@@ -77,7 +77,7 @@ export const handler: Handler = async () => {
         console.log('checking and creating tables if needed...');
 
         await userClient.query(`
-            CREATE TABLE IF NOT EXISTS Organization (
+            CREATE TABLE IF NOT EXISTS Organizations (
                 id VARCHAR(50) PRIMARY KEY,
                 active BOOLEAN DEFAULT TRUE,
                 updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -85,18 +85,18 @@ export const handler: Handler = async () => {
         `);
 
         await userClient.query(`
-            CREATE TABLE IF NOT EXISTS Shop (
+            CREATE TABLE IF NOT EXISTS Shops (
                 id VARCHAR(50) PRIMARY KEY,
                 organization_id VARCHAR(50) NOT NULL,
                 active BOOLEAN DEFAULT TRUE,
                 location GEOGRAPHY(POINT),
                 updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 
-                 FOREIGN KEY (organization_id) REFERENCES Organization(id)
+                 FOREIGN KEY (organization_id) REFERENCES Organizations(id)
                 );
 
-            CREATE INDEX IF NOT EXISTS idx_shops_location ON Shop USING GIST(location);
-            CREATE INDEX IF NOT EXISTS idx_shops_organization ON Shop(organization_id);
+            CREATE INDEX IF NOT EXISTS idx_shops_location ON Shops USING GIST(location);
+            CREATE INDEX IF NOT EXISTS idx_shops_organization ON Shops(organization_id);
         `);
 
         console.log('all tables and extensions created successfully!');

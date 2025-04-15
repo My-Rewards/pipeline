@@ -1,14 +1,14 @@
 import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
-import { AuroraStackProps } from "../../global/props";
+import * as cr from 'aws-cdk-lib/custom-resources';
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as Aurora from "aws-cdk-lib/aws-rds";
 import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as nodejs from "aws-cdk-lib/aws-lambda-nodejs";
-import * as cr from 'aws-cdk-lib/custom-resources';
 import { Duration } from "aws-cdk-lib";
+import { AuroraStackProps } from "../../global/props";
 import { DATABASE_NAME } from "../../global/constants";
 
 export class AuroraStack extends cdk.Stack {
@@ -18,17 +18,25 @@ export class AuroraStack extends cdk.Stack {
 
         const isProd = props.stageName === 'prod';
 
-        const vpc = new ec2.Vpc(this, 'AuroraVpc', {
-            vpcName: 'Aurora-vpc',
-            maxAzs: 2,
-            natGateways: 0,
-            subnetConfiguration: [
-                {
-                    subnetType: ec2.SubnetType.PRIVATE_ISOLATED,
-                    cidrMask: 24,
-                    name: 'aurora-isolated-subnet'
-                }
-            ]
+        const vpc = ec2.Vpc.fromVpcAttributes(this, 'ImportedVPC', {
+            vpcId: cdk.Fn.importValue('ClusterVPC-Id'),
+            availabilityZones: cdk.Fn.getAzs(),
+            vpcCidrBlock: '10.0.0.0/16',
+            privateSubnetIds: [
+                cdk.Fn.importValue('PrivateSubnetWithEgress1-Id'),
+                cdk.Fn.importValue('PrivateSubnetWithEgress2-Id')
+            ],
+            privateSubnetNames: ['Private1', 'Private2'],
+            publicSubnetIds: [
+                cdk.Fn.importValue('PublicSubnet1-Id'),
+                cdk.Fn.importValue('PublicSubnet2-Id')
+            ],
+            publicSubnetNames: ['Public1', 'Public2'],
+            isolatedSubnetIds: [
+                cdk.Fn.importValue('PrivateSubnet1-Id'),
+                cdk.Fn.importValue('PrivateSubnet2-Id')
+            ],
+            isolatedSubnetNames: ['Isolated1', 'Isolated2']
         });
 
         const securityGroupResolvers = new ec2.SecurityGroup(this, 'SecurityGroupResolvers', {
@@ -49,18 +57,26 @@ export class AuroraStack extends cdk.Stack {
             'Allow inbound traffic to Aurora'
         )
 
-        vpc.addInterfaceEndpoint('LAMBDA', {
-            service: ec2.InterfaceVpcEndpointAwsService.LAMBDA,
-            subnets: { subnets: vpc.isolatedSubnets },
-            securityGroups: [securityGroupResolvers],
-        })
+        securityGroupResolvers.addEgressRule(
+            ec2.Peer.anyIpv4(),
+            ec2.Port.tcp(443),
+            'Allow outbound HTTPS traffic'
+        );
+        const endpointConfigs = [
+            { id: 'LAMBDA_ISOLATED', service: ec2.InterfaceVpcEndpointAwsService.LAMBDA, subnets: vpc.isolatedSubnets },
+            { id: 'SECRETS_MANAGER_ISOLATED', service: ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER, subnets: vpc.isolatedSubnets },
+            { id: 'LAMBDA_PRIVATE', service: ec2.InterfaceVpcEndpointAwsService.LAMBDA, subnets: vpc.privateSubnets },
+            { id: 'SECRETS_MANAGER_PRIVATE', service: ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER, subnets: vpc.privateSubnets },
+            { id: 'DYNAMO_DB_PRIVATE', service: ec2.InterfaceVpcEndpointAwsService.DYNAMODB, subnets: vpc.privateSubnets },
+        ];
 
-        vpc.addInterfaceEndpoint('SECRETS_MANAGER', {
-            service: ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
-            subnets: { subnets: vpc.isolatedSubnets },
-            securityGroups: [securityGroupResolvers],
-        })
-
+        endpointConfigs.forEach(config => {
+            vpc.addInterfaceEndpoint(config.id, {
+                service: config.service,
+                subnets: { subnets: config.subnets },
+                securityGroups: [securityGroupResolvers]
+            });
+        });
 
         const AuroraSecretCredentials = new secretsmanager.Secret(this, 'AuroraSecretCredentials', {
             secretName: `${props.stageName}-aurora-credentials`,
@@ -81,6 +97,8 @@ export class AuroraStack extends cdk.Stack {
             parameters: {
                 shared_preload_libraries: 'pg_stat_statements',
             },
+            name: `${props.stageName}-aurora-param-group`,
+            removalPolicy: isProd ? cdk.RemovalPolicy.RETAIN : cdk.RemovalPolicy.DESTROY,
         });
 
         const role = new iam.Role(this, 'Role', {
@@ -129,63 +147,71 @@ export class AuroraStack extends cdk.Stack {
             defaultDatabaseName: DATABASE_NAME,
             serverlessV2MinCapacity: 0.5,
             serverlessV2MaxCapacity: isProd ? 10 : 1,
-            writer: Aurora.ClusterInstance.serverlessV2('writer'),
-            readers:
-                [
-                    Aurora.ClusterInstance.serverlessV2('reader1', {
-                        scaleWithWriter: true,
-                    }),
+            writer: Aurora.ClusterInstance.serverlessV2('writer-1'),
+            readers: isProd
+                ? [
+                    Aurora.ClusterInstance.serverlessV2('reader-1'),
+                    Aurora.ClusterInstance.serverlessV2('reader-2')
+                ]
+                : [
+                    Aurora.ClusterInstance.serverlessV2('reader-1'),
                 ],
             enableDataApi: true,
             backup: {
                 retention: Duration.days(isProd ? 10 : 1),
             },
-            removalPolicy: cdk.RemovalPolicy.RETAIN
+            removalPolicy: isProd ? cdk.RemovalPolicy.RETAIN : cdk.RemovalPolicy.DESTROY,
+            clusterIdentifier: `${props.stageName}-aurora-cluster`,
+
         });
 
-        const setupPostgisFunction = new nodejs.NodejsFunction(this, 'SetupPostgisFunction', {
+        const setupDatabaseFunction = new nodejs.NodejsFunction(this, 'SetupDatabaseFunction', {
             entry: 'lambda/Aurora/instantiate.ts',
             handler: 'handler',
             runtime: lambda.Runtime.NODEJS_20_X,
             timeout: Duration.minutes(5),
-            vpc,
-            securityGroups: [securityGroupResolvers],
-            vpcSubnets: { subnets: vpc.isolatedSubnets },
             environment: {
                 SECRET_ARN: AuroraSecretCredentials.secretArn,
-                DATABASE_NAME,
+                DATABASE_NAME: DATABASE_NAME,
             },
-            role,
+            vpc,
+            bundling: {
+                nodeModules: ['aws-sdk']
+            },
+            vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_ISOLATED },
+            securityGroups: [securityGroupResolvers],
         });
+        AuroraSecretCredentials.grantRead(setupDatabaseFunction);
 
-        const setupPostgisResource = new cr.AwsCustomResource(this, 'SetupPostgisResource', {
+        const invokeSetupLambda = new cr.AwsCustomResource(this, 'InvokeSetupLambda', {
             onCreate: {
                 service: 'Lambda',
                 action: 'invoke',
                 parameters: {
-                    FunctionName: setupPostgisFunction.functionName,
-                    InvocationType: 'RequestResponse',
+                    FunctionName: setupDatabaseFunction.functionName,
+                    InvocationType: 'Event',
                 },
-                physicalResourceId: cr.PhysicalResourceId.of('SetupPostgisResource'),
+                physicalResourceId: cr.PhysicalResourceId.of('ClusterSetupTrigger'),
             },
             onUpdate: {
                 service: 'Lambda',
                 action: 'invoke',
                 parameters: {
-                    FunctionName: setupPostgisFunction.functionName,
-                    InvocationType: 'RequestResponse',
+                    FunctionName: setupDatabaseFunction.functionName,
+                    InvocationType: 'Event',
                 },
-                physicalResourceId: cr.PhysicalResourceId.of('SetupPostgisResource'),
+                physicalResourceId: cr.PhysicalResourceId.of('ClusterSetupTrigger'),
             },
             policy: cr.AwsCustomResourcePolicy.fromStatements([
                 new iam.PolicyStatement({
                     actions: ['lambda:InvokeFunction'],
-                    resources: [setupPostgisFunction.functionArn],
-                }),
-            ]),
+                    resources: [setupDatabaseFunction.functionArn]
+                })
+            ])
+
         });
 
-        setupPostgisResource.node.addDependency(cluster);
+        invokeSetupLambda.node.addDependency(cluster);
 
         new cdk.CfnOutput(this, 'ClusterARN', {
             value: cluster.clusterArn,
@@ -199,20 +225,6 @@ export class AuroraStack extends cdk.Stack {
             exportName: `AuroraSecretARN`,
         });
 
-        new cdk.CfnOutput(this, 'ClusterVPCId', {
-            value: vpc.vpcId,
-            description: 'Cluster VPC ID',
-            exportName: `ClusterVPCId`,
-        });
-
-        vpc.isolatedSubnets.forEach((subnet, index) => {
-            new cdk.CfnOutput(this, `PrivateSubnet${index + 1}Id`, {
-                value: subnet.subnetId,
-                description: `Private Isolated Subnet ${index + 1} ID`,
-                exportName: `PrivateSubnet${index + 1}Id`,
-            });
-        });
-        
         new cdk.CfnOutput(this, 'ClusterRoleARN', {
             value: role.roleArn,
             description: 'Cluster Role ARN',
@@ -230,6 +242,5 @@ export class AuroraStack extends cdk.Stack {
             description: 'Security Group ID for Aurora',
             exportName: 'SecurityGroupAuroraId',
         });
-
     }
 }

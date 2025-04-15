@@ -202,13 +202,16 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             );
 
         } catch (error) {
-            console.error('Error adding organization to Aurora:', error);
+            await auroraClient.end();
+            return {
+                statusCode: 500,
+                body: JSON.stringify({ message: "Failed", error: error instanceof Error ? error.message : error }),
+            };
         } finally {
             if (auroraClient) {
                 await auroraClient.end();
             }
         }
-
 
         return {
             statusCode: 200,
@@ -218,7 +221,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             }),
         };
     } catch (error) {
-        console.error("Error:", error);
         return {
             statusCode: 500,
             body: JSON.stringify({ message: "Failed", error: error instanceof Error ? error.message : error }),

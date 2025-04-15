@@ -1,11 +1,13 @@
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { mockClient } from "aws-sdk-client-mock";
 import { DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client } from "@aws-sdk/client-s3";
 import * as presigner from "@aws-sdk/s3-request-presigner";
 import Stripe from "stripe";
-import { handler } from "@/lambda/organization/newOrganization"; // Adjust path as needed
+import { handler } from "@/lambda/organization/newOrganization";
 import * as validOrganization from "@/lambda/constants/validOrganization";
+import * as auroraModule from "@/lambda/constants/aurora";
+import {Client, Pool, PoolClient } from 'pg';
 
 jest.mock("crypto", () => ({
     randomUUID: jest.fn(() => "mocked-uuid-123")
@@ -16,6 +18,12 @@ jest.mock("@aws-sdk/s3-request-presigner", () => ({
 }));
 
 jest.mock("stripe");
+
+jest.mock("@/lambda/constants/aurora", () => ({
+    connectToAurora: jest.fn(),
+}));
+
+const mockConnectToAurora = jest.spyOn(auroraModule, "connectToAurora");
 
 const ddbMock = mockClient(DynamoDBDocumentClient);
 const s3Mock = mockClient(S3Client);
@@ -51,7 +59,23 @@ describe("createOrganization Lambda Handler", () => {
             BUCKET_NAME: "test-bucket",
             IMAGE_DOMAIN: "test-image-domain.com",
             STRIPE_ARN: "test-stripe-arn",
+            CLUSTER_SECRET_ARN: "test-cluster-secret-arn",
         };
+
+        const mockClient = {
+            query: jest.fn().mockResolvedValue({ rows: [] }),
+            release: jest.fn(),
+            end: jest.fn(),
+            connection: {},
+        } as unknown as PoolClient;
+
+        const mockPool = {
+            connect: jest.fn().mockResolvedValue(mockClient),
+            end: jest.fn(),
+            query: jest.fn().mockResolvedValue({ rows: [] }),
+        } as unknown as Client;
+
+        mockConnectToAurora.mockResolvedValue(mockPool);
 
         mockGetStripeSecret.mockResolvedValue("test-stripe-key");
 
@@ -168,7 +192,6 @@ describe("createOrganization Lambda Handler", () => {
 
     test("should successfully create an organization", async () => {
 
-        // Arrange
         const event = createMockEvent({
             org_name: "Test Organization",
             description: "Test description",
@@ -179,19 +202,15 @@ describe("createOrganization Lambda Handler", () => {
             businessTags: ["coffee", "bakery"]
         }, "user123");
 
-        // Mock DynamoDB to return a valid user
         ddbMock.on(GetCommand).resolves({
             Item: { email: "test@example.com" }
         });
 
-        // Mock DynamoDB operations
         ddbMock.on(PutCommand).resolves({});
         ddbMock.on(UpdateCommand).resolves({});
 
-        // Act
         const result = await handler(event);
 
-        // Assert
         expect(result.statusCode).toBe(200);
         const body = JSON.parse(result.body);
         expect(body.message).toBe("Success");
@@ -228,28 +247,23 @@ describe("createOrganization Lambda Handler", () => {
         jest.resetAllMocks();
         jest.clearAllMocks();
 
-        // Arrange
         const event = createMockEvent({
             org_name: "Test Org",
             description: "Test description",
         }, "user123");
 
-        // Mock DynamoDB to return a valid user
         ddbMock.on(GetCommand).resolves({
             Item: { email: "test@example.com" }
         });
 
-        // Set new implementation after reset
         (Stripe as unknown as jest.Mock).mockImplementation(() => ({
             customers: {
                 create: jest.fn().mockRejectedValue(new Error("Stripe API Error")),
             },
         }));
 
-        // Act
         const result = await handler(event);
 
-        // Assert
         expect(result.statusCode).toBe(500);
         expect(JSON.parse(result.body).error).toEqual("Stripe Failed to create Customer");
     });
@@ -272,4 +286,74 @@ describe("createOrganization Lambda Handler", () => {
 
         consoleErrorSpy.mockRestore();
     });
+
+    test("should handle Aurora connection failure", async () => {
+        const event = createMockEvent({
+            org_name: "Test Org",
+            description: "Test description",
+            rewards_loyalty: true,
+            rewards_milestone: false,
+            rl_active: true,
+            rm_active: false,
+            businessTags: ["tag1", "tag2"]
+        }, "user123");
+
+        ddbMock.on(GetCommand).resolves({
+            Item: { email: "test@example.com" }
+        });
+
+        ddbMock.on(PutCommand).resolves({});
+        ddbMock.on(UpdateCommand).resolves({});
+
+        const mockStripeCustomer = {
+            id: "test-stripe-customer-id"
+        };
+
+        mockConnectToAurora.mockRejectedValue(new Error("Failed to connect to Aurora database"));
+
+        const result = await handler(event);
+
+        expect(result.statusCode).toBe(500);
+        expect(JSON.parse(result.body)).toHaveProperty("error");
+    });
+
+    test("should handle Aurora query failure", async () => {
+        const event = createMockEvent({
+            org_name: "Test Org",
+            description: "Test description",
+            rewards_loyalty: true,
+            rewards_milestone: false,
+            rl_active: true,
+            rm_active: false,
+            businessTags: ["tag1", "tag2"]
+        }, "user123");
+
+        ddbMock.on(GetCommand).resolves({
+            Item: { email: "test@example.com" }
+        });
+
+        ddbMock.on(PutCommand).resolves({});
+        ddbMock.on(UpdateCommand).resolves({});
+
+        const mockClient = {
+            query: jest.fn().mockRejectedValue(new Error("Query execution failed")),
+            release: jest.fn(),
+            end: jest.fn(),
+            connection: {},
+        } as unknown as PoolClient;
+
+        const mockPool = {
+            connect: jest.fn().mockResolvedValue(mockClient),
+            end: jest.fn(),
+            query: jest.fn().mockRejectedValue(new Error("Query execution failed")),
+        } as unknown as Client;
+
+        mockConnectToAurora.mockResolvedValue(mockPool);
+
+        const result = await handler(event);
+
+        expect(result.statusCode).toBe(500);
+        expect(JSON.parse(result.body)).toHaveProperty("error");
+    });
+
 });
