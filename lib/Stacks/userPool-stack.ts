@@ -59,7 +59,7 @@ export class UserPoolStack extends cdk.Stack {
           externalModules: ['aws-sdk']
         }
       })
-      usersTable.grantWriteData(postConfirmationHandlerUser);
+      usersTable.grantReadWriteData(postConfirmationHandlerUser);
       postConfirmationHandlerUser.addToRolePolicy(sesStatement);
 
       const postConfirmationHandlerBusiness = new nodejs.NodejsFunction(this, "Bizz-User-postConfirmation",{

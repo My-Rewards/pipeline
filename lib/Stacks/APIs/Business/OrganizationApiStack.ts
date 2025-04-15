@@ -275,7 +275,7 @@ export class OrgApiStack extends cdk.NestedStack {
         ],
       })
     );
-
+    
     const orgApi = props.api.root.addResource('org');
     const updateOrgApi = orgApi.addResource('update');
 
@@ -301,7 +301,6 @@ export class OrgApiStack extends cdk.NestedStack {
     const updateImageMethod = new apigateway.LambdaIntegration(updateOrgImageLambda);
     const updateDetailsMethod = new apigateway.LambdaIntegration(updateOrgDetailsLambda);
     const updateStatusMethod = new apigateway.LambdaIntegration(updateOrgStatusLambda);
-
     // API-Gateway Path Integration
     createOrg.addMethod('POST', createOrgMethod, {
       authorizer: props.authorizer,
