@@ -91,7 +91,7 @@ export const handler = async (
           },
         },
         user: {
-          fullName: user.Item.fullName,
+          fullname: user.Item.fullname,
           email: user.Item.email,
           preferences: user.Item.preferences,
           date_created: user.Item.date_created,
