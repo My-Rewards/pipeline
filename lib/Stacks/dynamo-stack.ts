@@ -69,10 +69,10 @@ export class DynamoStack extends cdk.Stack {
     });
 
     // plans Table
-    const planTable = new aws_dynamodb.Table(this, 'Plans-Table', {
-      tableName: `${props.stageName}-Plans`,
-      partitionKey: { name: 'userId', type: aws_dynamodb.AttributeType.STRING },
-      sortKey: { name: 'updatedAt', type: aws_dynamodb.AttributeType.STRING },
+    const planTable = new aws_dynamodb.Table(this, 'PlanTable', {
+      partitionKey: { name: 'PK', type: aws_dynamodb.AttributeType.STRING },
+      sortKey: { name: 'SK', type: aws_dynamodb.AttributeType.STRING },
+      tableName: `Plans`,
       billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy:cdk.RemovalPolicy.RETAIN,
       pointInTimeRecoverySpecification: {
@@ -108,11 +108,10 @@ export class DynamoStack extends cdk.Stack {
       partitionKey: { name: 'id', type: aws_dynamodb.AttributeType.STRING },
     });
 
-    // Likes Table
-    const likesTable = new aws_dynamodb.Table(this, 'Likes-Table', {
-      tableName: `${props.stageName}-Likes`,
-      partitionKey: { name: 'userId', type: aws_dynamodb.AttributeType.STRING },
-      sortKey: { name: 'shopId', type: aws_dynamodb.AttributeType.STRING },
+    // likes Table
+    const likesTable = new aws_dynamodb.Table(this, 'LikesTable', {
+      partitionKey: { name: 'id', type: aws_dynamodb.AttributeType.STRING }, 
+      tableName: `Likes`,
       billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy:cdk.RemovalPolicy.RETAIN,
       deletionProtection: isProd
