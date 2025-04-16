@@ -1,5 +1,8 @@
 import { APIGatewayProxyEvent } from "aws-lambda";
-import { RDSDataClient, ExecuteStatementCommand } from "@aws-sdk/client-rds-data";
+import {
+  RDSDataClient,
+  ExecuteStatementCommand,
+} from "@aws-sdk/client-rds-data";
 import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
 
 const rdsClient = new RDSDataClient({});
@@ -13,7 +16,6 @@ export const handler = async (event: APIGatewayProxyEvent) => {
     const page = parseInt(query.page || "1");
     const limit = parseInt(query.limit || "4");
     const offset = (page - 1) * limit;
-
 
     if (isNaN(latitude) || isNaN(longitude)) {
       return {
@@ -29,17 +31,21 @@ export const handler = async (event: APIGatewayProxyEvent) => {
         resourceArn: process.env.CLUSTER_ARN,
         database: process.env.DB_NAME,
         sql: `
-          SELECT id, ST_Distance(location, ST_MakePoint(:lon, :lat)::geography) AS distance
-          FROM shops
-          WHERE active = TRUE
-          ORDER BY location <-> ST_MakePoint(:lon, :lat)::geography
-          LIMIT :limit OFFSET :offset;
-        `,
+SELECT 
+  s.id, 
+  s.organization_id, 
+  ST_Distance(s.location, ST_MakePoint($1, $2)::geography) AS distance
+FROM shops s
+JOIN organizations o ON o.id = s.organization_id
+WHERE s.active = TRUE AND o.active = TRUE
+ORDER BY s.location <-> ST_MakePoint($1, $2)::geography
+LIMIT $3 OFFSET $4;
+`,
         parameters: [
-          { name: "lon", value: { doubleValue: longitude } },
-          { name: "lat", value: { doubleValue: latitude } },
-          { name: "limit", value: { longValue: limit } },
-          { name: "offset", value: { longValue: offset } },
+          { name: "lon", value: { doubleValue: longitude } }, // $1
+          { name: "lat", value: { doubleValue: latitude } }, // $2
+          { name: "limit", value: { longValue: limit } }, // $3
+          { name: "offset", value: { longValue: offset } }, // $4
         ],
       })
     );
@@ -60,14 +66,18 @@ export const handler = async (event: APIGatewayProxyEvent) => {
         const getShopResponse = await lambdaClient.send(
           new InvokeCommand({
             FunctionName: process.env.GET_SHOP_LAMBDA_NAME!,
-            Payload: Buffer.from(JSON.stringify({
-              queryStringParameters: { shop_id },
-            })),
+            Payload: Buffer.from(
+              JSON.stringify({
+                queryStringParameters: { shop_id },
+              })
+            ),
           })
         );
 
         if (getShopResponse.Payload) {
-          const result = JSON.parse(Buffer.from(getShopResponse.Payload).toString());
+          const result = JSON.parse(
+            Buffer.from(getShopResponse.Payload).toString()
+          );
           if (result.statusCode === 200) {
             return JSON.parse(result.body);
           }
