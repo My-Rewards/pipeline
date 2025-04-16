@@ -66,7 +66,6 @@ export class PipelineAppStage extends cdk.Stage {
         const auroraStack = new AuroraStack(this, 'Aurora-Stack', auroraStackProps);
         auroraStack.terminationProtection = true;
         auroraStack.addDependency(vpcStack);
-        auroraStack.addDependency(dynamo_stack);
 
         let appConfigProps = this.createAppConfigProps(props, this.stageName);
         const appConfigStack = new AppConfigStack(this, 'AppConfig-Stack', appConfigProps);
