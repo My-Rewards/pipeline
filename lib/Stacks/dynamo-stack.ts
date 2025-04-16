@@ -53,7 +53,7 @@ export class DynamoStack extends cdk.Stack {
 
     // shops Table
     const shopTable = new aws_dynamodb.Table(this, 'Shops-Table', {
-      tableName: `${props.stageName}-App-Shops`,
+      tableName: `${props.stageName}-Shops`,
       partitionKey: { name: 'id', type: aws_dynamodb.AttributeType.STRING },
       billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy:cdk.RemovalPolicy.RETAIN,

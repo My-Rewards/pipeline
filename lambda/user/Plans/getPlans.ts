@@ -48,7 +48,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             ExclusiveStartKey: lastEvaluatedKey
         };
 
-
         const plansResult = await dynamoDb.send(new QueryCommand(queryParams));
 
         if (!plansResult.Items || plansResult.Items.length === 0) {
