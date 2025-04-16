@@ -24,7 +24,7 @@ export class UsersApiStack extends cdk.NestedStack {
       handler: 'handler',
       environment: {
         ORG_TABLE: orgTable.tableName,
-        USER_TABLE: orgTable.tableName,
+        USER_TABLE: userTable.tableName,
       },
       bundling: {
         externalModules: ['aws-sdk']
@@ -40,7 +40,7 @@ export class UsersApiStack extends cdk.NestedStack {
       handler: 'handler',
       environment: {
         ORG_TABLE: orgTable.tableName,
-        USER_TABLE: orgTable.tableName,
+        USER_TABLE: userTable.tableName,
       },
       bundling: {
         externalModules: ['aws-sdk']
