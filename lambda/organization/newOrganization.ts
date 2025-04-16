@@ -196,7 +196,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
         try {
             await auroraClient.query(
-                `INSERT INTO Organization (id, active, updated_at) 
+                `INSERT INTO Organizations (id, active, updated_at) 
                  VALUES ($1, $2, $3)`,
                 [organization_id, false, dateNow.toISOString()]
             );

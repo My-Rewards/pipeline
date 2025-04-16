@@ -93,9 +93,11 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         });
         status = !org.Item.active
 
-        await auroraClient.query('UPDATE organization SET active = $1 WHERE id = $2', [status, orgId]);
+        const query = await auroraClient.query('UPDATE Organizations SET active = $1 WHERE id = $2', [status, orgId]);
 
-        await dynamoDb.send(updateOrg);
+        if(query.rowCount && query.rowCount >= 1){
+            await dynamoDb.send(updateOrg);
+        }
     }
 
     return {

@@ -110,7 +110,7 @@ export class OrgApiStack extends cdk.NestedStack {
         USER_TABLE: userTable.tableName
       },
       bundling: {
-        nodeModules: ['aws-sdk']
+        externalModules: ['aws-sdk']
       },
     })
     orgTable.grantReadData(getOrgLambda);
@@ -275,7 +275,7 @@ export class OrgApiStack extends cdk.NestedStack {
         ],
       })
     );
-    
+
     const orgApi = props.api.root.addResource('org');
     const updateOrgApi = orgApi.addResource('update');
 

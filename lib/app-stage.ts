@@ -77,6 +77,7 @@ export class PipelineAppStage extends cdk.Stage {
         let userPoolProps = this.createUserPoolProps(props, this.stageName, authDomain, businessDomain);
         const userPool_stack = new UserPoolStack(this, 'UserPool-Stack', userPoolProps);
         userPool_stack.addDependency(customEmail_stack);
+        userPool_stack.addDependency(dynamo_stack);
         userPool_stack.terminationProtection = true;
 
         let imageBucketProps = this.createImageBucketProps(props, this.stageName, imageDomain, businessDomain);
@@ -87,7 +88,7 @@ export class PipelineAppStage extends cdk.Stage {
         const apiGateway_stack = new ApiGatewayStack(this, 'ApiGateway-Stack', apiGatewayProps);
         apiGateway_stack.addDependency(userPool_stack);
         apiGateway_stack.addDependency(imageBucket_stack);
-        // apiGateway_stack.addDependency(auroraStack);
+        apiGateway_stack.addDependency(auroraStack);
 
         let cloudWatchProp = this.createCloudWatchProps(props, this.stageName);
         const cloudWatchStack = new CloudWatchStack(this, 'CloudWatch-Stack', cloudWatchProp);
@@ -95,7 +96,6 @@ export class PipelineAppStage extends cdk.Stage {
 
         let amplifyProp = this.createAmplifyProps(props, this.stageName);
         const amplify_stack = new AmplifyStack(this, 'Amplify-Stack', amplifyProp);
-        amplify_stack.addDependency(apiGateway_stack);
 
         let ssmProps = this.createSSMProps(props, this.stageName);
         const ssm_Stack = new SSMStack(this, 'Ssm-Stack', ssmProps);
