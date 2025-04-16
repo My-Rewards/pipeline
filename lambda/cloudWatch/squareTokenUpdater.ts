@@ -1,6 +1,7 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand, ScanCommandInput, UpdateCommand, UpdateCommandInput } from '@aws-sdk/lib-dynamodb';
 import * as square from 'square';
+import { fetchSquareSecret } from '../constants/square';
 
 const dynamoClient = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
@@ -35,6 +36,8 @@ export const handler = async () => {
         const twentyFourHoursFromNow = new Date();
         twentyFourHoursFromNow.setHours(twentyFourHoursFromNow.getHours() + 24);
 
+        const secretResult = await fetchSquareSecret(squareSecretArn);
+
         const scanParams:ScanCommandInput = {
             TableName: orgTable,
             FilterExpression: 'attribute_exists(accessToken) AND attribute_exists(refreshToken) AND expiresAt <= :expirationDate',
@@ -59,8 +62,8 @@ export const handler = async () => {
             if (expirationDate <= twentyFourHoursFromNow) {
                 try {
                     const response = await client.oAuth.obtainToken({
-                        clientId: process.env.SQUARE_CLIENT_ID || '',
-                        clientSecret: process.env.SQUARE_CLIENT_SECRET || '',
+                        clientId: secretResult.client,
+                        clientSecret: secretResult.secret,
                         grantType: 'refresh_token',
                         refreshToken: org.squareRefreshToken,
                     });
