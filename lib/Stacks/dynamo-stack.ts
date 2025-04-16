@@ -44,7 +44,8 @@ export class DynamoStack extends cdk.Stack {
 
     // plans Table
     const planTable = new aws_dynamodb.Table(this, 'PlanTable', {
-      partitionKey: { name: 'id', type: aws_dynamodb.AttributeType.STRING }, 
+      partitionKey: { name: 'PK', type: aws_dynamodb.AttributeType.STRING },
+      sortKey: { name: 'SK', type: aws_dynamodb.AttributeType.STRING },
       tableName: `Plans`,
       billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
@@ -58,7 +59,7 @@ export class DynamoStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
     });
 
-    // Visit Table
+    // likes Table
     const likesTable = new aws_dynamodb.Table(this, 'LikesTable', {
       partitionKey: { name: 'id', type: aws_dynamodb.AttributeType.STRING }, 
       tableName: `Likes`,
