@@ -77,7 +77,7 @@ export class PipelineAppStage extends cdk.Stage {
         let userPoolProps = this.createUserPoolProps(props, this.stageName, authDomain, businessDomain);
         const userPool_stack = new UserPoolStack(this, 'UserPool-Stack', userPoolProps);
         userPool_stack.addDependency(customEmail_stack);
-        // userPool_stack.addDependency(dynamo_stack);
+        userPool_stack.addDependency(dynamo_stack);
         userPool_stack.terminationProtection = true;
 
         let imageBucketProps = this.createImageBucketProps(props, this.stageName, imageDomain, businessDomain);

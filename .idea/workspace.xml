@@ -18,12 +18,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c38fec59-b241-48cf-a190-0dfc032fdfce" name="Local Files" comment="remade dynamo-stack.ts">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/user/Plans/getPlans.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/user/Plans/getPlans.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/Stacks/dynamo-stack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/dynamo-stack.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/app-stage.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/app-stage.ts" afterDir="false" />
-    </list>
+    <list default="true" id="c38fec59-b241-48cf-a190-0dfc032fdfce" name="Local Files" comment="remade dynamo-stack.ts" />
     <list id="79a675d0-e669-4fab-ac29-b64f9bdb9a1c" name="Unversioned Files" comment="Unversioned Files">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
@@ -79,21 +74,6 @@
   <component name="KubernetesApiProvider">{
   &quot;isMigrated&quot;: true
 }</component>
-  <component name="LineStatusTrackerManager">
-    <file path="$PROJECT_DIR$/.idea/workspace.xml">
-      <ranges>
-        <range start1="20" end1="24" start2="20" end2="21" changelist="c38fec59-b241-48cf-a190-0dfc032fdfce" />
-        <range start1="25" end1="34" start2="22" end2="23" changelist="c38fec59-b241-48cf-a190-0dfc032fdfce" />
-        <range start1="54" end1="55" start2="43" end2="44" changelist="c38fec59-b241-48cf-a190-0dfc032fdfce" />
-        <range start1="93" end1="110" start2="82" end2="91" changelist="c38fec59-b241-48cf-a190-0dfc032fdfce" />
-        <range start1="389" end1="390" start2="370" end2="371" changelist="c38fec59-b241-48cf-a190-0dfc032fdfce" />
-        <range start1="447" end1="448" start2="428" end2="437" changelist="c38fec59-b241-48cf-a190-0dfc032fdfce" />
-        <range start1="470" end1="471" start2="459" end2="459" changelist="c38fec59-b241-48cf-a190-0dfc032fdfce" />
-        <range start1="472" end1="473" start2="460" end2="463" changelist="c38fec59-b241-48cf-a190-0dfc032fdfce" />
-        <range start1="495" end1="496" start2="485" end2="485" changelist="79a675d0-e669-4fab-ac29-b64f9bdb9a1c" />
-      </ranges>
-    </file>
-  </component>
   <component name="ProjectColorInfo">{
     &quot;customColor&quot;: &quot;&quot;,
     &quot;associatedIndex&quot;: 1
@@ -370,7 +350,7 @@
       <workItem from="1744584626583" duration="25636000" />
       <workItem from="1744697668313" duration="3460000" />
       <workItem from="1744753432470" duration="38000" />
-      <workItem from="1744753512391" duration="18822000" />
+      <workItem from="1744753512391" duration="19826000" />
     </task>
     <task id="LOCAL-00001" summary="billing page testing and subscription creation update">
       <option name="closed" value="true" />
@@ -436,7 +416,15 @@
       <option name="project" value="LOCAL" />
       <updated>1744771021696</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="remade dynamo-stack.ts">
+      <option name="closed" value="true" />
+      <created>1744774892926</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1744774892926</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -485,7 +473,6 @@
         <line-breakpoint enabled="true" type="javascript">
           <url>file://$PROJECT_DIR$/lib/Stacks/userPool-stack.ts</url>
           <line>249</line>
-          <properties lambdaOrdinal="-1" />
           <option name="timeStamp" value="29" />
         </line-breakpoint>
       </breakpoints>
