@@ -1,7 +1,6 @@
 import { DynamoDBClient, QueryCommandInput, ScanCommand } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { unmarshall } from "@aws-sdk/util-dynamodb";
 
 const dynamoClient = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
@@ -32,7 +31,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             return { statusCode: 210, body: JSON.stringify({ info: "User not found" }) };
         }
 
-        const orgId = user.Item ? user.Item.org_id : null
+        const orgId = user.Item ? user.Item.orgId : null
 
         if (!orgId) {
             return { statusCode: 404, body: JSON.stringify({ info: "User not found" }) };
@@ -60,6 +59,9 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             body: JSON.stringify({ 
                 organization: { 
                     name:org.Item.name,
+                    images:{
+                    logo:org.Item.images.logo.url
+                    },
                 },
                 user:{
                     fullName:user.Item.fullName,
@@ -67,7 +69,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
                     preferences: user.Item.preferences,
                     date_created: user.Item.date_created
                 },
-                admin
             }),
         };
 

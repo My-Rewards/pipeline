@@ -1,17 +1,18 @@
-import * as cdk from 'aws-cdk-lib';
-import { Construct } from 'constructs';
-import * as apigateway from 'aws-cdk-lib/aws-apigateway';
-import { ApiStackProps } from '../../global/props';
-import * as cognito from 'aws-cdk-lib/aws-cognito';
-import { DOMAIN, UP_BUSINESS_ID, UP_CUSTOMER_ID } from '../../global/constants';
-import * as route53 from 'aws-cdk-lib/aws-route53';
-import * as acm from 'aws-cdk-lib/aws-certificatemanager';
-import { UsersApiStack } from './APIs/App/UserApiStack';
-import { SquareApiStack } from './APIs/Business/SquareApiStack';
-import * as kms from 'aws-cdk-lib/aws-kms';
-import * as targets from 'aws-cdk-lib/aws-route53-targets';
-import { OrgApiStack } from './APIs/Business/OrganizationApiStack';
-import { ShopApiStack } from './APIs/Business/ShopsApiStack';
+import * as cdk from "aws-cdk-lib";
+import { Construct } from "constructs";
+import * as apigateway from "aws-cdk-lib/aws-apigateway";
+import { ApiStackProps } from "../../global/props";
+import * as cognito from "aws-cdk-lib/aws-cognito";
+import { DOMAIN, UP_BUSINESS_ID, UP_CUSTOMER_ID } from "../../global/constants";
+import * as route53 from "aws-cdk-lib/aws-route53";
+import * as acm from "aws-cdk-lib/aws-certificatemanager";
+import { UsersApiStack } from "./APIs/App/UserApiStack";
+import { SquareApiStack } from "./APIs/Business/SquareApiStack";
+import * as kms from "aws-cdk-lib/aws-kms";
+import * as targets from "aws-cdk-lib/aws-route53-targets";
+import { OrgApiStack } from "./APIs/Business/OrganizationApiStack";
+import { ShopApiStack } from "./APIs/Business/ShopsApiStack";
+import { UsersApiStack as BusinessApiStack } from "./APIs/Business/UserApiStack";
 
 export class ApiGatewayStack extends cdk.Stack {
   public readonly encryptionKey: kms.Key;
@@ -19,88 +20,126 @@ export class ApiGatewayStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: ApiStackProps) {
     super(scope, id, props);
 
-    const hostedZoneId = cdk.Fn.importValue(`${props.stageName}-API-HostedZoneId`);
+    const hostedZoneId = cdk.Fn.importValue(
+      `${props.stageName}-API-HostedZoneId`
+    );
 
-    const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
-      hostedZoneId: hostedZoneId,
-      zoneName: `${props.apiDomain}.${DOMAIN}`,
+    const hostedZone = route53.HostedZone.fromHostedZoneAttributes(
+      this,
+      "HostedZone",
+      {
+        hostedZoneId: hostedZoneId,
+        zoneName: `${props.apiDomain}.${DOMAIN}`,
+      }
+    );
+
+    const certificate = new acm.Certificate(this, "Certificate", {
+      domainName: `${props.apiDomain}.${DOMAIN}`,
+      validation: acm.CertificateValidation.fromDns(hostedZone),
     });
 
-    const certificate = new acm.Certificate(this, 'Certificate', {
-        domainName:`${props.apiDomain}.${DOMAIN}`,
-        validation: acm.CertificateValidation.fromDns(hostedZone),
-    });
-
-    this.encryptionKey = new kms.Key(this, 'KMSEncryptionKey', {
+    this.encryptionKey = new kms.Key(this, "KMSEncryptionKey", {
       enableKeyRotation: true,
-      description: 'KMS Key for encrypting token data for database',
+      description: "KMS Key for encrypting token data for database",
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
     const userPoolId = cdk.Fn.importValue(UP_CUSTOMER_ID);
     const bizzUserPoolId = cdk.Fn.importValue(UP_BUSINESS_ID);
 
-    const userPool = cognito.UserPool.fromUserPoolId(this, 'ImportedUserPoolUser', userPoolId);
-    const bizzUserPool = cognito.UserPool.fromUserPoolId(this, 'ImportedUserPoolBizz', bizzUserPoolId);
+    const userPool = cognito.UserPool.fromUserPoolId(
+      this,
+      "ImportedUserPoolUser",
+      userPoolId
+    );
+    const bizzUserPool = cognito.UserPool.fromUserPoolId(
+      this,
+      "ImportedUserPoolBizz",
+      bizzUserPoolId
+    );
 
-    const authorizerUser = new apigateway.CognitoUserPoolsAuthorizer(this, 'CognitoAuthorizerUser', {
-      cognitoUserPools: [userPool],
-    });
-
-    const authorizerBizz = new apigateway.CognitoUserPoolsAuthorizer(this, 'CognitoAuthorizerBizz', {
-      cognitoUserPools: [bizzUserPool],
-    });
-
-    // Create Custom Domain API
-    const api = new apigateway.RestApi(this, 'myRewardsApi', {
-      restApiName: 'myRewards API',
-      description: 'This is an API for Lambda functions.',
-      domainName: {
-        domainName: `${props.apiDomain}.${DOMAIN}`,
-        certificate: certificate,
-        endpointType: apigateway.EndpointType.EDGE,
-        securityPolicy: apigateway.SecurityPolicy.TLS_1_2,
-      },
-      defaultCorsPreflightOptions: {
-        allowOrigins: apigateway.Cors.ALL_ORIGINS,
-        allowMethods: apigateway.Cors.ALL_METHODS,
-        allowHeaders: apigateway.Cors.DEFAULT_HEADERS
+    const authorizerUser = new apigateway.CognitoUserPoolsAuthorizer(
+      this,
+      "CognitoAuthorizerUser",
+      {
+        cognitoUserPools: [userPool],
       }
-    });
+    );
 
-    new route53.ARecord(this, 'ApiARecord', {
+    const authorizerBizz = new apigateway.CognitoUserPoolsAuthorizer(
+      this,
+      "CognitoAuthorizerBizz",
+      {
+        cognitoUserPools: [bizzUserPool],
+      }
+    );
+
+        // Create Custom Domain API
+        const api = new apigateway.RestApi(this, 'myRewardsApi', {
+            restApiName: 'myRewards API',
+            description: 'This is an API for Lambda functions.',
+            domainName: {
+                domainName: `${props.apiDomain}.${DOMAIN}`,
+                certificate: certificate,
+                endpointType: apigateway.EndpointType.EDGE,
+                securityPolicy: apigateway.SecurityPolicy.TLS_1_2,
+            },
+            defaultCorsPreflightOptions: {
+                allowOrigins: apigateway.Cors.ALL_ORIGINS,
+                allowMethods: apigateway.Cors.ALL_METHODS,
+                allowHeaders: apigateway.Cors.DEFAULT_HEADERS
+            },
+            deployOptions: {
+                stageName: props.stageName,
+                throttlingRateLimit: 20,
+                throttlingBurstLimit: 40,
+            },
+        });
+
+    new route53.ARecord(this, "ApiARecord", {
       zone: hostedZone,
       recordName: `${props.apiDomain}.${DOMAIN}`,
-      target: route53.RecordTarget.fromAlias( new targets.ApiGateway(api))
+      target: route53.RecordTarget.fromAlias(new targets.ApiGateway(api)),
     });
 
-    new UsersApiStack(this, 'UsersApiStack', {
+    new UsersApiStack(this, "UsersApiStack", {
       api: api,
-      authorizer:authorizerUser,
+      authorizer: authorizerUser,
     });
 
-    new SquareApiStack(this, 'SquareApiStack', {
+    new SquareApiStack(this, "SquareApiStack", {
       api: api,
-      authorizer:authorizerBizz,
-      encryptionKey:this.encryptionKey,
-      stage:props.stageName
+      authorizer: authorizerBizz,
+      encryptionKey: this.encryptionKey,
+      stage: props.stageName,
     });
 
-    new OrgApiStack(this, 'OrgApiStack', {
+    new OrgApiStack(this, "OrgApiStack", {
       api: api,
-      authorizer:authorizerBizz,
+      authorizer: authorizerBizz,
     });
 
-    new ShopApiStack(this, 'ShopApiStack', {
+    new BusinessApiStack(this, "BusinessApiStack", {
       api: api,
-      authorizer:authorizerBizz,
-      encryptionKey:this.encryptionKey,
+      authorizer: authorizerBizz,
     });
 
-    new cdk.CfnOutput(this, 'RestApi', {
-      value: api.restApiId,
-      description: 'RestApi ID',
-      exportName: 'restApi',
+    new ShopApiStack(this, "ShopApiStack", {
+      api: api,
+      authorizer: authorizerBizz,
+      encryptionKey: this.encryptionKey,
     });
-  }
+
+        new cdk.CfnOutput(this, 'RestApi', {
+            value: api.restApiId,
+            description: 'RestApi ID',
+            exportName: 'restApi',
+        });
+
+        new cdk.CfnOutput(this, 'kmsARN', {
+            value: this.encryptionKey.keyArn,
+            description: 'kmsARN',
+            exportName: 'kmsARN',
+        });
+    }
 }

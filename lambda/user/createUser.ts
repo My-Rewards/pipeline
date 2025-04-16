@@ -1,33 +1,38 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 import { PostConfirmationTriggerEvent } from 'aws-lambda';
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
 
 const client = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(client);
-const ses = new SESClient({ region: 'us-east-1' }); 
+const ses = new SESClient({ region: 'us-east-1' });
 
-exports.handler = async (event:PostConfirmationTriggerEvent) => {
+export const handler = async (event:PostConfirmationTriggerEvent) => {
   const tableName = process.env.TABLE;
-  const role = process.env.ROLE;
   const emailSender = process.env.EMAIL_SENDER;
+  const email = process.env.EMAIL;
 
     try {
         const { request: { userAttributes } } = event;
-        let credentials = {
-            modifyPlans:true,
-            modifyPayments:true,
-        };
         
-        if (!userAttributes.email || !userAttributes.given_name || !userAttributes.family_name || !userAttributes.sub || !role || !tableName) {
-        console.error('Missing required attributes');
-        throw new Error('Missing required attributes');
+        const getUserParams = {
+            TableName: tableName,
+            Key: { id: userAttributes.sub },
+        };
+        const existingUser = await dynamoDb.send(new GetCommand(getUserParams));
+
+        if (existingUser.Item) {
+            console.log('User already exists');
+            return event;
+        }
+        
+        if (!userAttributes.email || !userAttributes.given_name || !userAttributes.family_name || !userAttributes.sub || !tableName) {
+            console.error('Missing required attributes');
+            throw new Error('Missing required attributes');
         }
 
         // look for invites
-        
+
         const userData = {
             id: userAttributes.sub,
             email: userAttributes.email,
@@ -37,22 +42,27 @@ exports.handler = async (event:PostConfirmationTriggerEvent) => {
                 lastName: userAttributes.family_name
             },
             date_created: new Date().toISOString(),
-            role:role,
-            credentials,
             newAccount: true,
             preferences:{
                 lightMode:true
             }
         };
 
-        const params = {
+        const params = new PutCommand({
             TableName: tableName,
             Item: userData,
             ConditionExpression: 'attribute_not_exists(id)'
-        };
+        });
 
-        const emailHtmlPath = resolve(__dirname, 'EmailTemplate', 'welcome-email-customer.html');
-        const emailHtmlContent = readFileSync(emailHtmlPath, 'utf-8');
+        try {
+            await dynamoDb.send(params);
+        } catch (error: any) {
+            if (error.name === 'ConditionalCheckFailedException') {
+                console.log('PutCommand failed: user already exists. Skipping insert.');
+                return event;
+            }
+            throw error;
+        }        
 
         const emailParams = {
             Source: `MyRewards <${emailSender}>`,
@@ -60,18 +70,16 @@ exports.handler = async (event:PostConfirmationTriggerEvent) => {
             Message: {
                 Subject: { Data: 'Welcome To MyRewards!' },
                 Body: {
-                    Html: { Data: emailHtmlContent },
-                    Text: { Data: 'Setup your account and link with Square if you haven’t! We have a feeling you’re going to like it here.' },
+                    Html: { Data: email },
+                    Text: { Data: 'Welcome to MyRewards' },
                 },
             },
         };
 
-        await dynamoDb.send(new PutCommand(params));
-
         await ses.send(new SendEmailCommand(emailParams));
 
         return event;
-        
+
     } catch (error) {
         console.error('Error creating User:', error);
         throw error;

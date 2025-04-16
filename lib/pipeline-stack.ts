@@ -11,7 +11,8 @@ import {
   GITHUB_ARN 
 } from '../global/constants';
 import * as iam from 'aws-cdk-lib/aws-iam';
-import { Variable } from 'aws-cdk-lib/aws-codepipeline';
+import * as codebuild from 'aws-cdk-lib/aws-codebuild';
+import { BuildSpec } from 'aws-cdk-lib/aws-codebuild';
 
 export class PipelineStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -76,7 +77,23 @@ export class PipelineStack extends cdk.Stack {
           'npm run build',
           'npx cdk synth'
         ],
-      })
+      }),
+      synthCodeBuildDefaults: {
+        buildEnvironment: {
+          computeType: codebuild.ComputeType.MEDIUM
+        },
+        partialBuildSpec: BuildSpec.fromObject({
+          phases: {
+            install: {
+              'runtime-versions': {
+                nodejs: '20'
+              }
+            }
+          },
+        }),
+        timeout: cdk.Duration.minutes(20), 
+      },
+      publishAssetsInParallel:true
     });
 
     pipeline.addStage(new PipelineCentralStage(this, "central", {
@@ -96,7 +113,9 @@ export class PipelineStack extends cdk.Stack {
       subDomain: 'www'
     }), {
       pre: [
-        new ManualApprovalStep('ManualApprovalBeforeProd')
+        new ManualApprovalStep('ManualApprovalBeforeProd', {
+          comment: 'Please approve to push from beta to production'
+        })
       ]
     });
   }

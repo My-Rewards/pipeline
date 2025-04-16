@@ -4,7 +4,8 @@ import { DynamoDBDocumentClient, GetCommand, UpdateCommand, } from '@aws-sdk/lib
 import { KMSClient, EncryptCommand } from '@aws-sdk/client-kms';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { SecretsManagerClient, GetSecretValueCommand} from "@aws-sdk/client-secrets-manager"
-import { OrganizationProps } from '../Interfaces';
+import { OrganizationProps } from '../../Interfaces';
+import { fetchSquareSecret } from '../../constants/square';
 
 const dynamoClient = new DynamoDBClient({region: "us-east-1" });
 const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
@@ -12,22 +13,7 @@ const kmsClient = new KMSClient({});
 const secretClient = new SecretsManagerClient({ region: "us-east-1" });
 
 let cachedSquareSecret: string | null; 
-let cacheSquareClient: string | null; 
-
-const fetchSquareSecret = async (): Promise<{secret:string, client:string}> => {
-    const data = await secretClient.send(new GetSecretValueCommand({ SecretId: process.env.SQUARE_ARN }));
-
-    if (!data.SecretString) {
-        throw new Error("Square key not found in Secrets Manager.");
-    }
-
-    const secret = JSON.parse(data.SecretString);
-
-    return {
-      client: secret.client_id,
-      secret: secret.client_secret
-    };
-};
+let cacheSquareClient: string | null;
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   if (!event.body) {
@@ -73,18 +59,21 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const getUser = new GetCommand({
       TableName: userTable,
       Key: { id: userSub},
-      ProjectionExpression: "org_id",
+      ProjectionExpression: "orgId, #userPermissions",      
+      ExpressionAttributeNames: { 
+        "#userPermissions": "permissions"
+      }
     });
 
     const userResult = await dynamoDb.send(getUser);
 
-    if(!userResult?.Item || !userResult.Item.org_id){
+    if(!userResult?.Item || !userResult.Item.orgId){
       return { statusCode: 210, body: JSON.stringify({ info: "User not found" }) };
     }
 
     const getOrg = new GetCommand({
       TableName: orgTable,
-      Key: { id: userResult.Item.org_id },
+      Key: { id: userResult.Item.orgId },
     });
 
     const orgResult = await dynamoDb.send(getOrg);
@@ -96,7 +85,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const organization = orgResult.Item as OrganizationProps
 
     if(organization.owner_id !== userSub ){
-      return { statusCode: 404, body: JSON.stringify({ error: "Unauthorized" }) };
+      return { statusCode: 401, body: JSON.stringify({ error: "Only Organization owner may link Organization" }) };
     }
         
     const client = new square.SquareClient({
@@ -104,7 +93,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     });
 
     if (!cachedSquareSecret || !cacheSquareClient) {
-      const secretResult = await fetchSquareSecret();
+      const secretResult = await fetchSquareSecret(squareSecretArn);
 
       cacheSquareClient = secretResult.client;
       cachedSquareSecret = secretResult.secret;
@@ -147,7 +136,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       });
       const encrypted = await kmsClient.send(command);
       if(!encrypted.CiphertextBlob) return null;
-      return String.fromCharCode(...encrypted.CiphertextBlob);
+      return Buffer.from(encrypted.CiphertextBlob).toString('hex');
     };
 
     const encryptedAccessToken = await encryptToken(accessToken);

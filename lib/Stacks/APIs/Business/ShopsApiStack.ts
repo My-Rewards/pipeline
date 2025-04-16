@@ -18,7 +18,7 @@ export class ShopApiStack extends cdk.NestedStack {
 
     const shopTable = dynamodb.Table.fromTableArn(this, 'ImportedShopTableARN', cdk.Fn.importValue('ShopTableARN'));
     const orgTable = dynamodb.Table.fromTableArn(this, 'ImportedOrganizationTableARN', cdk.Fn.importValue('OrganizationTableARN'));
-    const userTable = dynamodb.Table.fromTableArn(this, 'ImportedUserTableARN', cdk.Fn.importValue('UserTableARN'));
+    const userTable = dynamodb.Table.fromTableArn(this, 'ImportedBizzUsersTable', cdk.Fn.importValue('BizzUserTableARN'));
 
     const createShopLambda = new nodejs.NodejsFunction(this, "my-handler",{
       runtime: lambda.Runtime.NODEJS_20_X,
@@ -26,15 +26,17 @@ export class ShopApiStack extends cdk.NestedStack {
       handler: 'handler',
       environment: {
         SHOP_TABLE: shopTable.tableName,
+        USER_TABLE: userTable.tableName,
+        ORG_TABLE: orgTable.tableName
       },
       bundling: {
-        externalModules: ['aws-sdk', 'stripe'],
+        externalModules: ['aws-sdk'],
       },
     })
 
-    shopTable.grantReadData(createShopLambda);
+    shopTable.grantReadWriteData(createShopLambda);
+    orgTable.grantReadData(createShopLambda);
     userTable.grantReadData(createShopLambda);
-    userTable.grantWriteData(createShopLambda);
     props.encryptionKey.grantEncryptDecrypt(createShopLambda);
 
     // API Gateway integration

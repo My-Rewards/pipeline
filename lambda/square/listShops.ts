@@ -1,12 +1,10 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { KMSClient, DecryptCommand } from "@aws-sdk/client-kms";
-import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 import { DynamoDBDocumentClient, GetCommand, GetCommandInput } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import * as square from 'square'
 
 const kms = new KMSClient({ region: process.env.AWS_REGION });
-const secretsManager = new SecretsManagerClient({ region: process.env.AWS_REGION });
 const dynamoClient = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
 
@@ -60,7 +58,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const client = new square.SquareClient({
             environment: appEnv === 'prod'? square.SquareEnvironment.Production : square.SquareEnvironment.Sandbox,
             token:squareAccessToken
-
         });
 
         const shops = client.locations.list();

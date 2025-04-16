@@ -1,31 +1,19 @@
 import { DynamoDBClient} from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { OrganizationProps, ShopProps } from "../Interfaces";
-import { SecretsManagerClient, GetSecretValueCommand} from "@aws-sdk/client-secrets-manager"
+import { OrganizationProps } from "../Interfaces";
 import Stripe from "stripe";
+import { getStripeSecret } from "../constants/validOrganization";
+import { STRIPE_API_VERSION } from "../../global/constants";
 
 const dynamoClient = new DynamoDBClient({region: "us-east-1"});
 const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
-const secretClient = new SecretsManagerClient({ region: "us-east-1" });
 
 let cachedStripeKey: string | null; 
 let stripe: Stripe| null;
 
-const getStripeSecret = async (stripeArn:string): Promise<string | null> => {
-    const data = await secretClient.send(new GetSecretValueCommand({ SecretId: stripeArn }));
-
-    if (!data.SecretString) {
-        throw new Error("Stripe key not found in Secrets Manager.");
-    }
-
-    const secret = JSON.parse(data.SecretString);
-    return secret.secretKey;
-};
-
 const getIntent = async (stripe_id:string):Promise<{client_secret:string|null, first_pm:boolean}> => {
     try {
-
         const currPaymentMethods = await stripe?.customers.listPaymentMethods(stripe_id,{
             limit:3
         });
@@ -51,13 +39,14 @@ const getIntent = async (stripe_id:string):Promise<{client_secret:string|null, f
                 usage: "off_session",
                 automatic_payment_methods: {
                     enabled: true
-                  },            
+                  },
             });
         }
 
         return {
             client_secret:activeIntent ? activeIntent?.client_secret: null,
-            first_pm: currPaymentMethods ? currPaymentMethods.data.length>0 : false
+            first_pm: !currPaymentMethods?.data || currPaymentMethods.data.length === 0
+
         };
 
       } catch (error) {
@@ -78,15 +67,15 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const stripeArn = process.env.STRIPE_ARN;
 
         switch(true){
-            case (!orgTable || !userTable): return { statusCode: 404, body: JSON.stringify({ error: "No Org/Shop Table" }) };
-            case ( !userSub): return { statusCode: 404, body: JSON.stringify({ error: "no UserSub id supplied" }) };
-            case (!stripeArn): return { statusCode: 404, body: JSON.stringify({ error: "no Stripe ARN supplied" }) };
+            case (!orgTable || !userTable): return { statusCode: 500, body: JSON.stringify({ error: "No Org/Shop Table" }) };
+            case (!userSub): return { statusCode: 404, body: JSON.stringify({ error: "no UserSub id supplied" }) };
+            case (!stripeArn): return { statusCode: 500, body: JSON.stringify({ error: "no Stripe ARN supplied" }) };
         }
 
         const getUser = new GetCommand ({
             TableName: userTable,
             Key: { id: userSub},
-            ProjectionExpression: "org_id, #userPermissions",      
+            ProjectionExpression: "orgId, #userPermissions",      
             ExpressionAttributeNames: { 
                 "#userPermissions": "permissions"
             },      
@@ -94,11 +83,11 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
         const resultUser = await dynamoDb.send(getUser);
 
-        if (!resultUser.Item?.org_id) {
+        if (!resultUser.Item?.orgId) {
             return { statusCode: 210, body: JSON.stringify({ info: "User not Found" }) };
         }
 
-        const orgId = resultUser.Item.org_id ;
+        const orgId = resultUser.Item.orgId ;
         const permissions = resultUser.Item.permissions;
         
         const getOrg = new GetCommand({
@@ -119,7 +108,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         } 
 
         if(!stripe){
-            stripe = new Stripe(cachedStripeKey, { apiVersion: "2025-01-27.acacia" });
+            stripe = new Stripe(cachedStripeKey, { apiVersion: STRIPE_API_VERSION });
             if (!stripe) return { statusCode: 404, body: JSON.stringify({ error: "Failed to open stripe Client" }) };
         }
 
@@ -139,13 +128,13 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             };
         }
 
-        const intent = await getIntent(organization.stripe_id)
+        const {client_secret, first_pm} = await getIntent(organization.stripe_id)
 
         return {
             statusCode: 200,
             body: JSON.stringify({ 
-                client_secret:intent.client_secret,
-                first_pm:true
+                client_secret,
+                first_pm
             })
         };
 

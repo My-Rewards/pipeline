@@ -1,16 +1,16 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand, PutCommandInput, GetCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, PutCommand, GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { randomUUID } from "crypto";
 
 const client = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(client);
 
-exports.handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     if (!event.body) {
         return {
             statusCode: 400,
-            body: JSON.stringify({ error: "Request body is required" })
+            body: JSON.stringify({ error: "Request body is required" }),
         };
     }
 
@@ -18,57 +18,105 @@ exports.handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyRe
     const userTable = process.env.USER_TABLE;
     const orgTable = process.env.ORG_TABLE;
 
-    try {
-        const { 
-            org_id, square_id, latitude, longitude, shop_hours } = JSON.parse(event.body);
+    switch (true) {
+        case !shopTable:
+            return { statusCode: 404, body: JSON.stringify({ error: "Missing Shop Table Info" }) };
+        case !userTable:
+            return { statusCode: 404, body: JSON.stringify({ error: "Missing User Table Info" }) };
+        case !orgTable:
+            return { statusCode: 404, body: JSON.stringify({ error: "Missing Organization Table Info" }) };
+    }
 
-        if (!org_id || !square_id || !latitude || !longitude  || !shop_hours) {
+    try {
+        const { square_id, latitude, longitude, shop_hours } = JSON.parse(event.body);
+        const userSub = event.requestContext.authorizer?.claims?.sub;
+
+        if (!userSub) {
+            return { statusCode: 400, body: JSON.stringify({ error: "User ID is required" }) };
+        }
+
+        if (!square_id || !latitude || !longitude || !shop_hours) {
             return {
                 statusCode: 400,
-                body: JSON.stringify({ error: "Missing required fields" })
+                body: JSON.stringify({ error: "Missing required fields" }),
             };
         }
 
-        const getOrg = new GetCommand({
-            TableName: orgTable,
-            Key: { org_id }
+        const getUser = new GetCommand({
+            TableName: userTable,
+            Key: { id: userSub },
+            ProjectionExpression: "org_id, #userPermissions",
+            ExpressionAttributeNames: { "#userPermissions": "permissions" },
         });
+        const resultUser = await dynamoDb.send(getUser);
 
-        const orgResult = await dynamoDb.send(getOrg);
+        if (!resultUser.Item) {
+            return { statusCode: 210, body: JSON.stringify({ error: "User email not found in database or User already linked to Organization" }) };
+        } else if (!resultUser.Item.org_id) {
+            return { statusCode: 210, body: JSON.stringify({ error: "Organization not found" }) };
+        }
 
+        const orgId = resultUser.Item.org_id;
+
+
+        const orgResult = await dynamoDb.send(new GetCommand({
+            TableName: orgTable,
+            Key: { id: orgId },
+        }));
         if (!orgResult.Item) {
             return {
-                statusCode: 404,
-                body: JSON.stringify({ error: "Organization not found" })
+                statusCode: 210,
+                body: JSON.stringify({ error: "Organization not found" }),
+            };
+        }
+
+
+        const userResult = await dynamoDb.send(new GetCommand({
+            TableName: userTable,
+            Key: { id: userSub },
+            ProjectionExpression: "org_id",
+        }));
+        if (!userResult.Item || userResult.Item.org_id !== orgId) {
+            return {
+                statusCode: 403,
+                body: JSON.stringify({ error: "User is not associated with the specified Organization" }),
             };
         }
 
         const shopId = randomUUID();
 
-        const shopAttributes: PutCommandInput = {
+        await dynamoDb.send(new PutCommand({
             TableName: shopTable,
             Item: {
                 id: shopId,
-                org_id,
+                org_id: orgId,
                 square_id,
                 latitude,
                 longitude,
                 shop_hours,
                 active: false,
-            }
-        };
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+            },
+        }));
 
-        await dynamoDb.send(new PutCommand(shopAttributes));
+
+        await dynamoDb.send(new UpdateCommand({
+            TableName: orgTable,
+            Key: { id: orgId },
+            UpdateExpression: "SET shopId = :shopId",
+            ExpressionAttributeValues: { ":shopId": shopId },
+        }));
 
         return {
             statusCode: 201,
-            body: JSON.stringify({ success: true, shopId })
+            body: JSON.stringify({ message: "Shop created successfully", shopId }),
         };
     } catch (error) {
         console.error("Error creating shop:", error);
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: "Internal Server Error" })
+            body: JSON.stringify({ error: "Internal Server Error" }),
         };
     }
 };

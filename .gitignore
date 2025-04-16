@@ -6,6 +6,9 @@
 *.d.ts
 node_modules
 
+/.idea/
+.idea/workspace.xml
+
 # CDK asset staging directory
 .cdk.staging
 cdk.out

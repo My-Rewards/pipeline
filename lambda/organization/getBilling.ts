@@ -1,13 +1,13 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { SecretsManagerClient, GetSecretValueCommand} from "@aws-sdk/client-secrets-manager"
 import Stripe from "stripe";
 import { StripeBillingProps, StripeInvoice } from "../Interfaces";
+import { getStripeSecret } from "../constants/validOrganization";
+import { STRIPE_API_VERSION } from "../../global/constants";
 
 const dynamoClient = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
-const secretClient = new SecretsManagerClient({ region: "us-east-1" });
 
 interface stripeClientProps{
     success: boolean,
@@ -16,17 +16,6 @@ interface stripeClientProps{
 
 let cachedStripeKey: string | null; 
 let stripe: Stripe| null;
-
-const getStripeSecret = async (stripeArn:string): Promise<string | null> => {
-    const data = await secretClient.send(new GetSecretValueCommand({ SecretId: stripeArn }));
-
-    if (!data.SecretString) {
-        throw new Error("Stripe key not found in Secrets Manager.");
-    }
-
-    const secret = JSON.parse(data.SecretString);
-    return secret.secretKey;
-};
 
 const getStripe = async (stripe_id:string):Promise<stripeClientProps> => {
     try {
@@ -52,7 +41,11 @@ const getStripe = async (stripe_id:string):Promise<stripeClientProps> => {
                 value:{
                     total: 0,
                     tax: 0,
-                    currPaymentMethod: null,
+                    currPaymentMethod: (customerResponse && !customerResponse?.deleted) 
+                    ? (typeof customerResponse.invoice_settings.default_payment_method === 'string' 
+                       ? customerResponse.invoice_settings.default_payment_method 
+                       : customerResponse.invoice_settings.default_payment_method?.id || null)
+                    : null,
                     active:false,
                     paymentWindow:{
                         start: null,
@@ -86,6 +79,7 @@ const getStripe = async (stripe_id:string):Promise<stripeClientProps> => {
                 created: upcomingInvoice.created,
                 period_start: upcomingInvoice.period_start,
                 period_end: upcomingInvoice.period_end,
+                download: null,
                 upcoming: true,
                 paid: false,
             });
@@ -104,6 +98,7 @@ const getStripe = async (stripe_id:string):Promise<stripeClientProps> => {
                 period_start: invoice.period_start,
                 period_end: invoice.period_end,
                 upcoming: false,
+                download:invoice.invoice_pdf || null,
                 paid: invoice.paid,
             });
         });
@@ -146,15 +141,15 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const stripeArn = process.env.STRIPE_ARN;
 
         switch(true){
-            case (!orgTable || !userTable): return { statusCode: 404, body: JSON.stringify({ error: "No Org/User Table" }) };
-            case (!userSub): return { statusCode: 404, body: JSON.stringify({ error: "no userID supplied" }) };
-            case (!stripeArn): return { statusCode: 404, body: JSON.stringify({ error: "Missing Stripe Arn" }) };
+            case (!orgTable || !userTable): return { statusCode: 500, body: JSON.stringify({ error: "No Org/User Table" }) };
+            case (!userSub): return { statusCode: 401, body: JSON.stringify({ error: "no userID supplied" }) };
+            case (!stripeArn): return { statusCode: 500, body: JSON.stringify({ error: "Missing Stripe Arn" }) };
         }
 
         const getUser = new GetCommand ({
             TableName: userTable,
             Key: { id: userSub},
-            ProjectionExpression: "org_id, #userPermissions",      
+            ProjectionExpression: "orgId, #userPermissions",      
             ExpressionAttributeNames: { 
                 "#userPermissions": "permissions"
             },      
@@ -162,11 +157,11 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
         const resultUser = await dynamoDb.send(getUser);
 
-        if (!resultUser.Item?.org_id) {
+        if (!resultUser.Item?.orgId) {
             return { statusCode: 210, body: JSON.stringify({ info: "Organization not Found" }) };
         }
 
-        const orgId = resultUser.Item.org_id ;
+        const orgId = resultUser.Item.orgId ;
         const permissions = resultUser.Item.permissions;
 
         if (!orgId) {
@@ -176,7 +171,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const getOrg = new GetCommand ({
             TableName: orgTable,
             Key: { id: orgId},
-            ProjectionExpression: "stripe_id, linked, #orgName, images, date_registered",
+            ProjectionExpression: "stripe_id, linked, #orgName, images, date_registered, active",
             ExpressionAttributeNames: { 
                 "#orgName": "name"
             },
@@ -192,13 +187,15 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             return { statusCode: 211, body: JSON.stringify({ info: "Organization not Linked" }) };
         }
 
+
         if (!cachedStripeKey) {
             cachedStripeKey = await getStripeSecret(stripeArn);
+            console.log(cachedStripeKey);
             if (!cachedStripeKey) return { statusCode: 404, body: JSON.stringify({ error: "Failed to retrieve Stripe secret key" }) };
         } 
 
         if(!stripe){
-            stripe = new Stripe(cachedStripeKey, { apiVersion: "2025-01-27.acacia" });
+            stripe = new Stripe(cachedStripeKey, { apiVersion: STRIPE_API_VERSION });
             if (!stripe) return { statusCode: 404, body: JSON.stringify({ error: "Failed to open stripe Client" }) };
         }
     
@@ -210,14 +207,14 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             organization: { 
                 date_registered: org.Item.date_registered,
                 name: org.Item.name,
-                org_id: orgId,
-                logo:org.Item.images.logo,
+                logo: org.Item.images.logo.url,
+                active: org.Item.active,
                 billingData:stripeData.value,
             }
         })};
 
     } catch (error) {
-        console.error("Error fetching organization:", error);
-        return { statusCode: 500, body: JSON.stringify({ error }) };
+        console.error("Error fetching Billing:", error);
+        return { statusCode: 500, body: JSON.stringify({ error:'Error fetching Billing' }) };
     }
 };
