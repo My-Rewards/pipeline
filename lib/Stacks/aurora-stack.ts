@@ -62,12 +62,10 @@ export class AuroraStack extends cdk.Stack {
             ec2.Port.tcp(443),
             'Allow outbound HTTPS traffic'
         );
+
         const endpointConfigs = [
-            { id: 'LAMBDA_ISOLATED', service: ec2.InterfaceVpcEndpointAwsService.LAMBDA, subnets: vpc.isolatedSubnets },
-            { id: 'SECRETS_MANAGER_ISOLATED', service: ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER, subnets: vpc.isolatedSubnets },
-            { id: 'LAMBDA_PRIVATE', service: ec2.InterfaceVpcEndpointAwsService.LAMBDA, subnets: vpc.privateSubnets },
-            { id: 'SECRETS_MANAGER_PRIVATE', service: ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER, subnets: vpc.privateSubnets },
-            { id: 'DYNAMO_DB_PRIVATE', service: ec2.InterfaceVpcEndpointAwsService.DYNAMODB, subnets: vpc.privateSubnets },
+            { id: 'LAMBDA', service: ec2.InterfaceVpcEndpointAwsService.LAMBDA, subnets: vpc.privateSubnets },
+            { id: 'SECRETS_MANAGER', service: ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER, subnets: vpc.privateSubnets },
         ];
 
         endpointConfigs.forEach(config => {
@@ -75,6 +73,20 @@ export class AuroraStack extends cdk.Stack {
                 service: config.service,
                 subnets: { subnets: config.subnets },
                 securityGroups: [securityGroupResolvers]
+            });
+        });
+
+        const isolatedEndpointConfigs = [
+            { id: 'LAMBDA_ISOLATED', service: ec2.InterfaceVpcEndpointAwsService.LAMBDA, subnets: vpc.isolatedSubnets },
+            { id: 'SECRETS_MANAGER_ISOLATED', service: ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER, subnets: vpc.isolatedSubnets },
+        ];
+
+        isolatedEndpointConfigs.forEach(config => {
+            vpc.addInterfaceEndpoint(config.id, {
+                service: config.service,
+                subnets: { subnets: config.subnets },
+                securityGroups: [securityGroupResolvers],
+                privateDnsEnabled: false
             });
         });
 

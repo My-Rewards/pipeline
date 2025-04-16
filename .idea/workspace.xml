@@ -18,34 +18,23 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c38fec59-b241-48cf-a190-0dfc032fdfce" name="Local Files" comment="&quot;Add SquareAPI stack with Lambdas and API Gateway integration  &#10;- Includes connect, disconnect, and list shops endpoints  &#10;- Configures DynamoDB access, KMS encryption, and Cognito authentication  &#10;- Generated code coverage report for SquareApiStack integration&quot;">
+    <list default="true" id="c38fec59-b241-48cf-a190-0dfc032fdfce" name="Local Files" comment="Local Files">
+      <change afterPath="$PROJECT_DIR$/lambda/constants/square.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lambda/user/Plans/getPlans.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/clover.xml" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/clover.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/coverage-final.json" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/coverage-final.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/cloudWatch/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/cloudWatch/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/cloudWatch/squareTokenUpdater.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/cloudWatch/squareTokenUpdater.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/constants/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/constants/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/constants/validOrganization.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/constants/validOrganization.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/likes/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/likes/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/likes/setLike.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/likes/setLike.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/getBilling.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/getBilling.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/getOrg.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/getOrg.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/newOrganization.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/newOrganization.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/square/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/square/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/square/link.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/square/link.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/shop/getShopApp.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/shop/getShopApp.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/shop/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/shop/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/shop/newShop.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/shop/newShop.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/user/Plans/getPlan.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/user/Plans/getPlan.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/user/Plans/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/user/Plans/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/user/createUser.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/user/createUser.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/user/createUserBusiness.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/user/createUserBusiness.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/user/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/user/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov.info" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov.info" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/EmailTemplate/verify-email-template.html" beforeDir="false" afterPath="$PROJECT_DIR$/EmailTemplate/verify-email-template.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lambda/cloudWatch/squareTokenUpdater.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/cloudWatch/squareTokenUpdater.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lambda/organization/newOrganization.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/newOrganization.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/lambdas/organization/newOrganization.test.ts" beforeDir="false" afterPath="$PROJECT_DIR$/test/lambdas/organization/newOrganization.test.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lambda/organization/square/link.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/square/link.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lambda/organization/square/unlink.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/square/unlink.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lambda/organization/update/status.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/update/status.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/Stacks/aurora-stack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/aurora-stack.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/Stacks/dynamo-stack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/dynamo-stack.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/app-stage.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/app-stage.ts" afterDir="false" />
+    </list>
+    <list id="79a675d0-e669-4fab-ac29-b64f9bdb9a1c" name="Unversioned Files" comment="Unversioned Files">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -63,7 +52,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="main" />
+        <entry key="$PROJECT_DIR$" value="Brian" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -99,64 +88,91 @@
   <component name="KubernetesApiProvider">{
   &quot;isMigrated&quot;: true
 }</component>
+  <component name="LineStatusTrackerManager">
+    <file path="$PROJECT_DIR$/.idea/workspace.xml">
+      <ranges>
+        <range start1="20" end1="21" start2="20" end2="24" changelist="c38fec59-b241-48cf-a190-0dfc032fdfce" />
+        <range start1="22" end1="46" start2="25" end2="27" changelist="c38fec59-b241-48cf-a190-0dfc032fdfce" />
+        <range start1="47" end1="48" start2="28" end2="37" changelist="c38fec59-b241-48cf-a190-0dfc032fdfce" />
+        <range start1="65" end1="66" start2="54" end2="55" changelist="c38fec59-b241-48cf-a190-0dfc032fdfce" />
+        <range start1="101" end1="101" start2="90" end2="113" changelist="c38fec59-b241-48cf-a190-0dfc032fdfce" />
+        <range start1="107" end1="108" start2="119" end2="121" changelist="c38fec59-b241-48cf-a190-0dfc032fdfce" />
+        <range start1="113" end1="149" start2="126" end2="162" changelist="c38fec59-b241-48cf-a190-0dfc032fdfce" />
+        <range start1="150" end1="154" start2="163" end2="167" changelist="c38fec59-b241-48cf-a190-0dfc032fdfce" />
+        <range start1="156" end1="157" start2="169" end2="170" changelist="c38fec59-b241-48cf-a190-0dfc032fdfce" />
+        <range start1="159" end1="159" start2="172" end2="175" changelist="c38fec59-b241-48cf-a190-0dfc032fdfce" />
+        <range start1="330" end1="330" start2="346" end2="348" changelist="c38fec59-b241-48cf-a190-0dfc032fdfce" />
+        <range start1="333" end1="335" start2="351" end2="351" changelist="c38fec59-b241-48cf-a190-0dfc032fdfce" />
+        <range start1="371" end1="371" start2="387" end2="390" changelist="c38fec59-b241-48cf-a190-0dfc032fdfce" />
+        <range start1="420" end1="421" start2="439" end2="448" changelist="c38fec59-b241-48cf-a190-0dfc032fdfce" />
+        <range start1="438" end1="438" start2="465" end2="466" changelist="c38fec59-b241-48cf-a190-0dfc032fdfce" />
+        <range start1="442" end1="443" start2="470" end2="473" changelist="c38fec59-b241-48cf-a190-0dfc032fdfce" />
+        <range start1="465" end1="466" start2="495" end2="495" changelist="79a675d0-e669-4fab-ac29-b64f9bdb9a1c" />
+      </ranges>
+    </file>
+  </component>
   <component name="ProjectColorInfo">{
     &quot;customColor&quot;: &quot;&quot;,
     &quot;associatedIndex&quot;: 1
     }</component>
   <component name="ProjectId" id="2sPvgavNmeopLW2vRn1RTGmS1MA" />
   <component name="ProjectLevelVcsManager">
-    <ConfirmationsSetting value="1" id="Add" />
+    <ConfirmationsSetting value="2" id="Add" />
+    <ConfirmationsSetting value="2" id="Remove" />
   </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Jest.Helper Functions.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.Lambda Handler - Merging shop/org/likes.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.Shop Creation Lambda Handler.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.createOrganization Lambda Handler.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.createOrganization Lambda Handler.should handle Aurora connection failure.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.createOrganization Lambda Handler.should handle Aurora query failure.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.createOrganization Lambda Handler.should handle Stripe failure.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.createOrganization Lambda Handler.should handle unexpected errors gracefully.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.createOrganization Lambda Handler.should successfully create an organization.executor&quot;: &quot;Debug&quot;,
-    &quot;Jest.createUser Lambda Function.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.createUserBusiness.test.ts.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.getBilling Lambda Handler.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.getBilling Lambda Handler.should return inactive billing data when user has no active subscriptions.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.getBilling Lambda.executor&quot;: &quot;Debug&quot;,
-    &quot;Jest.getOrg Lambda.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.getOrg Lambda.should return 200 and organization details with active subscription.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.getOrg Lambda.should return 404 when Stripe secret retrieval fails.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.getOrg.test.ts.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.getPlan Lambda Handler.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.validOrganization Functions.executor&quot;: &quot;Run&quot;,
-    &quot;Node.js.business-website-stack.ts.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;Brian&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/brian/myRewards/pipeline&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs.jest.jest_package&quot;: &quot;/Users/brian/myRewards/pipeline/node_modules/jest&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;settings.typescriptcompiler&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;/Users/brian/myRewards/pipeline/node_modules/typescript/lib&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Jest.Helper Functions.executor": "Run",
+    "Jest.Lambda Handler - Merging shop/org/likes.executor": "Run",
+    "Jest.Shop Creation Lambda Handler.executor": "Run",
+    "Jest.createOrganization Lambda Handler.executor": "Run",
+    "Jest.createOrganization Lambda Handler.should handle Aurora connection failure.executor": "Run",
+    "Jest.createOrganization Lambda Handler.should handle Aurora query failure.executor": "Run",
+    "Jest.createOrganization Lambda Handler.should handle Stripe failure.executor": "Run",
+    "Jest.createOrganization Lambda Handler.should handle unexpected errors gracefully.executor": "Run",
+    "Jest.createOrganization Lambda Handler.should successfully create an organization.executor": "Debug",
+    "Jest.createUser Lambda Function.executor": "Run",
+    "Jest.createUserBusiness.test.ts.executor": "Run",
+    "Jest.getBilling Lambda Handler.executor": "Run",
+    "Jest.getBilling Lambda Handler.should return inactive billing data when user has no active subscriptions.executor": "Run",
+    "Jest.getBilling Lambda.executor": "Debug",
+    "Jest.getOrg Lambda.executor": "Run",
+    "Jest.getOrg Lambda.should return 200 and organization details with active subscription.executor": "Run",
+    "Jest.getOrg Lambda.should return 404 when Stripe secret retrieval fails.executor": "Run",
+    "Jest.getOrg.test.ts.executor": "Run",
+    "Jest.getPlan Lambda Handler.executor": "Run",
+    "Jest.validOrganization Functions.executor": "Run",
+    "Node.js.business-website-stack.ts.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "Brian",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "/Users/brian/myRewards/pipeline",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs.jest.jest_package": "/Users/brian/myRewards/pipeline/node_modules/jest",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "project.propVCSSupport.Confirmation",
+    "ts.external.directory.path": "/Users/brian/myRewards/pipeline/node_modules/typescript/lib",
+    "vue.rearranger.settings.migration": "true"
   },
-  &quot;keyToStringList&quot;: {
-    &quot;DatabaseDriversLRU&quot;: [
-      &quot;mysql_aurora&quot;,
-      &quot;postgresql&quot;
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "mysql_aurora",
+      "postgresql"
     ]
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/lambda" />
+      <recent name="$PROJECT_DIR$/lambda/user/Plans" />
+      <recent name="$PROJECT_DIR$/lambda/user/Plans/Aurora" />
       <recent name="$PROJECT_DIR$/test/lambdas/shop" />
     </key>
   </component>
@@ -328,11 +344,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Jest.getOrg Lambda" />
+        <item itemvalue="Jest.getBilling Lambda" />
         <item itemvalue="Jest.createOrganization Lambda Handler.should handle Aurora query failure" />
         <item itemvalue="Jest.createOrganization Lambda Handler.should handle Aurora connection failure" />
         <item itemvalue="Jest.createOrganization Lambda Handler" />
-        <item itemvalue="Jest.getBilling Lambda" />
-        <item itemvalue="Jest.getOrg Lambda" />
       </list>
     </recent_temporary>
   </component>
@@ -369,6 +385,9 @@
       <workItem from="1744470935824" duration="5585000" />
       <workItem from="1744556274845" duration="16186000" />
       <workItem from="1744584626583" duration="25636000" />
+      <workItem from="1744697668313" duration="3460000" />
+      <workItem from="1744753432470" duration="38000" />
+      <workItem from="1744753512391" duration="16151000" />
     </task>
     <task id="LOCAL-00001" summary="billing page testing and subscription creation update">
       <option name="closed" value="true" />
@@ -418,7 +437,15 @@
       <option name="project" value="LOCAL" />
       <updated>1744647364175</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="&quot;Add SquareAPI stack with Lambdas and API Gateway integration  &#10;- Includes connect, disconnect, and list shops endpoints  &#10;- Configures DynamoDB access, KMS encryption, and Cognito authentication  &#10;- Generated code coverage report for SquareApiStack integration&quot;">
+      <option name="closed" value="true" />
+      <created>1744724085856</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1744724085856</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -436,11 +463,14 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
     <MESSAGE value="billing page testing and subscription creation update" />
     <MESSAGE value="create subsciption on addPayment" />
     <MESSAGE value="- **Refactor:** Refactored mocking strategy for tests, including AWS SDK clients and external libraries like `Stripe`, `square`, and `crypto`.&#10;- **Tests:** Expanded test coverage in `newOrganization` and `squareTokenUpdater` lambdas for error handling and validations.&#10;- **Interfaces:** Adjusted interfaces in `lambda/Interfaces.ts` to better structure reward systems and shop details.&#10;- **Path Updates:** Updated import paths across files for better aliasing using TypeScript configuration.&#10;- **Concurrency:** Enhanced `squareTokenUpdater` for concurrent token refresh and validation." />
     <MESSAGE value="&quot;Add SquareAPI stack with Lambdas and API Gateway integration  &#10;- Includes connect, disconnect, and list shops endpoints  &#10;- Configures DynamoDB access, KMS encryption, and Cognito authentication  &#10;- Generated code coverage report for SquareApiStack integration&quot;" />
-    <option name="LAST_COMMIT_MESSAGE" value="&quot;Add SquareAPI stack with Lambdas and API Gateway integration  &#10;- Includes connect, disconnect, and list shops endpoints  &#10;- Configures DynamoDB access, KMS encryption, and Cognito authentication  &#10;- Generated code coverage report for SquareApiStack integration&quot;" />
+    <MESSAGE value="Local Files" />
+    <MESSAGE value="Unversioned Files" />
+    <option name="LAST_COMMIT_MESSAGE" value="Unversioned Files" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
