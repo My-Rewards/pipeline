@@ -13,11 +13,11 @@ export class CloudWatchStack extends cdk.Stack {
     super(scope, id, props);
 
     const orgTable = dynamodb.Table.fromTableArn(this, 'ImportedOrganizationTableARN', cdk.Fn.importValue('OrganizationTableARN'));
-    const kmsKey = cdk.aws_kms.Key.fromKeyArn(this, 'ImportedKMSKey', cdk.Fn.importValue('kmsId'));
+    const kmsKey = cdk.aws_kms.Key.fromKeyArn(this, 'ImportedKMSKey', cdk.Fn.importValue('kmsARN'));
 
     const secretData = cdk.aws_secretsmanager.Secret.fromSecretNameV2(this, 'fetchSquareSecret', 'square/credentials');
 
-    const lambdaFunction = new nodejs.NodejsFunction(this, "get-organization-billing",{
+    const lambdaFunction = new nodejs.NodejsFunction(this, "cloudWatch-square-token-updater",{
       runtime: lambda.Runtime.NODEJS_20_X,
       entry: 'lambda/cloudWatch/squareTokenUpdater.ts',
       handler: 'handler',

@@ -74,27 +74,27 @@ export class ApiGatewayStack extends cdk.Stack {
       }
     );
 
-    // Create Custom Domain API
-    const api = new apigateway.RestApi(this, "myRewardsApi", {
-      restApiName: "myRewards API",
-      description: "This is an API for Lambda functions.",
-      domainName: {
-        domainName: `${props.apiDomain}.${DOMAIN}`,
-        certificate: certificate,
-        endpointType: apigateway.EndpointType.EDGE,
-        securityPolicy: apigateway.SecurityPolicy.TLS_1_2,
-      },
-      defaultCorsPreflightOptions: {
-        allowOrigins: apigateway.Cors.ALL_ORIGINS,
-        allowMethods: apigateway.Cors.ALL_METHODS,
-        allowHeaders: apigateway.Cors.DEFAULT_HEADERS,
-      },
-      deployOptions: {
-        stageName: "prod",
-        throttlingRateLimit: 20,
-        throttlingBurstLimit: 40,
-      },
-    });
+        // Create Custom Domain API
+        const api = new apigateway.RestApi(this, 'myRewardsApi', {
+            restApiName: 'myRewards API',
+            description: 'This is an API for Lambda functions.',
+            domainName: {
+                domainName: `${props.apiDomain}.${DOMAIN}`,
+                certificate: certificate,
+                endpointType: apigateway.EndpointType.EDGE,
+                securityPolicy: apigateway.SecurityPolicy.TLS_1_2,
+            },
+            defaultCorsPreflightOptions: {
+                allowOrigins: apigateway.Cors.ALL_ORIGINS,
+                allowMethods: apigateway.Cors.ALL_METHODS,
+                allowHeaders: apigateway.Cors.DEFAULT_HEADERS
+            },
+            deployOptions: {
+                stageName: props.stageName,
+                throttlingRateLimit: 20,
+                throttlingBurstLimit: 40,
+            },
+        });
 
     new route53.ARecord(this, "ApiARecord", {
       zone: hostedZone,
@@ -130,10 +130,16 @@ export class ApiGatewayStack extends cdk.Stack {
       encryptionKey: this.encryptionKey,
     });
 
-    new cdk.CfnOutput(this, "RestApi", {
-      value: api.restApiId,
-      description: "RestApi ID",
-      exportName: "restApi",
-    });
-  }
+        new cdk.CfnOutput(this, 'RestApi', {
+            value: api.restApiId,
+            description: 'RestApi ID',
+            exportName: 'restApi',
+        });
+
+        new cdk.CfnOutput(this, 'kmsARN', {
+            value: this.encryptionKey.keyArn,
+            description: 'kmsARN',
+            exportName: 'kmsARN',
+        });
+    }
 }

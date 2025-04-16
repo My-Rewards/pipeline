@@ -59,7 +59,7 @@ export class UserPoolStack extends cdk.Stack {
           externalModules: ['aws-sdk']
         }
       })
-      usersTable.grantWriteData(postConfirmationHandlerUser);
+      usersTable.grantReadWriteData(postConfirmationHandlerUser);
       postConfirmationHandlerUser.addToRolePolicy(sesStatement);
 
       const postConfirmationHandlerBusiness = new nodejs.NodejsFunction(this, "Bizz-User-postConfirmation",{
@@ -196,8 +196,17 @@ export class UserPoolStack extends cdk.Stack {
           flows: {
             authorizationCodeGrant: true,
           },
-          callbackUrls: ['exp://127.0.0.1:19000/--/'],
-          logoutUrls: ['exp://127.0.0.1:19000/--/'],
+          callbackUrls:
+              [
+                'exp://127.0.0.1:19000/--/',
+                'myrewards://oauthredirect'
+              ],
+          logoutUrls:
+              [
+                  'exp://127.0.0.1:19000/--/',
+                  'myrewards://signout'
+
+              ],
         }
       });
 
