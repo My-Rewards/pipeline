@@ -14,6 +14,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
     const limit = parseInt(query.limit || "4");
     const offset = (page - 1) * limit;
 
+
     if (isNaN(latitude) || isNaN(longitude)) {
       return {
         statusCode: 400,
