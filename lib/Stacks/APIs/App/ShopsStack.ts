@@ -47,7 +47,7 @@ export class ShopApiStack extends cdk.NestedStack {
     const clusterRole = iam.Role.fromRoleArn(
       this,
       "ImportedRole",
-      cdk.Fn.importValue("ClusterRoleARN")
+      cdk.Fn.importValue("ClusterRoleARN"),
     );
 
     const securityGroupResolvers = ec2.SecurityGroup.fromSecurityGroupId(
@@ -129,7 +129,7 @@ export class ShopApiStack extends cdk.NestedStack {
           ORG_TABLE: orgTable.tableName,
           LIKES_TABLE: likesTable.tableName,
           DB_NAME: DATABASE_NAME,
-          CLUSTER_ARN: cdk.Fn.importValue("ClusterRoleARN"),
+          CLUSTER_ARN: cdk.Fn.importValue("ClusterARN"),
           SECRET_ARN: cdk.Fn.importValue("AuroraSecretARN"),
           GET_SHOP_LAMBDA_NAME: getShopLambda.functionName,
         },
