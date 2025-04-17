@@ -126,6 +126,11 @@ export const handler = async (event: APIGatewayProxyEvent) => {
           //     },
           //   })
           // );
+          let miles = null;
+          if (shopDetails.distance) {
+            let miles = shopDetails.distance * 0.00062137;
+            miles = parseFloat(miles.toFixed(1));
+          }
           const favorite = false;
 
           return {
@@ -134,7 +139,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
             organization_id: shopDetails.org_id,
             preview: org.images?.banner?.url || "",
             name: org.name,
-            distance: shopDetails.distance,
+            distance: miles,
             favorite,
             location: shop.location,
             shop_hours: shop.shop_hours,
