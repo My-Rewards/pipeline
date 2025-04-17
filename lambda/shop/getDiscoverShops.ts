@@ -128,8 +128,8 @@ export const handler = async (event: APIGatewayProxyEvent) => {
           // );
           let miles = null;
           if (shopDetails.distance) {
-            let miles = shopDetails.distance * 0.00062137;
-            miles = parseFloat(miles.toFixed(1));
+            miles = shopDetails.distance * 0.00062137;
+            miles = miles.toFixed(1);
           }
           const favorite = false;
 
