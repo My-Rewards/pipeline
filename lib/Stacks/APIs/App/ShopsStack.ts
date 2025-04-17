@@ -143,9 +143,6 @@ export class ShopApiStack extends cdk.NestedStack {
     orgTable.grantReadData(discoverShopsLambda);
     likesTable.grantReadData(discoverShopsLambda);
 
-    //Allow discoverShops to invoke getShop
-    getShopLambda.grantInvoke(discoverShopsLambda);
-
     const discoverShopApi = shopApi.addResource("discover");
     const discoverIntegration = new apigateway.LambdaIntegration(
       discoverShopsLambda
