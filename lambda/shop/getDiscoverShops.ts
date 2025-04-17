@@ -77,64 +77,81 @@ export const handler = async (event: APIGatewayProxyEvent) => {
         }),
       };
     }
-    const shopsWithDistance = records.map((row) => ({
+    const shopDetails = records.map((row) => ({
       shop_id: row[0].stringValue,
+      org_id: row[1].stringValue,
       distance: row[2].doubleValue,
     }));
 
     const enrichedShops = await Promise.all(
-      shopsWithDistance.map(async (shopsWithDistance) => {
+      shopDetails.map(async (shopDetails) => {
         try {
           const shopRes = await docClient.send(
             new GetCommand({
               TableName: shopTable,
-              Key: { id: shopsWithDistance.shop_id },
-              ProjectionExpression: "id, orgId, location, shop_hours",
-            })
-          );
-          const shop = shopRes.Item;
-          if (!shop || !shop.orgId) return null;
-
-          const orgRes = await docClient.send(
-            new GetCommand({
-              TableName: orgTable,
-              Key: { id: shop.orgId },
-              ProjectionExpression: "id, name, images",
-            })
-          );
-          const org = orgRes.Item;
-          if (!org || !org.id) return null;
-
-          const likeRes = await docClient.send(
-            new GetCommand({
-              TableName: likesTable,
-              Key: {
-                PK: `USER#${userSub}`,
-                SK: `SHOP#${shop.id}`,
+              Key: { id: shopDetails.shop_id },
+              ProjectionExpression: "#loc, shop_hours",
+              ExpressionAttributeNames: {
+                "#loc": "location",
               },
             })
           );
-          const favorite = likeRes.Item ? likeRes.Item.favorite : false;
+          console.log("Shop hours and location: ", shopRes.Item);
+          const shop = shopRes.Item;
+          if (!shop){
+            return null;
+          }
+          const orgRes = await docClient.send(
+            new GetCommand({
+              TableName: orgTable,
+              Key: { id: shopDetails.org_id },
+              ProjectionExpression: "#nam, images",
+              ExpressionAttributeNames: {
+                "#nam": "name",
+              },
+            })
+          );
+          console.log("Org hours and images: ", orgRes.Item);
+          const org = orgRes.Item;
+          if (!org){
+            return null;
+          }
+
+          // const likeRes = await docClient.send(
+          //   new GetCommand({
+          //     TableName: likesTable,
+          //     Key: {
+          //       PK: `USER#${userSub}`,
+          //       SK: `SHOP#${shop.id}`,
+          //     },
+          //   })
+          // );
+          const favorite = false;
 
           return {
+            id: shopDetails.shop_id?.toString().slice(0, 4),
+            shop_id: shopDetails.shop_id,
+            organization_id: shopDetails.org_id,
+            preview: org.images?.banner?.url || "",
             name: org.name,
-            banner: org.images?.banner?.url || "",
-            logo: org.images?.logo?.url || "",
-            shop_id: shop.id,
+            distance: shopDetails.distance,
+            favorite,
             location: shop.location,
             shop_hours: shop.shop_hours,
-            favorite,
-            distance: shopsWithDistance.distance,
           };
         } catch (err) {
           console.error(
-            `Failed to fetch shop/org/like for shop_id: ${shopsWithDistance.shop_id}`,
+            `Failed to fetch shop/org/like for shop_id: ${shopDetails.shop_id}`,
             err
           );
           return null;
         }
       })
     );
+
+    console.log("Aurora Result:", auroraResult);
+    console.log("Shop Details:", shopDetails);
+    console.log("Enriched Shops:", enrichedShops);
 
     return {
       statusCode: 200,
