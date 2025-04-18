@@ -237,6 +237,8 @@ export class OrgApiStack extends cdk.NestedStack {
         USER_TABLE: userTable.tableName,
         STRIPE_ARN: stripeData.secretArn,
         CLUSTER_SECRET_ARN: clusterSecret.secretArn,
+        CLUSTER_ARN: clusterArn,
+        DB_NAME: DATABASE_NAME
       },
       bundling: {
         nodeModules: ['stripe', 'aws-sdk']

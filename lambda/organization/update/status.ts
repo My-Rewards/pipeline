@@ -4,7 +4,6 @@ import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from "@aws-sdk/lib-
 import Stripe from "stripe";
 import { dfPM, getStripeSecret } from "../../constants/validOrganization";
 import { STRIPE_API_VERSION } from "../../../global/constants";
-import {connectToAurora} from "@/lambda/constants/aurora";
 import { RDSDataClient, ExecuteStatementCommand } from "@aws-sdk/client-rds-data";
 
 const dynamoClient = new DynamoDBClient({});
@@ -100,8 +99,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
                 database: dbName,
                 sql:`
                     UPDATE Organizations SET active = $1 WHERE id = $2
-                `
-                ,
+                `,
                 parameters: [
                     { name: "active", value: { booleanValue: !org.Item.active } },
                     { name: "orgId", value: { stringValue: orgId } }
