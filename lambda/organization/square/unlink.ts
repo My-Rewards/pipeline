@@ -2,10 +2,11 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, GetCommand, UpdateCommand, } from '@aws-sdk/lib-dynamodb';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { OrganizationProps } from '../../Interfaces';
-import {connectToAurora} from "@/lambda/constants/aurora";
+import {ExecuteStatementCommand, RDSDataClient} from "@aws-sdk/client-rds-data";
 
 const dynamoClient = new DynamoDBClient({region: "us-east-1" });
 const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
+const rdsClient = new RDSDataClient({ region: "us-east-1" });
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const userSub = event.requestContext.authorizer?.claims?.sub;
@@ -13,6 +14,8 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
   const userTable = process.env.USER_TABLE;
   const orgTable = process.env.ORG_TABLE;
   const clusterSecretArn = process.env.CLUSTER_SECRET_ARN
+  const clusterArn = process.env.CLUSTER_ARN
+  const dbName = process.env.DB_NAME
 
   switch(true){
     case (!userSub):
@@ -20,11 +23,9 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         statusCode: 400,
         body: JSON.stringify({ error: 'missing user id' }),
       };
-    case !userTable || !orgTable || !clusterSecretArn:
-      return {
-        statusCode: 500,
-        body: JSON.stringify({ error: 'Missing Table Name (env)' }),
-      };
+    case !clusterSecretArn: return{statusCode:404, body:'Missing Aurora Secret ARN in ENV'};
+    case !clusterArn: return{statusCode:404, body:'Missing Aurora ARN in ENV'};
+    case !dbName: return{statusCode:404, body:'Missing DB Name in ENV'};
   }
 
   try {
@@ -60,12 +61,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       return { statusCode: 401, body: JSON.stringify({ error: "Only Organization owner may unlink Organization" }) };
     }
 
-    const auroraClient = await connectToAurora(clusterSecretArn);
-
-    if(!auroraClient){
-      return { statusCode: 500, body: JSON.stringify({ error: "Failed to connect to Aurora" }) };
-    }
-
     const updateOrg = new UpdateCommand({
       TableName: orgTable,
       Key: { id: organization.id },
@@ -82,22 +77,25 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       ReturnValues: 'UPDATED_NEW'
     });
 
-    try {
-      await auroraClient.query('UPDATE Organizations SET active = $1 WHERE id = $2', [false, organization.id]);
+    const auroraResult = await rdsClient.send(
+        new ExecuteStatementCommand({
+          secretArn: clusterSecretArn,
+          resourceArn: clusterArn,
+          database: dbName,
+          sql:`
+                    UPDATE Organizations SET active = $1 WHERE id = $2
+                `
+          ,
+          parameters: [
+            { name: "active", value: { booleanValue: false} },
+            { name: "orgId", value: { stringValue: organization.id } }
+          ],
+        })
+    );
 
-    } catch (error) {
-      await auroraClient.end();
-      return {
-        statusCode: 500,
-        body: JSON.stringify({ message: "Failed", error: error instanceof Error ? error.message : error }),
-      };
-    } finally {
-      if (auroraClient) {
-        await auroraClient.end();
-      }
+    if(auroraResult.numberOfRecordsUpdated ?? 0 >= 1){
+      await dynamoDb.send(updateOrg);
     }
-
-    await dynamoDb.send(updateOrg);
 
     return {
       statusCode: 200,

@@ -9,7 +9,7 @@ import * as kms from 'aws-cdk-lib/aws-kms';
 interface SquareApiStackProps extends cdk.NestedStackProps {
   api: apigateway.RestApi;
   authorizer: cdk.aws_apigateway.CognitoUserPoolsAuthorizer
-  encryptionKey: kms.Key;
+  encryptionKey: kms.IKey;
   stage: string;
 }
 

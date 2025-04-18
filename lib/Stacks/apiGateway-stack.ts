@@ -15,7 +15,6 @@ import { ShopApiStack } from "./APIs/Business/ShopsApiStack";
 import { UsersApiStack as BusinessApiStack } from "./APIs/Business/UserApiStack";
 
 export class ApiGatewayStack extends cdk.Stack {
-  public readonly encryptionKey: kms.Key;
 
   constructor(scope: Construct, id: string, props: ApiStackProps) {
     super(scope, id, props);
@@ -38,63 +37,47 @@ export class ApiGatewayStack extends cdk.Stack {
       validation: acm.CertificateValidation.fromDns(hostedZone),
     });
 
-    this.encryptionKey = new kms.Key(this, "KMSEncryptionKey", {
-      enableKeyRotation: true,
-      description: "KMS Key for encrypting token data for database",
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
-    });
+    const encryptionKey = kms.Key.fromKeyArn(this, "ImportedKMSKey", cdk.Fn.importValue('kmsARN'));
 
     const userPoolId = cdk.Fn.importValue(UP_CUSTOMER_ID);
     const bizzUserPoolId = cdk.Fn.importValue(UP_BUSINESS_ID);
 
-    const userPool = cognito.UserPool.fromUserPoolId(
-      this,
-      "ImportedUserPoolUser",
-      userPoolId
-    );
-    const bizzUserPool = cognito.UserPool.fromUserPoolId(
-      this,
-      "ImportedUserPoolBizz",
-      bizzUserPoolId
-    );
+    const userPool = cognito.UserPool.fromUserPoolId(this, "ImportedUserPoolUser", userPoolId);
 
-    const authorizerUser = new apigateway.CognitoUserPoolsAuthorizer(
-      this,
-      "CognitoAuthorizerUser",
-      {
+    const bizzUserPool = cognito.UserPool.fromUserPoolId(this, "ImportedUserPoolBizz", bizzUserPoolId);
+
+    const authorizerUser = new apigateway.CognitoUserPoolsAuthorizer(this, "CognitoAuthorizerUser",
+        {
         cognitoUserPools: [userPool],
-      }
+        }
     );
 
-    const authorizerBizz = new apigateway.CognitoUserPoolsAuthorizer(
-      this,
-      "CognitoAuthorizerBizz",
-      {
+    const authorizerBizz = new apigateway.CognitoUserPoolsAuthorizer(this, "CognitoAuthorizerBizz",
+        {
         cognitoUserPools: [bizzUserPool],
-      }
+        }
     );
 
-        // Create Custom Domain API
-        const api = new apigateway.RestApi(this, 'myRewardsApi', {
-            restApiName: 'myRewards API',
-            description: 'This is an API for Lambda functions.',
-            domainName: {
-                domainName: `${props.apiDomain}.${DOMAIN}`,
-                certificate: certificate,
-                endpointType: apigateway.EndpointType.EDGE,
-                securityPolicy: apigateway.SecurityPolicy.TLS_1_2,
-            },
-            defaultCorsPreflightOptions: {
-                allowOrigins: apigateway.Cors.ALL_ORIGINS,
-                allowMethods: apigateway.Cors.ALL_METHODS,
-                allowHeaders: apigateway.Cors.DEFAULT_HEADERS
-            },
-            deployOptions: {
-                stageName: props.stageName,
-                throttlingRateLimit: 20,
-                throttlingBurstLimit: 40,
-            },
-        });
+    const api = new apigateway.RestApi(this, 'myRewardsApi', {
+        restApiName: 'myRewards API',
+        description: 'This is an API for Lambda functions.',
+        domainName: {
+            domainName: `${props.apiDomain}.${DOMAIN}`,
+            certificate: certificate,
+            endpointType: apigateway.EndpointType.EDGE,
+            securityPolicy: apigateway.SecurityPolicy.TLS_1_2,
+        },
+        defaultCorsPreflightOptions: {
+            allowOrigins: apigateway.Cors.ALL_ORIGINS,
+            allowMethods: apigateway.Cors.ALL_METHODS,
+            allowHeaders: apigateway.Cors.DEFAULT_HEADERS
+        },
+        deployOptions: {
+            stageName: props.stageName,
+            throttlingRateLimit: 20,
+            throttlingBurstLimit: 40,
+        },
+    });
 
     new route53.ARecord(this, "ApiARecord", {
       zone: hostedZone,
@@ -110,7 +93,7 @@ export class ApiGatewayStack extends cdk.Stack {
     new SquareApiStack(this, "SquareApiStack", {
       api: api,
       authorizer: authorizerBizz,
-      encryptionKey: this.encryptionKey,
+      encryptionKey: encryptionKey,
       stage: props.stageName,
     });
 
@@ -127,19 +110,13 @@ export class ApiGatewayStack extends cdk.Stack {
     new ShopApiStack(this, "ShopApiStack", {
       api: api,
       authorizer: authorizerBizz,
-      encryptionKey: this.encryptionKey,
+      encryptionKey: encryptionKey,
     });
 
-        new cdk.CfnOutput(this, 'RestApi', {
-            value: api.restApiId,
-            description: 'RestApi ID',
-            exportName: 'restApi',
-        });
-
-        new cdk.CfnOutput(this, 'kmsARN', {
-            value: this.encryptionKey.keyArn,
-            description: 'kmsARN',
-            exportName: 'kmsARN',
-        });
+    new cdk.CfnOutput(this, 'RestApi', {
+        value: api.restApiId,
+        description: 'RestApi ID',
+        exportName: 'restApi',
+    });
     }
 }

@@ -45,7 +45,7 @@ export class BusinessWebsiteStack extends cdk.Stack {
                 version: 1,
                 frontend: {
                     phases: {
-                        preBuild: { commands: ["npm ci --cache .npm --prefer-offline"]},
+                        preBuild: { commands: ["npm i", "npm ci --cache .npm --prefer-offline"]},
                         build: { commands: ["npm run build"] }
                     },
                     artifacts: {

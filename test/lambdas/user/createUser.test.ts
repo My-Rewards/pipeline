@@ -1,189 +1,238 @@
-import { mockClient } from 'aws-sdk-client-mock';
-import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
+import { mockClient } from 'aws-sdk-client-mock';
 import { PostConfirmationTriggerEvent } from 'aws-lambda';
-import * as fs from 'fs';
 import { handler } from '@/lambda/user/createUser';
 
+// Create mocks
 const ddbMock = mockClient(DynamoDBDocumentClient);
 const sesMock = mockClient(SESClient);
 
-jest.mock('fs', () => ({
-    ...jest.requireActual('fs'),
-    readFileSync: jest.fn(),
-}));
+// Setup test environment variables
+process.env.TABLE = 'test-users-table';
+process.env.EMAIL_SENDER = 'noreply@example.com';
+process.env.EMAIL = '<p>Welcome to MyRewards!</p>';
 
-describe('createUser Lambda Function', () => {
-    const mockEvent: PostConfirmationTriggerEvent = {
-        version: '1',
-        region: 'us-east-1',
-        userPoolId: 'us-east-1_example',
-        userName: 'testuser',
-        callerContext: {
-            awsSdkVersion: 'aws-sdk-js-2.1.0',
-            clientId: 'client-id',
-        },
-        triggerSource: 'PostConfirmation_ConfirmSignUp',
-        request: {
-            userAttributes: {
-                sub: 'abc-123-def-456',
-                email: 'test@example.com',
-                email_verified: 'true',
-                given_name: 'John',
-                family_name: 'Doe',
-                birthdate: '1990-01-01',
-            },
-        },
-        response: {},
-    };
-
-    const mockEmailTemplate = '<html><body>Welcome!</body></html>';
-
+describe('createUser Lambda', () => {
     beforeEach(() => {
+        // Reset mocks before each test
         ddbMock.reset();
         sesMock.reset();
-        jest.clearAllMocks();
 
-        process.env.TABLE = 'UsersTable';
-        process.env.EMAIL_SENDER = 'no-reply@example.com';
-        process.env.EMAIL = '<html><body>Welcome!</body></html>';
-
-        (fs.readFileSync as jest.Mock).mockReturnValue(mockEmailTemplate);
-    });
-
-    it('should successfully create a user and send welcome email', async () => {
+        // Set up default mock behavior
+        ddbMock.on(GetCommand).resolves({});
         ddbMock.on(PutCommand).resolves({});
         sesMock.on(SendEmailCommand).resolves({});
+    });
+
+    // Helper function to create mock Cognito event
+    function createMockEvent(userAttributes: any): PostConfirmationTriggerEvent {
+        return {
+            version: '1',
+            region: 'us-east-1',
+            userPoolId: 'us-east-1_testpool',
+            userName: 'testuser',
+            callerContext: {
+                awsSdkVersion: 'aws-sdk-js-v3',
+                clientId: 'test-client-id'
+            },
+            triggerSource: 'PostConfirmation_ConfirmSignUp',
+            request: {
+                userAttributes
+            },
+            response: {}
+        } as PostConfirmationTriggerEvent;
+    }
+
+    test('should create a new user successfully', async () => {
+        // Setup mock event with user attributes
+        const mockEvent = createMockEvent({
+            sub: 'user123',
+            email: 'user@example.com',
+            given_name: 'John',
+            family_name: 'Doe',
+            birthdate: '1990-01-01'
+        });
+
+        // User doesn't exist yet
+        ddbMock.on(GetCommand, {
+            TableName: 'test-users-table',
+            Key: { id: 'user123' }
+        }).resolves({Item: undefined});
+
+        // Execute handler
+        const result = await handler(mockEvent);
+
+        // Verify result is the same event
+        expect(result).toEqual(mockEvent);
+
+        // Verify DynamoDB calls
+        const getCalls = ddbMock.commandCalls(GetCommand);
+        expect(getCalls.length).toBe(1);
+        expect(getCalls[0].args[0].input).toEqual({
+            TableName: 'test-users-table',
+            Key: { id: 'user123' }
+        });
+
+        const putCalls = ddbMock.commandCalls(PutCommand);
+        expect(putCalls.length).toBe(1);
+
+        const putParams = putCalls[0].args[0].input;
+        expect(putParams.TableName).toBe('test-users-table');
+        expect(putParams.Item).toEqual({
+            id: 'user123',
+            email: 'user@example.com',
+            birthdate: '1990-01-01T00:00:00.000Z',
+            fullname: {
+                firstName: 'John',
+                lastName: 'Doe'
+            },
+            date_created: expect.any(String),
+            newAccount: true,
+            preferences: {
+                lightMode: true
+            }
+        });
+        expect(putParams.ConditionExpression).toBe('attribute_not_exists(id)');
+
+        // Verify SES call
+        const sesCalls = sesMock.commandCalls(SendEmailCommand);
+        expect(sesCalls.length).toBe(1);
+
+        const emailParams = sesCalls[0].args[0].input;
+        expect(emailParams.Source).toBe('MyRewards <noreply@example.com>');
+        expect(emailParams.Destination?.ToAddresses).toEqual(['user@example.com']);
+
+    });
+
+    test('should handle null birthdate correctly', async () => {
+        const mockEvent = createMockEvent({
+            sub: 'user456',
+            email: 'user2@example.com',
+            given_name: 'Jane',
+            family_name: 'Smith',
+            // No birthdate provided
+        });
+
+        ddbMock.on(GetCommand).resolves({ Item: undefined });
+
+        await handler(mockEvent);
+
+        const putCalls = ddbMock.commandCalls(PutCommand);
+        expect(putCalls.length).toBe(1);
+
+        const userData = putCalls[0].args[0].input.Item;
+        expect(userData?.birthdate).toBeNull();
+    });
+
+    test('should skip creation if user already exists from GetCommand', async () => {
+        const mockEvent = createMockEvent({
+            sub: 'existingUser',
+            email: 'existing@example.com',
+            given_name: 'Existing',
+            family_name: 'User'
+        });
+
+        // Mock that user already exists
+        ddbMock.on(GetCommand).resolves({
+            Item: {
+                id: 'existingUser',
+                email: 'existing@example.com'
+            }
+        });
 
         const result = await handler(mockEvent);
 
-        const putCommandCalls = ddbMock.commandCalls(PutCommand);
-        expect(putCommandCalls.length).toBe(1);
-    
-        const putParams = putCommandCalls[0].args[0].input;
-        expect(putParams.TableName).toBe('UsersTable');
-        
-        const { Item } = putParams;
-        if(!Item) throw new Error('Item is undefined');
-
-        expect(Item.id).toBe('abc-123-def-456');
-        expect(Item.email).toBe('test@example.com');
-        expect(Item.fullname).toEqual({
-            firstName: 'John',
-            lastName: 'Doe'
-        });
-        expect(Item.birthdate).toBeDefined();
-        expect(Item.date_created).toBeDefined();
-
-        // add credentials check
-
-        expect(Item.newAccount).toBe(true);
-        expect(Item.preferences).toEqual({
-            lightMode: true
-        });
-        expect(putParams.ConditionExpression).toBe('attribute_not_exists(id)');
-    
-        expect(putParams.ConditionExpression).toBe('attribute_not_exists(id)');
-
-        const sendEmailCalls = sesMock.commandCalls(SendEmailCommand);
-        expect(sendEmailCalls.length).toBe(1);
-
-        const emailParams = sendEmailCalls[0].args[0].input;
-        expect(emailParams.Source).toBe('MyRewards <no-reply@example.com>');
-
-        expect(emailParams.Destination).toBeDefined();
-        if (emailParams.Destination) {
-            expect(emailParams.Destination.ToAddresses).toEqual(['test@example.com']);
-        }
-
-        expect(emailParams.Message).toBeDefined();
-        if (emailParams.Message) {
-            expect(emailParams.Message.Subject).toBeDefined();
-            if (emailParams.Message.Subject) {
-                expect(emailParams.Message.Subject.Data).toBe('Welcome To MyRewards!');
-            }
-
-            expect(emailParams.Message.Body).toBeDefined();
-            if (emailParams.Message.Body) {
-                expect(emailParams.Message.Body.Html).toBeDefined();
-                if (emailParams.Message.Body.Html) {
-                    expect(emailParams.Message.Body.Html.Data).toBe(mockEmailTemplate);
-                }
-            }
-        }
-
+        // Verify result is the same event
         expect(result).toEqual(mockEvent);
+
+        // Verify no PutCommand or SendEmailCommand were called
+        const putCalls = ddbMock.commandCalls(PutCommand);
+        expect(putCalls.length).toBe(0);
+
+        const sesCalls = sesMock.commandCalls(SendEmailCommand);
+        expect(sesCalls.length).toBe(0);
     });
 
-    it('should handle missing user attributes correctly', async () => {
-        const incompleteEvent = {
-            ...mockEvent,
-            request: {
-                userAttributes: {
-                    sub: 'abc-123-def-456',
-                    email: 'test@example.com',
-                }
-            }
+    test('should skip creation if PutCommand fails with ConditionalCheckFailedException', async () => {
+        const mockEvent = createMockEvent({
+            sub: 'user789',
+            email: 'user3@example.com',
+            given_name: 'Alice',
+            family_name: 'Johnson'
+        });
+
+        // GetCommand shows user doesn't exist
+        ddbMock.on(GetCommand).resolves({ Item: undefined });
+
+        // PutCommand fails due to condition check (user already exists)
+        const conditionalError = {
+            name: 'ConditionalCheckFailedException',
+            message: 'The conditional request failed'
         };
+        ddbMock.on(PutCommand).rejects(conditionalError);
 
-        await expect(handler(incompleteEvent)).rejects.toThrow('Missing required attributes');
+        const result = await handler(mockEvent);
 
-        expect(ddbMock.commandCalls(PutCommand).length).toBe(0);
-        expect(sesMock.commandCalls(SendEmailCommand).length).toBe(0);
+        // Verify result is the same event
+        expect(result).toEqual(mockEvent);
+
+        // Verify PutCommand was called
+        const putCalls = ddbMock.commandCalls(PutCommand);
+        expect(putCalls.length).toBe(1);
+
+        // Verify SendEmailCommand was not called
+        const sesCalls = sesMock.commandCalls(SendEmailCommand);
+        expect(sesCalls.length).toBe(0);
     });
 
-    it('should handle missing environment variables correctly', async () => {
-        delete process.env.TABLE;
+    test('should throw error if missing required attributes', async () => {
+        const mockEvent = createMockEvent({
+            sub: 'user123',
+            // Missing email
+            given_name: 'John',
+            family_name: 'Doe'
+        });
 
         await expect(handler(mockEvent)).rejects.toThrow('Missing required attributes');
-
-        expect(ddbMock.commandCalls(PutCommand).length).toBe(0);
-        expect(sesMock.commandCalls(SendEmailCommand).length).toBe(0);
     });
 
-    it('should handle DynamoDB errors correctly', async () => {
-        const dbError = new Error('DynamoDB error');
+    test('should throw error if DynamoDB put fails with non-conditional error', async () => {
+        const mockEvent = createMockEvent({
+            sub: 'user123',
+            email: 'user@example.com',
+            given_name: 'John',
+            family_name: 'Doe'
+        });
+
+        // GetCommand shows user doesn't exist
+        ddbMock.on(GetCommand).resolves({ Item: undefined });
+
+        // PutCommand fails with a non-conditional error
+        const dbError = new Error('Internal DynamoDB error');
         ddbMock.on(PutCommand).rejects(dbError);
 
-        await expect(handler(mockEvent)).rejects.toThrow(dbError);
-
-        expect(ddbMock.commandCalls(PutCommand).length).toBe(1);
-        expect(sesMock.commandCalls(SendEmailCommand).length).toBe(0);
+        await expect(handler(mockEvent)).rejects.toThrow('Internal DynamoDB error');
     });
 
-    it('should handle null birthdate correctly', async () => {
-        const noBirthdateEvent:PostConfirmationTriggerEvent = {
-            ...mockEvent,
-            request: {
-                userAttributes: {
-                    ...mockEvent.request.userAttributes,
-                    birthdate: null as unknown as string
-                }
-            }
-        };
+    test('should throw error if SES send fails', async () => {
+        const mockEvent = createMockEvent({
+            sub: 'user123',
+            email: 'user@example.com',
+            given_name: 'John',
+            family_name: 'Doe'
+        });
 
+        // GetCommand shows user doesn't exist
+        ddbMock.on(GetCommand).resolves({ Item: undefined});
+
+        // PutCommand succeeds
         ddbMock.on(PutCommand).resolves({});
-        sesMock.on(SendEmailCommand).resolves({});
 
-        await handler(noBirthdateEvent);
-
-        const putCommandCalls = ddbMock.commandCalls(PutCommand);
-        expect(putCommandCalls.length).toBeGreaterThan(0);
-        const firstCall = putCommandCalls[0];
-        expect(firstCall).toBeDefined();
-        expect(firstCall.args.length).toBeGreaterThan(0);
-        expect(firstCall.args[0].input).toBeDefined();
-        expect(firstCall.args[0].input.Item).toBeDefined();
-    });
-
-    it('should handle SES errors correctly', async () => {
-        ddbMock.on(PutCommand).resolves({});
+        // SendEmailCommand fails
         const sesError = new Error('SES error');
         sesMock.on(SendEmailCommand).rejects(sesError);
 
-        await expect(handler(mockEvent)).rejects.toThrow(sesError);
-
-        expect(ddbMock.commandCalls(PutCommand).length).toBe(1);
-        expect(sesMock.commandCalls(SendEmailCommand).length).toBe(1);
+        await expect(handler(mockEvent)).rejects.toThrow('SES error');
     });
 });

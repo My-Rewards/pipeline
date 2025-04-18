@@ -8,12 +8,12 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as nodejs from "aws-cdk-lib/aws-lambda-nodejs";
 import { Duration } from "aws-cdk-lib";
-import { AuroraStackProps } from "../../global/props";
+import { GenericStackProps } from "../../global/props";
 import { DATABASE_NAME } from "../../global/constants";
 
 export class AuroraStack extends cdk.Stack {
 
-    constructor(scope: Construct, id: string, props: AuroraStackProps) {
+    constructor(scope: Construct, id: string, props: GenericStackProps) {
         super(scope, id, props);
 
         const isProd = props.stageName === 'prod';
@@ -73,20 +73,6 @@ export class AuroraStack extends cdk.Stack {
                 service: config.service,
                 subnets: { subnets: config.subnets },
                 securityGroups: [securityGroupResolvers]
-            });
-        });
-
-        const isolatedEndpointConfigs = [
-            { id: 'LAMBDA_ISOLATED', service: ec2.InterfaceVpcEndpointAwsService.LAMBDA, subnets: vpc.isolatedSubnets },
-            { id: 'SECRETS_MANAGER_ISOLATED', service: ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER, subnets: vpc.isolatedSubnets },
-        ];
-
-        isolatedEndpointConfigs.forEach(config => {
-            vpc.addInterfaceEndpoint(config.id, {
-                service: config.service,
-                subnets: { subnets: config.subnets },
-                securityGroups: [securityGroupResolvers],
-                privateDnsEnabled: false
             });
         });
 
@@ -165,16 +151,13 @@ export class AuroraStack extends cdk.Stack {
                     Aurora.ClusterInstance.serverlessV2('reader-1'),
                     Aurora.ClusterInstance.serverlessV2('reader-2')
                 ]
-                : [
-                    Aurora.ClusterInstance.serverlessV2('reader-1'),
-                ],
+                : [],
             enableDataApi: true,
             backup: {
                 retention: Duration.days(isProd ? 10 : 1),
             },
             removalPolicy: isProd ? cdk.RemovalPolicy.RETAIN : cdk.RemovalPolicy.DESTROY,
             clusterIdentifier: `${props.stageName}-aurora-cluster`,
-
         });
 
         const setupDatabaseFunction = new nodejs.NodejsFunction(this, 'SetupDatabaseFunction', {

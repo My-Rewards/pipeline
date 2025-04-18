@@ -4,12 +4,12 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as iam from 'aws-cdk-lib/aws-iam';
-import { CloudWatchStackProps } from '../../global/props';
+import { GenericStackProps } from '../../global/props';
 import * as nodejs from 'aws-cdk-lib/aws-lambda-nodejs'
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 
 export class CloudWatchStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props: CloudWatchStackProps) {
+  constructor(scope: Construct, id: string, props: GenericStackProps) {
     super(scope, id, props);
 
     const orgTable = dynamodb.Table.fromTableArn(this, 'ImportedOrganizationTableARN', cdk.Fn.importValue('OrganizationTableARN'));
