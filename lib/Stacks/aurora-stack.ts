@@ -76,20 +76,6 @@ export class AuroraStack extends cdk.Stack {
             });
         });
 
-        const isolatedEndpointConfigs = [
-            { id: 'LAMBDA_ISOLATED', service: ec2.InterfaceVpcEndpointAwsService.LAMBDA, subnets: vpc.isolatedSubnets },
-            { id: 'SECRETS_MANAGER_ISOLATED', service: ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER, subnets: vpc.isolatedSubnets },
-        ];
-
-        isolatedEndpointConfigs.forEach(config => {
-            vpc.addInterfaceEndpoint(config.id, {
-                service: config.service,
-                subnets: { subnets: config.subnets },
-                securityGroups: [securityGroupResolvers],
-                privateDnsEnabled: false
-            });
-        });
-
         const AuroraSecretCredentials = new secretsmanager.Secret(this, 'AuroraSecretCredentials', {
             secretName: `${props.stageName}-aurora-credentials`,
             description: 'Aurora Postgresql Credentials DO NOT DELETE OR DUPLICATE THIS SECRET TO OTHER ENVIRONMENTS',
