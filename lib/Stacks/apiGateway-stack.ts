@@ -13,7 +13,7 @@ import * as targets from "aws-cdk-lib/aws-route53-targets";
 import { OrgApiStack } from "./APIs/Business/OrganizationApiStack";
 import { ShopApiStack } from "./APIs/Business/ShopsApiStack";
 import { UsersApiStack as BusinessApiStack } from "./APIs/Business/UserApiStack";
-
+import { ShopApiStack as appShopApiStack } from "./APIs/App/ShopsStack";
 export class ApiGatewayStack extends cdk.Stack {
 
   constructor(scope: Construct, id: string, props: ApiStackProps) {
@@ -90,6 +90,11 @@ export class ApiGatewayStack extends cdk.Stack {
       authorizer: authorizerUser,
     });
 
+    new appShopApiStack(this, "AppShopApiStack", {
+      api: api,
+      authorizer: authorizerUser,
+    });
+    
     new SquareApiStack(this, "SquareApiStack", {
       api: api,
       authorizer: authorizerBizz,

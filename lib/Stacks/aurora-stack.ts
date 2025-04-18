@@ -127,7 +127,8 @@ export class AuroraStack extends cdk.Stack {
                     'lambda:InvokeFunction',
                     'secretsmanager:GetSecretValue',
                     'kms:*',
-                    'Aurora-db:connect'
+                    'Aurora-db:connect',
+                    'rds-data:ExecuteStatement'
                 ],
                 resources: ['*']
             })
