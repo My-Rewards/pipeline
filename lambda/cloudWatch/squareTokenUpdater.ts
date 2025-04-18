@@ -8,9 +8,9 @@ const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
 
 interface OrganizationSquare {
     id: string;
-    squareAccessToken?: string;
-    squareTokenExpiration?: string;
-    squareRefreshToken?: string;
+    expiresAt?: string;
+    refreshToken?: string;
+    accessToken?: string;
 }
 
 export const handler = async () => {
@@ -19,7 +19,7 @@ export const handler = async () => {
         const squareSecretArn = process.env.SQUARE_ARN
         const kmsKeyId = process.env.KMS_KEY_ID;
         const app_env = process.env.APP_ENV;
-      
+
         switch(true){
           case(!squareSecretArn || !app_env):
             return {
@@ -33,19 +33,21 @@ export const handler = async () => {
             };
         }
 
-        const twentyFourHoursFromNow = new Date();
-        twentyFourHoursFromNow.setHours(twentyFourHoursFromNow.getHours() + 24);
+        const now = new Date();
+        const twentyFourHoursFromNow = new Date(now.getTime() + (24 * 60 * 60 * 1000));
+        const OldestDate = twentyFourHoursFromNow.toISOString();
 
         const secretResult = await fetchSquareSecret(squareSecretArn);
 
-        const scanParams:ScanCommandInput = {
+        const scanParams = new ScanCommand({
             TableName: orgTable,
-            FilterExpression: 'attribute_exists(accessToken) AND attribute_exists(refreshToken) AND expiresAt <= :expirationDate',
+            FilterExpression: 'attribute_exists(refreshToken) AND expiresAt <= :expirationDate',
             ExpressionAttributeValues: {
-                ':expirationDate': twentyFourHoursFromNow.toISOString()
+                ':expirationDate': OldestDate
             }
-        };
-        const { Items = [] } = await dynamoDb.send(new ScanCommand(scanParams));
+        });
+
+        const { Items = [] } = await dynamoDb.send(scanParams);
         const organizations = Items as OrganizationSquare[];
 
         const client = new square.SquareClient({
@@ -53,40 +55,37 @@ export const handler = async () => {
         });
 
         const updatePromises = organizations.map(async (org) => {
-            if (!org.squareTokenExpiration || !org.squareRefreshToken) return;
+            if (!org.expiresAt || !org.refreshToken) return;
 
-            const expirationDate = new Date(org.squareTokenExpiration);
             const twentyFourHoursFromNow = new Date();
             twentyFourHoursFromNow.setHours(twentyFourHoursFromNow.getHours() + 24);
 
-            if (expirationDate <= twentyFourHoursFromNow) {
-                try {
-                    const response = await client.oAuth.obtainToken({
-                        clientId: secretResult.client,
-                        clientSecret: secretResult.secret,
-                        grantType: 'refresh_token',
-                        refreshToken: org.squareRefreshToken,
+            try {
+                const response = await client.oAuth.obtainToken({
+                    clientId: secretResult.client,
+                    clientSecret: secretResult.secret,
+                    grantType: 'refresh_token',
+                    refreshToken: org.refreshToken,
+                });
+
+                if (response.accessToken && response.refreshTokenExpiresAt && response.refreshToken) {
+                    const newExpirationDate = new Date(response.refreshTokenExpiresAt);
+
+                    const updateParams = new UpdateCommand({
+                        TableName: process.env.ORGANIZATIONS_TABLE,
+                        Key: { id: org.id },
+                        UpdateExpression: 'SET accessToken = :token, expiresAt = :expiration, refreshToken = :refresh',
+                        ExpressionAttributeValues: {
+                            ':token': response.accessToken,
+                            ':expiration': newExpirationDate.toISOString(),
+                            ':refresh': response.refreshToken,
+                        },
                     });
 
-                    if (response.accessToken && response.refreshTokenExpiresAt) {
-                        const newExpirationDate = new Date(response.refreshTokenExpiresAt);
-
-                        const updateParams:UpdateCommandInput = {
-                            TableName: process.env.ORGANIZATIONS_TABLE,
-                            Key: { id: org.id },
-                            UpdateExpression: 'set accessToken = :token, expiresAt = :expiration, refreshToken = :refresh',
-                            ExpressionAttributeValues: {
-                                ':token': response.accessToken,
-                                ':expiration': newExpirationDate.toISOString(),
-                                ':refresh': response.refreshToken,
-                            },
-                        };
-
-                        await dynamoDb.send(new UpdateCommand(updateParams));
-                    }
-                } catch (error) {
-                    console.error(`Error refreshing token for organization ${org.id}:`, error);
+                    await dynamoDb.send(updateParams);
                 }
+            } catch (error) {
+                console.error(`Error refreshing token for organization ${org.id}:`, error);
             }
         });
 

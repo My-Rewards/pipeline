@@ -1,11 +1,11 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as amplify from 'aws-cdk-lib/aws-amplify';
-import { AmplifyStackProps } from '../../global/props';
+import { GenericStackProps } from '../../global/props';
 
 export class AmplifyStack extends cdk.Stack {
 
-    constructor(scope: Construct, id: string, props: AmplifyStackProps) {
+    constructor(scope: Construct, id: string, props: GenericStackProps) {
       super(scope, id, props);
 
       const authenticatedRoleARN = cdk.Fn.importValue('AuthenticatedRoleARN');

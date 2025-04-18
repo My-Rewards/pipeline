@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">97.22% </span>
+                <span class="strong">98.5% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>70/72</span>
+                <span class='fraction'>66/67</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">87.87% </span>
+                <span class="strong">90.62% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>29/33</span>
+                <span class='fraction'>29/32</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>3/3</span>
+                <span class='fraction'>2/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">98.55% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>68/69</span>
+                <span class='fraction'>64/64</span>
             </div>
         
             
@@ -246,47 +246,19 @@
 <a name='L181'></a><a href='#L181'>181</a>
 <a name='L182'></a><a href='#L182'>182</a>
 <a name='L183'></a><a href='#L183'>183</a>
-<a name='L184'></a><a href='#L184'>184</a>
-<a name='L185'></a><a href='#L185'>185</a>
-<a name='L186'></a><a href='#L186'>186</a>
-<a name='L187'></a><a href='#L187'>187</a>
-<a name='L188'></a><a href='#L188'>188</a>
-<a name='L189'></a><a href='#L189'>189</a>
-<a name='L190'></a><a href='#L190'>190</a>
-<a name='L191'></a><a href='#L191'>191</a>
-<a name='L192'></a><a href='#L192'>192</a>
-<a name='L193'></a><a href='#L193'>193</a>
-<a name='L194'></a><a href='#L194'>194</a>
-<a name='L195'></a><a href='#L195'>195</a>
-<a name='L196'></a><a href='#L196'>196</a>
-<a name='L197'></a><a href='#L197'>197</a>
-<a name='L198'></a><a href='#L198'>198</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L184'></a><a href='#L184'>184</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -464,6 +436,7 @@ import { KMSClient, EncryptCommand } from '@aws-sdk/client-kms';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { SecretsManagerClient, GetSecretValueCommand} from "@aws-sdk/client-secrets-manager"
 import { OrganizationProps } from '../../Interfaces';
+import { fetchSquareSecret } from '../../constants/square';
 &nbsp;
 const dynamoClient = new DynamoDBClient({region: "us-east-1" });
 const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
@@ -471,22 +444,7 @@ const kmsClient = new KMSClient({});
 const secretClient = new SecretsManagerClient({ region: "us-east-1" });
 &nbsp;
 let cachedSquareSecret: string | null; 
-let cacheSquareClient: string | null; 
-&nbsp;
-const fetchSquareSecret = async (): Promise&lt;{secret:string, client:string}&gt; =&gt; {
-    const data = await secretClient.send(new GetSecretValueCommand({ SecretId: process.env.SQUARE_ARN }));
-&nbsp;
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (!data.SecretString) {
-<span class="cstat-no" title="statement not covered" >        throw new Error("Square key not found in Secrets Manager.");</span>
-    }
-&nbsp;
-    const secret = JSON.parse(data.SecretString);
-&nbsp;
-    return {
-      client: secret.client_id,
-      secret: secret.client_secret
-    };
-};
+let cacheSquareClient: string | null;
 &nbsp;
 export const handler = async (event: APIGatewayProxyEvent): Promise&lt;APIGatewayProxyResult&gt; =&gt; {
   if (!event.body) {
@@ -566,7 +524,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise&lt;APIGatewa
     });
 &nbsp;
     if (!cachedSquareSecret || !cacheSquareClient) {
-      const secretResult = await fetchSquareSecret();
+      const secretResult = await fetchSquareSecret(squareSecretArn);
 &nbsp;
       cacheSquareClient = secretResult.client;
       cachedSquareSecret = secretResult.secret;
@@ -661,7 +619,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise&lt;APIGatewa
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-04-14T17:02:48.922Z
+                at 2025-04-17T21:09:56.856Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

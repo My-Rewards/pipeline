@@ -1,283 +1,354 @@
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import {
-  DynamoDBDocumentClient,
-  ScanCommand,
-  UpdateCommand
-} from '@aws-sdk/lib-dynamodb';
-import * as square from 'square';
 import { mockClient } from 'aws-sdk-client-mock';
-import { handler } from '../../../lambda/cloudWatch/squareTokenUpdater'; // Replace with actual path
+import { DynamoDBDocumentClient, ScanCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
+import * as square from 'square';
+import { handler } from '../../../lambda/cloudWatch/squareTokenUpdater';
+import { fetchSquareSecret } from '../../../lambda/constants/square';
 
-// Mock the DynamoDB document client
+const obtainTokenMock = jest.fn();
+
+jest.mock('../../../lambda/constants/square', () => ({
+  fetchSquareSecret: jest.fn(),
+}));
+
+jest.mock('square', () => {
+  return {
+    SquareClient: jest.fn().mockImplementation(() => ({
+      oAuth: {
+        obtainToken: obtainTokenMock,
+      },
+    })),
+    SquareEnvironment: {
+      Production: 'production',
+      Sandbox: 'sandbox',
+    },
+  };
+});
+
 const ddbMock = mockClient(DynamoDBDocumentClient);
 
-// Mock environment variables
-const originalEnv = process.env;
+describe('squareTokenUpdater Lambda', () => {
+  const OriginalDate = global.Date;
 
-describe('Square Token Refresh Lambda', () => {
-  let mockSquareObtainToken: jest.SpyInstance;
+  const fixedDate = new Date('2023-01-01T12:00:00Z');
+  const twentyFourHoursLater = new Date('2023-01-02T12:00:00Z');
 
   beforeEach(() => {
-    // Reset mocks before each test
-    jest.resetModules();
+    jest.clearAllMocks();
     ddbMock.reset();
+    obtainTokenMock.mockClear();
 
-    // Setup environment variables
-    process.env = {
-      ...originalEnv,
-      ORG_TABLE: 'test-org-table',
-      ORGANIZATIONS_TABLE: 'test-org-table',
-      SQUARE_ARN: 'test-square-arn',
-      KMS_KEY_ID: 'test-kms-key-id',
-      APP_ENV: 'sandbox',
-      SQUARE_CLIENT_ID: 'test-client-id',
-      SQUARE_CLIENT_SECRET: 'test-client-secret'
+    const MockDate = class extends OriginalDate {
+      constructor(...args: ConstructorParameters<typeof OriginalDate>) {
+        if (args.length as number === 0) {
+          super(fixedDate);
+        } else {
+          super(...args);
+        }
+      }
+
+      toISOString() {
+        if (this.getTime() === fixedDate.getTime()) {
+          return fixedDate.toISOString();
+        }
+        if (this.getTime() === twentyFourHoursLater.getTime() ||
+            Math.abs(this.getTime() - (fixedDate.getTime() + 24 * 60 * 60 * 1000)) < 1000) {
+          return twentyFourHoursLater.toISOString();
+        }
+        return new OriginalDate(this.getTime()).toISOString();
+      }
+
     };
 
-    // Mock Square client's obtainToken method
-    mockSquareObtainToken = jest.spyOn(square.SquareClient.prototype.oAuth, 'obtainToken')
-        .mockImplementation(() => Promise.resolve({
-          accessToken: 'new-access-token',
-          refreshToken: 'new-refresh-token',
-          refreshTokenExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days from now
-        }));
+    global.Date = MockDate as unknown as DateConstructor;
+    global.Date.now = jest.fn(() => fixedDate.getTime());
+
+    obtainTokenMock.mockReturnValue({
+      accessToken: 'test-access-token',
+      refreshToken: 'test-refresh-token',
+      refreshTokenExpiresAt: '2023-02-01T12:00:00Z'
+    });
+
+    process.env.ORG_TABLE = 'test-org-table';
+    process.env.ORGANIZATIONS_TABLE = 'test-org-table';
+    process.env.SQUARE_ARN = 'arn:aws:secretsmanager:region:account:secret:square';
+    process.env.KMS_KEY_ID = 'test-kms-key';
+    process.env.APP_ENV = 'dev';
+
+    (fetchSquareSecret as jest.Mock).mockResolvedValue({
+      client: 'square-client-id',
+      secret: 'square-client-secret',
+    });
   });
 
   afterEach(() => {
-    // Restore environment
-    process.env = originalEnv;
-    jest.restoreAllMocks();
+    global.Date = OriginalDate;
+    jest.clearAllMocks();
+    jest.resetAllMocks();
+
+    delete process.env.ORG_TABLE;
+    delete process.env.ORGANIZATIONS_TABLE;
+    delete process.env.SQUARE_ARN;
+    delete process.env.KMS_KEY_ID;
+    delete process.env.APP_ENV;
   });
 
-  test('should return 500 if square ARN is missing', async () => {
-    // Arrange
-    process.env.SQUARE_ARN = undefined;
+  test('should handle missing required environment variables', async () => {
+    // Missing SQUARE_ARN
+    delete process.env.SQUARE_ARN;
 
-    // Act
     const result = await handler();
 
-    // Assert
-    expect(result.statusCode).toBe(500);
-    expect(JSON.parse(result.body).error).toBe('Square ARN required');
+    expect(result).toEqual({
+      statusCode: 500,
+      body: JSON.stringify({ error: 'Square ARN required' }),
+    });
   });
 
-  test('should return 500 if APP_ENV is missing', async () => {
-    // Arrange
-    process.env.APP_ENV = undefined;
+  test('should handle missing KMS_KEY_ID', async () => {
+    delete process.env.KMS_KEY_ID;
 
-    // Act
     const result = await handler();
 
-    // Assert
-    expect(result.statusCode).toBe(500);
-    expect(JSON.parse(result.body).error).toBe('Square ARN required');
+    expect(result).toEqual({
+      statusCode: 500,
+      body: JSON.stringify({ error: 'KMS Key ID is not configured' }),
+    });
   });
 
-  test('should return 500 if KMS Key ID is missing', async () => {
-    // Arrange
-    process.env.KMS_KEY_ID = undefined;
-
-    // Act
-    const result = await handler();
-
-    // Assert
-    expect(result.statusCode).toBe(500);
-    expect(JSON.parse(result.body).error).toBe('KMS Key ID is not configured');
-  });
-
-  test('should refresh tokens for organizations with expiring tokens', async () => {
-    // Arrange
-    const twentyThreeHoursFromNow = new Date();
-    twentyThreeHoursFromNow.setHours(twentyThreeHoursFromNow.getHours() + 23);
-
-    const mockOrgs = [
+  test('should process organizations with expiring tokens', async () => {
+    const organizations = [
       {
-        id: 'org-1',
-        squareAccessToken: 'old-access-token-1',
-        squareTokenExpiration: twentyThreeHoursFromNow.toISOString(),
-        squareRefreshToken: 'old-refresh-token-1'
+        id: 'org1',
+        accessToken: 'existing-token-1',
+        expiresAt: '2023-01-01T20:00:00Z',
+        refreshToken: 'refresh-token-1',
       },
       {
-        id: 'org-2',
-        squareAccessToken: 'old-access-token-2',
-        squareTokenExpiration: twentyThreeHoursFromNow.toISOString(),
-        squareRefreshToken: 'old-refresh-token-2'
-      }
+        id: 'org2',
+        accessToken: 'existing-token-2',
+        expiresAt: '2023-01-01T10:00:00Z',
+        refreshToken: 'refresh-token-2',
+      },
     ];
 
-    // Mock DynamoDB scan response
     ddbMock.on(ScanCommand).resolves({
-      Items: mockOrgs
+      Items: organizations,
     });
 
-    // Mock DynamoDB update response
+    obtainTokenMock
+        .mockResolvedValueOnce({
+          accessToken: 'new-token-1',
+          refreshToken: 'new-refresh-1',
+          refreshTokenExpiresAt: '2023-02-01T12:00:00Z',
+        })
+        .mockResolvedValueOnce({
+          accessToken: 'new-token-2',
+          refreshToken: 'new-refresh-2',
+          refreshTokenExpiresAt: '2023-02-01T12:00:00Z',
+        });
+
     ddbMock.on(UpdateCommand).resolves({});
 
-    // Act
     const result = await handler();
 
-    // Assert
-    expect(result.statusCode).toBe(200);
-    expect(JSON.parse(result.body).message).toBe('Token update process completed successfully');
-
-    // Verify Square client was called with correct parameters for each org
-    expect(mockSquareObtainToken).toHaveBeenCalledTimes(2);
-    expect(mockSquareObtainToken).toHaveBeenCalledWith({
-      clientId: 'test-client-id',
-      clientSecret: 'test-client-secret',
-      grantType: 'refresh_token',
-      refreshToken: 'old-refresh-token-1'
-    });
-    expect(mockSquareObtainToken).toHaveBeenCalledWith({
-      clientId: 'test-client-id',
-      clientSecret: 'test-client-secret',
-      grantType: 'refresh_token',
-      refreshToken: 'old-refresh-token-2'
+    expect(result).toEqual({
+      statusCode: 200,
+      body: JSON.stringify({ message: 'Token update process completed successfully' }),
     });
 
-    // Verify DynamoDB update was called with correct parameters
+    expect(square.SquareClient).toHaveBeenCalledWith({
+      environment: 'sandbox',
+    });
+
+    expect(obtainTokenMock).toHaveBeenCalledTimes(2);
+    expect(obtainTokenMock).toHaveBeenCalledWith({
+      clientId: 'square-client-id',
+      clientSecret: 'square-client-secret',
+      grantType: 'refresh_token',
+      refreshToken: 'refresh-token-1',
+    });
+    expect(obtainTokenMock).toHaveBeenCalledWith({
+      clientId: 'square-client-id',
+      clientSecret: 'square-client-secret',
+      grantType: 'refresh_token',
+      refreshToken: 'refresh-token-2',
+    });
+
+    // Verify DynamoDB updates were called with correct parameters
     const updateCalls = ddbMock.commandCalls(UpdateCommand);
     expect(updateCalls.length).toBe(2);
 
-    // Check first update
+    // Verify first update
     const firstUpdate = updateCalls[0].args[0].input;
-    expect(firstUpdate.TableName).toBe('test-org-table');
-    expect(firstUpdate.Key).toEqual({ id: 'org-1' });
-    expect(firstUpdate.ExpressionAttributeValues).toBeDefined();
-    expect(firstUpdate.ExpressionAttributeValues![':token']).toBe('new-access-token');
-    expect(firstUpdate.ExpressionAttributeValues![':refresh']).toBe('new-refresh-token');
-
-    // Check second update
-    const secondUpdate = updateCalls[1].args[0].input;
-    expect(secondUpdate.TableName).toBe('test-org-table');
-    expect(secondUpdate.Key).toEqual({ id: 'org-2' });
-  });
-
-  test('should skip organizations with missing token information', async () => {
-    // Arrange
-    const mockOrgs = [
-      {
-        id: 'org-1',
-        // Missing token information
+    expect(firstUpdate).toEqual({
+      TableName: 'test-org-table',
+      Key: { id: 'org1' },
+      UpdateExpression: 'SET accessToken = :token, expiresAt = :expiration, refreshToken = :refresh',
+      ExpressionAttributeValues: {
+        ':token': 'new-token-1',
+        ':expiration': '2023-02-01T12:00:00Z',
+        ':refresh': 'new-refresh-1',
       },
-      {
-        id: 'org-2',
-        squareAccessToken: 'old-access-token-2',
-        // Missing expiration
-        squareRefreshToken: 'old-refresh-token-2'
-      }
-    ];
-
-    // Mock DynamoDB scan response
-    ddbMock.on(ScanCommand).resolves({
-      Items: mockOrgs
     });
 
-    // Act
+    // Verify second update
+    const secondUpdate = updateCalls[1].args[0].input;
+    expect(secondUpdate).toEqual({
+      TableName: 'test-org-table',
+      Key: { id: 'org2' },
+      UpdateExpression: 'SET accessToken = :token, expiresAt = :expiration, refreshToken = :refresh',
+      ExpressionAttributeValues: {
+        ':token': 'new-token-2',
+        ':expiration': '2023-02-01T12:00:00Z',
+        ':refresh': 'new-refresh-2',
+      },
+    });
+  });
+
+  test('should handle empty response from DynamoDB', async () => {
+    // Mock empty DynamoDB scan response
+    ddbMock.on(ScanCommand).resolves({
+      Items: [],
+    });
+
+    // Execute handler
     const result = await handler();
 
-    // Assert
-    expect(result.statusCode).toBe(200);
-    expect(JSON.parse(result.body).message).toBe('Token update process completed successfully');
+    // Verify results
+    expect(result).toEqual({
+      statusCode: 200,
+      body: JSON.stringify({ message: 'Token update process completed successfully' }),
+    });
 
-    // Verify Square client was not called
-    expect(mockSquareObtainToken).not.toHaveBeenCalled();
+    // Verify that no obtainToken calls were made
+    expect(obtainTokenMock).not.toHaveBeenCalled();
 
-    // Verify DynamoDB update was not called
-    expect(ddbMock.commandCalls(UpdateCommand).length).toBe(0);
+    // Verify that no DynamoDB updates were made
+    const updateCalls = ddbMock.commandCalls(UpdateCommand);
+    expect(updateCalls.length).toBe(0);
   });
 
-  test('should handle Square API errors gracefully', async () => {
-    // Arrange
-    const twentyThreeHoursFromNow = new Date();
-    twentyThreeHoursFromNow.setHours(twentyThreeHoursFromNow.getHours() + 23);
-
-    const mockOrgs = [
+  test('should handle errors when refreshing tokens', async () => {
+    const organizations = [
       {
-        id: 'org-1',
-        squareAccessToken: 'old-access-token-1',
-        squareTokenExpiration: twentyThreeHoursFromNow.toISOString(),
-        squareRefreshToken: 'old-refresh-token-1'
-      }
+        id: 'org1',
+        accessToken: 'existing-token-1',
+        expiresAt: '2023-02-01T12:00:00Z',
+        refreshToken: 'refresh-token-1',
+      },
     ];
 
     // Mock DynamoDB scan response
     ddbMock.on(ScanCommand).resolves({
-      Items: mockOrgs
+      Items: organizations,
     });
 
-    // Mock Square client to throw an error
-    mockSquareObtainToken.mockRejectedValue(new Error('Square API error'));
+    // Mock obtainToken to throw an error
+    const error = new Error('Token refresh failed');
+    obtainTokenMock.mockRejectedValueOnce(error);
 
     // Spy on console.error
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
 
-    // Act
+    // Execute the handler
     const result = await handler();
 
-    // Assert
-    expect(result.statusCode).toBe(200);
-    expect(JSON.parse(result.body).message).toBe('Token update process completed successfully');
+    // Verify the handler returned success despite the error
+    expect(result).toEqual({
+      statusCode: 200,
+      body: JSON.stringify({ message: 'Token update process completed successfully' }),
+    });
+
+    // Verify obtainToken was called
+    expect(obtainTokenMock).toHaveBeenCalledTimes(1);
 
     // Verify error was logged
     expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Error refreshing token for organization org-1:'),
-        expect.any(Error)
+        'Error refreshing token for organization org1:',
+        error
     );
 
-    // Verify no update was performed
-    expect(ddbMock.commandCalls(UpdateCommand).length).toBe(0);
+    // Verify no DynamoDB updates were made
+    const updateCalls = ddbMock.commandCalls(UpdateCommand);
+    expect(updateCalls.length).toBe(0);
+
+    // Restore console.error
+    consoleErrorSpy.mockRestore();
   });
 
-  test('should not refresh tokens that are not expiring soon', async () => {
-    // Arrange
-    const thirtyDaysFromNow = new Date();
-    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+  test('should use production environment when app_env is prod', async () => {
+    // Set production environment
+    process.env.APP_ENV = 'prod';
 
-    const mockOrgs = [
+    // Mock empty DynamoDB scan response
+    ddbMock.on(ScanCommand).resolves({
+      Items: [],
+    });
+
+    // Execute handler
+    await handler();
+
+    // Verify the Square client was created with production environment
+    expect(square.SquareClient).toHaveBeenCalledWith({
+      environment: 'production',
+    });
+  });
+
+  test('should handle incomplete organization data', async () => {
+    const organizations = [
       {
-        id: 'org-1',
-        squareAccessToken: 'valid-access-token',
-        squareTokenExpiration: thirtyDaysFromNow.toISOString(),
-        squareRefreshToken: 'valid-refresh-token'
-      }
+        id: 'org1',
+        // Missing refreshToken
+        accessToken: 'existing-token-1',
+        expiresAt: '2023-02-01T12:00:00Z',
+      },
+      {
+        id: 'org2',
+        // Missing expiresAt
+        accessToken: 'existing-token-2',
+        refreshToken: 'refresh-token-2',
+      },
+      {
+        id: 'org3',
+        // Complete data
+        accessToken: 'existing-token-3',
+        expiresAt: '2023-02-01T12:00:00Z',
+        refreshToken: 'refresh-token-3',
+      },
     ];
 
     // Mock DynamoDB scan response
     ddbMock.on(ScanCommand).resolves({
-      Items: mockOrgs
+      Items: organizations,
     });
 
-    // Act
-    const result = await handler();
-
-    // Assert
-    expect(result.statusCode).toBe(200);
-
-    // Verify Square client was not called
-    expect(mockSquareObtainToken).not.toHaveBeenCalled();
-
-    // Verify no update was performed
-    expect(ddbMock.commandCalls(UpdateCommand).length).toBe(0);
-  });
-
-  test('should handle empty result from DynamoDB', async () => {
-    // Mock DynamoDB scan to return empty results
-    ddbMock.on(ScanCommand).resolves({
-      Items: []
+    // Mock obtainToken response for the complete organization
+    obtainTokenMock.mockResolvedValueOnce({
+      accessToken: 'new-token-3',
+      refreshToken: 'new-refresh-3',
+      refreshTokenExpiresAt: '2023-02-01T12:00:00Z',
     });
 
-    // Act
+    // Execute the handler
     const result = await handler();
 
-    // Assert
-    expect(result.statusCode).toBe(200);
-    expect(JSON.parse(result.body).message).toBe('Token update process completed successfully');
+    // Verify the handler returned success
+    expect(result).toEqual({
+      statusCode: 200,
+      body: JSON.stringify({ message: 'Token update process completed successfully' }),
+    });
 
-    // Verify Square client was not called
-    expect(mockSquareObtainToken).not.toHaveBeenCalled();
+    // Verify obtainToken was called only once (for org3)
+    expect(obtainTokenMock).toHaveBeenCalledTimes(1);
+    expect(obtainTokenMock).toHaveBeenCalledWith({
+      clientId: 'square-client-id',
+      clientSecret: 'square-client-secret',
+      grantType: 'refresh_token',
+      refreshToken: 'refresh-token-3',
+    });
 
-    // Verify no update was performed
-    expect(ddbMock.commandCalls(UpdateCommand).length).toBe(0);
+    // Verify only one DynamoDB update was called
+    const updateCalls = ddbMock.commandCalls(UpdateCommand);
+    expect(updateCalls.length).toBe(1);
   });
 });

@@ -8,11 +8,12 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { OrganizationProps } from "../Interfaces";
 import { getStripeSecret } from "../constants/validOrganization";
 import { STRIPE_API_VERSION } from "../../global/constants";
-import { connectToAurora } from "../constants/aurora";
+import { RDSDataClient, ExecuteStatementCommand } from "@aws-sdk/client-rds-data";
 
 const s3 = new S3Client({ region: "us-east-1" });
 const dynamoClient = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
+const rdsClient = new RDSDataClient({ region: "us-east-1" });
 
 let cachedStripeKey: string | null;
 let stripe: Stripe| null;
@@ -69,13 +70,17 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const imageDomain = process.env.IMAGE_DOMAIN;
     const stripeArn = process.env.STRIPE_ARN;
     const clusterSecretArn = process.env.CLUSTER_SECRET_ARN
+    const clusterArn = process.env.CLUSTER_ARN
+    const dbName = process.env.DB_NAME
 
     switch(true){
-        case !orgTable || !userTable: return{statusCode:404, body:'Missing Table Info'};
-        case !stripeArn: return{statusCode:404, body:'Missing Stripe ARN'};
-        case !imageDomain: return{statusCode:404, body:'Missing Image Domain'};
-        case !bucketName: return{statusCode:404, body:'Missing Image Bucket Name'};
-        case !clusterSecretArn: return{statusCode:404, body:'Missing Aurora Secret ARN'};
+        case !orgTable || !userTable: return{statusCode:404, body:'Missing Table Info ENV'};
+        case !stripeArn: return{statusCode:404, body:'Missing Stripe ARN ENV'};
+        case !imageDomain: return{statusCode:404, body:'Missing Image Domain ENV'};
+        case !bucketName: return{statusCode:404, body:'Missing Image Bucket Name ENV'};
+        case !clusterSecretArn: return{statusCode:404, body:'Missing Aurora Secret ARN ENV'};
+        case !clusterArn: return{statusCode:404, body:'Missing Aurora ARN ENV'};
+        case !dbName: return{statusCode:404, body:'Missing DB Name ENV'};
     }
 
     try {
@@ -133,12 +138,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const publicUrls = fileKeys.map((fileKey) => `https://${process.env.IMAGE_DOMAIN}/${fileKey}`);
         const dateNow = new Date();
 
-        const auroraClient = await connectToAurora(clusterSecretArn);
-
-        if(!auroraClient){
-            return { statusCode: 500, body: JSON.stringify({ error: "Failed to connect to Aurora" }) };
-        }
-
         const dynamoDbItem = new PutCommand ({
             TableName: orgTable,
             Item: <OrganizationProps> {
@@ -190,27 +189,46 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             ReturnValues: 'UPDATED_NEW'
         });
 
-        await dynamoDb.send(updateUser);
+        const result = await dynamoDb.send(updateUser);
+
+        if(!result){
+            return {
+                statusCode: 500,
+                body: JSON.stringify({
+                    message: "Failed to Create Organization",
+                    db:'Dynamo'
+                }),
+            };
+        }
 
         const preSignedUrls = await getPresignedUrls(fileKeys, bucketName, types);
 
-        try {
-            await auroraClient.query(
-                `INSERT INTO Organizations (id, active, updated_at) 
-                 VALUES ($1, $2, $3)`,
-                [organization_id, false, dateNow.toISOString()]
-            );
+        const auroraResult = await rdsClient.send(
+            new ExecuteStatementCommand({
+                secretArn: clusterSecretArn,
+                resourceArn: clusterArn,
+                database: dbName,
+                sql:`
+                    INSERT INTO Organizations (id, active, updated_at) 
+                    VALUES ($1, $2, $3),
+                `
+                ,
+                parameters: [
+                    { name: "orgId", value: { stringValue: organization_id } },
+                    { name: "active", value: { booleanValue: false } },
+                    { name: "updated_at", value: { stringValue: dateNow.toISOString() } }
+                ],
+            })
+        );
 
-        } catch (error) {
-            await auroraClient.end();
+        if(auroraResult.numberOfRecordsUpdated == 0){
             return {
                 statusCode: 500,
-                body: JSON.stringify({ message: "Failed", error: error instanceof Error ? error.message : error }),
+                body: JSON.stringify({
+                    message: "Failed to Create Organization",
+                    db:'Aurora'
+                }),
             };
-        } finally {
-            if (auroraClient) {
-                await auroraClient.end();
-            }
         }
 
         return {

@@ -44,7 +44,8 @@ export const handler = async (event: APIGatewayProxyEvent) => {
         const orgParams = new GetCommand({
             TableName: orgTable,
             Key: { id:shop.orgId },
-            ProjectionExpression: "id, name, description, images",
+            ProjectionExpression: "id, #org_name, description, images",
+            ExpressionAttributeNames: { "#org_name": "name" },
         });
 
         const orgResult = await dynamoDb.send(orgParams);
@@ -60,8 +61,8 @@ export const handler = async (event: APIGatewayProxyEvent) => {
         const likeParam = new GetCommand({
             TableName: likesTable,
             Key: {
-              PK: `USER#${userSub}`,
-              SK: `SHOP#${shop.id}`
+              userId: userSub,
+              shopId: shop.id
             }
         });
 

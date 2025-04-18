@@ -13,6 +13,9 @@ import {
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as codebuild from 'aws-cdk-lib/aws-codebuild';
 import { BuildSpec } from 'aws-cdk-lib/aws-codebuild';
+import * as sns from 'aws-cdk-lib/aws-sns';
+import * as subscriptions from 'aws-cdk-lib/aws-sns-subscriptions';
+import * as notifications from 'aws-cdk-lib/aws-codestarnotifications';
 
 export class PipelineStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -62,7 +65,15 @@ export class PipelineStack extends cdk.Stack {
       ],
     }));
 
-    const pipeline = new CodePipeline(this, 'Pipeline', {
+    const pipelineNotificationTopic = new sns.Topic(this, 'PipelineNotificationTopic', {
+      displayName: 'MyRewards Pipeline Notifications',
+    });
+
+    pipelineNotificationTopic.addSubscription(
+        new subscriptions.EmailSubscription('Brian03032003@gmail.com')
+    );
+
+  const pipeline = new CodePipeline(this, 'Pipeline', {
       pipelineName: 'MyRewards',
       crossAccountKeys: true, 
       selfMutation:true,
@@ -118,5 +129,21 @@ export class PipelineStack extends cdk.Stack {
         })
       ]
     });
+
+    pipeline.buildPipeline();
+
+    new notifications.NotificationRule(this, 'PipelineNotificationRule', {
+      source: pipeline.pipeline,
+      events: [
+        'codepipeline-pipeline-pipeline-execution-failed',
+        'codepipeline-pipeline-pipeline-execution-canceled',
+        'codepipeline-pipeline-stage-execution-failed',
+        'codepipeline-pipeline-stage-execution-canceled',
+        'codepipeline-pipeline-action-execution-failed',
+      ],
+      targets: [pipelineNotificationTopic],
+      detailType: notifications.DetailType.FULL,
+    });
+
   }
 }
