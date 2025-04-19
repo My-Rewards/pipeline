@@ -59,6 +59,10 @@ export const handler = async (event: APIGatewayProxyEvent) => {
     AND ST_Distance(s.location, ST_MakePoint(:lon, :lat)::geography) <= 80467
   ORDER BY distance;
 `,
+        parameters: [
+          { name: "lat", value: { doubleValue: latitude } },
+          { name: "lon", value: { doubleValue: longitude } },
+        ],
       })
     );
 
@@ -158,9 +162,4 @@ export const handler = async (event: APIGatewayProxyEvent) => {
       body: JSON.stringify({ error: "Internal server error" }),
     };
   }
-
-  return {
-    statusCode: 500,
-    body: JSON.stringify({ error: "Unhandled code path" }),
-  };
 };
