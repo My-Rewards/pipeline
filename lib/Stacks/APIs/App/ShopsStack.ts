@@ -168,7 +168,7 @@ export class ShopApiStack extends cdk.NestedStack {
             authorizer: props.authorizer,
             authorizationType: apigateway.AuthorizationType.COGNITO,
         });
-  
+
     // Radius Shops API
     const radiusShopsLambda = new nodejs.NodejsFunction(
       this,

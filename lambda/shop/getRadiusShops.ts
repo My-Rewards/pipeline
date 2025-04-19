@@ -87,6 +87,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
             new GetCommand({
               TableName: shopTable,
               Key: { id: shopDetails.shop_id },
+              ProjectionExpression: "#loc, shop_hours, longitude, latitude",
               ExpressionAttributeNames: {
                 "#loc": "location",
               },
@@ -120,9 +121,12 @@ export const handler = async (event: APIGatewayProxyEvent) => {
           const favorite = false;
 
           return {
+            id: shopDetails.shop_id,
             shop_id: shopDetails.shop_id,
             organization_id: shopDetails.org_id,
             preview: org.images?.banner?.url || "",
+            latitude: shop.latitude,
+            longitude: shop.longitude,
             name: org.name,
             distance: miles,
             favorite,
