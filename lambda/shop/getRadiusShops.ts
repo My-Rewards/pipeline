@@ -121,7 +121,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
           const favorite = false;
 
           return {
-            id: shopDetails.shop_id?.toString().slice(0, 4),
+            id: shopDetails.shop_id,
             shop_id: shopDetails.shop_id,
             organization_id: shopDetails.org_id,
             preview: org.images?.banner?.url || "",
