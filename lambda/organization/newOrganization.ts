@@ -155,6 +155,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
                 rewards_loyalty,
                 rewards_milestone,
                 name:org_name,
+                search_name:org_name.toLowerCase(),
                 description,
                 rl_active,
                 rm_active,
@@ -177,7 +178,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             },
         });
 
-        await dynamoDb.send(dynamoDbItem);
 
         const updateUser = new UpdateCommand({
             TableName: userTable,
@@ -188,18 +188,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             },
             ReturnValues: 'UPDATED_NEW'
         });
-
-        const result = await dynamoDb.send(updateUser);
-
-        if(!result){
-            return {
-                statusCode: 500,
-                body: JSON.stringify({
-                    message: "Failed to Create Organization",
-                    db:'Dynamo'
-                }),
-            };
-        }
 
         const preSignedUrls = await getPresignedUrls(fileKeys, bucketName, types);
 
@@ -227,6 +215,19 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
                 body: JSON.stringify({
                     message: "Failed to Create Organization",
                     db:'Aurora'
+                }),
+            };
+        }
+
+        const result = await dynamoDb.send(dynamoDbItem);
+        await dynamoDb.send(updateUser);
+
+        if(!result){
+            return {
+                statusCode: 500,
+                body: JSON.stringify({
+                    message: "Failed to Create Organization",
+                    db:'Dynamo'
                 }),
             };
         }

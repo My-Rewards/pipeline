@@ -19,57 +19,22 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c38fec59-b241-48cf-a190-0dfc032fdfce" name="Local Files" comment="remade dynamo-stack.ts">
-      <change afterPath="$PROJECT_DIR$/coverage/lcov-report/constants/square.ts.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/getAccount.ts.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/update/account.ts.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/update/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/Stacks/kms-stack.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/test/lambdas/organization/square/link.test.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lambda/organization/search.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/Stacks/APIs/App/PlansApiStack.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_rebase__Local_Files_.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/clover.xml" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/clover.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/coverage-final.json" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/coverage-final.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/cloudWatch/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/cloudWatch/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/cloudWatch/squareTokenUpdater.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/cloudWatch/squareTokenUpdater.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/constants/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/constants/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/constants/validOrganization.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/constants/validOrganization.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/likes/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/likes/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/likes/setLike.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/likes/setLike.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/getBilling.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/getBilling.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/getOrg.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/getOrg.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/newOrganization.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/newOrganization.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/square/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/square/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/square/link.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/square/link.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/shop/getShopApp.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/shop/getShopApp.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/shop/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/shop/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/shop/newShop.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/shop/newShop.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/user/Plans/getPlan.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/user/Plans/getPlan.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/user/Plans/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/user/Plans/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/user/createUser.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/user/createUser.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/user/createUserBusiness.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/user/createUserBusiness.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/user/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/user/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov.info" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov.info" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/global/props.ts" beforeDir="false" afterPath="$PROJECT_DIR$/global/props.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/cloudWatch/squareTokenUpdater.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/cloudWatch/squareTokenUpdater.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/lib/Stacks/APIs/Business/ShopsApiStack.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/lib/Stacks/APIs/Business/ShopsApiStack.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/lib/Stacks/APIs/Business/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/lib/Stacks/APIs/Business/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lambda/Interfaces.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/Interfaces.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lambda/organization/newOrganization.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/newOrganization.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/organization/square/unlink.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/square/unlink.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/organization/update/status.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/update/status.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lambda/shop/getDiscoverShops.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/shop/getDiscoverShops.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lambda/shop/getShopApp.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/shop/getShopApp.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/user/createUser.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/user/createUser.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/Stacks/APIs/Business/OrganizationApiStack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/APIs/Business/OrganizationApiStack.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/Stacks/APIs/Business/ShopsApiStack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/APIs/Business/ShopsApiStack.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/Stacks/APIs/Business/SquareApiStack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/APIs/Business/SquareApiStack.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lambda/user/Plans/getPlan.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/user/Plans/getPlan.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lambda/user/Plans/getPlans.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/user/Plans/getPlans.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/Stacks/APIs/App/ShopsStack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/APIs/App/ShopsStack.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/Stacks/apiGateway-stack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/apiGateway-stack.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/Stacks/business-website-stack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/business-website-stack.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/app-stage.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/app-stage.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/pipeline-stack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/pipeline-stack.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/Stacks/dynamo-stack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/dynamo-stack.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/lambdas/cloudWatch/squareTokenUpdater.test.ts" beforeDir="false" afterPath="$PROJECT_DIR$/test/lambdas/cloudWatch/squareTokenUpdater.test.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/lambdas/organization/connectSquare.test.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/lambdas/organization/newOrganization.test.ts" beforeDir="false" afterPath="$PROJECT_DIR$/test/lambdas/organization/newOrganization.test.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/lambdas/user/createUser.test.ts" beforeDir="false" afterPath="$PROJECT_DIR$/test/lambdas/user/createUser.test.ts" afterDir="false" />
     </list>
     <list id="79a675d0-e669-4fab-ac29-b64f9bdb9a1c" name="Unversioned Files" comment="Unversioned Files" />
     <option name="SHOW_DIALOG" value="false" />
@@ -137,57 +102,57 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Jest.Helper Functions.executor": "Run",
-    "Jest.Lambda Handler - Merging shop/org/likes.executor": "Run",
-    "Jest.Shop Creation Lambda Handler.executor": "Run",
-    "Jest.Square Integration Lambda.executor": "Run",
-    "Jest.Square Token Refresh Lambda.executor": "Run",
-    "Jest.createOrganization Lambda Handler.executor": "Run",
-    "Jest.createOrganization Lambda Handler.should fail when Aurora DB update fails with zero records updated.executor": "Run",
-    "Jest.createOrganization Lambda Handler.should handle Aurora connection failure.executor": "Run",
-    "Jest.createOrganization Lambda Handler.should handle Aurora query failure.executor": "Run",
-    "Jest.createOrganization Lambda Handler.should handle Stripe failure.executor": "Run",
-    "Jest.createOrganization Lambda Handler.should handle unexpected errors gracefully.executor": "Run",
-    "Jest.createOrganization Lambda Handler.should successfully create an organization.executor": "Run",
-    "Jest.createUser Lambda Function.executor": "Run",
-    "Jest.createUser Lambda.executor": "Run",
-    "Jest.createUserBusiness.test.ts.executor": "Run",
-    "Jest.getBilling Lambda Handler.executor": "Run",
-    "Jest.getBilling Lambda Handler.should return inactive billing data when user has no active subscriptions.executor": "Run",
-    "Jest.getBilling Lambda.executor": "Debug",
-    "Jest.getOrg Lambda.executor": "Run",
-    "Jest.getOrg Lambda.should return 200 and organization details with active subscription.executor": "Run",
-    "Jest.getOrg Lambda.should return 404 when Stripe secret retrieval fails.executor": "Run",
-    "Jest.getOrg.test.ts.executor": "Run",
-    "Jest.getPlan Lambda Handler.executor": "Run",
-    "Jest.squareTokenUpdater Lambda.executor": "Run",
-    "Jest.squareTokenUpdater Lambda.should handle missing KMS_KEY_ID.executor": "Run",
-    "Jest.squareTokenUpdater Lambda.should process organizations with expiring tokens.executor": "Run",
-    "Jest.validOrganization Functions.executor": "Run",
-    "Node.js.business-website-stack.ts.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "Brian",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "/Users/brian/myRewards/pipeline",
-    "node.js.detected.package.eslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs.jest.jest_package": "/Users/brian/myRewards/pipeline/node_modules/jest",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "project.propVCSSupport.Confirmation",
-    "ts.external.directory.path": "/Users/brian/myRewards/pipeline/node_modules/typescript/lib",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Jest.Helper Functions.executor&quot;: &quot;Run&quot;,
+    &quot;Jest.Lambda Handler - Merging shop/org/likes.executor&quot;: &quot;Run&quot;,
+    &quot;Jest.Shop Creation Lambda Handler.executor&quot;: &quot;Run&quot;,
+    &quot;Jest.Square Integration Lambda.executor&quot;: &quot;Run&quot;,
+    &quot;Jest.Square Token Refresh Lambda.executor&quot;: &quot;Run&quot;,
+    &quot;Jest.createOrganization Lambda Handler.executor&quot;: &quot;Run&quot;,
+    &quot;Jest.createOrganization Lambda Handler.should fail when Aurora DB update fails with zero records updated.executor&quot;: &quot;Run&quot;,
+    &quot;Jest.createOrganization Lambda Handler.should handle Aurora connection failure.executor&quot;: &quot;Run&quot;,
+    &quot;Jest.createOrganization Lambda Handler.should handle Aurora query failure.executor&quot;: &quot;Run&quot;,
+    &quot;Jest.createOrganization Lambda Handler.should handle Stripe failure.executor&quot;: &quot;Run&quot;,
+    &quot;Jest.createOrganization Lambda Handler.should handle unexpected errors gracefully.executor&quot;: &quot;Run&quot;,
+    &quot;Jest.createOrganization Lambda Handler.should successfully create an organization.executor&quot;: &quot;Run&quot;,
+    &quot;Jest.createUser Lambda Function.executor&quot;: &quot;Run&quot;,
+    &quot;Jest.createUser Lambda.executor&quot;: &quot;Run&quot;,
+    &quot;Jest.createUserBusiness.test.ts.executor&quot;: &quot;Run&quot;,
+    &quot;Jest.getBilling Lambda Handler.executor&quot;: &quot;Run&quot;,
+    &quot;Jest.getBilling Lambda Handler.should return inactive billing data when user has no active subscriptions.executor&quot;: &quot;Run&quot;,
+    &quot;Jest.getBilling Lambda.executor&quot;: &quot;Debug&quot;,
+    &quot;Jest.getOrg Lambda.executor&quot;: &quot;Run&quot;,
+    &quot;Jest.getOrg Lambda.should return 200 and organization details with active subscription.executor&quot;: &quot;Run&quot;,
+    &quot;Jest.getOrg Lambda.should return 404 when Stripe secret retrieval fails.executor&quot;: &quot;Run&quot;,
+    &quot;Jest.getOrg.test.ts.executor&quot;: &quot;Run&quot;,
+    &quot;Jest.getPlan Lambda Handler.executor&quot;: &quot;Run&quot;,
+    &quot;Jest.squareTokenUpdater Lambda.executor&quot;: &quot;Run&quot;,
+    &quot;Jest.squareTokenUpdater Lambda.should handle missing KMS_KEY_ID.executor&quot;: &quot;Run&quot;,
+    &quot;Jest.squareTokenUpdater Lambda.should process organizations with expiring tokens.executor&quot;: &quot;Run&quot;,
+    &quot;Jest.validOrganization Functions.executor&quot;: &quot;Run&quot;,
+    &quot;Node.js.business-website-stack.ts.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;Brian&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/brian/myRewards/pipeline&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs.jest.jest_package&quot;: &quot;/Users/brian/myRewards/pipeline/node_modules/jest&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;project.propVCSSupport.Confirmation&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;/Users/brian/myRewards/pipeline/node_modules/typescript/lib&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
-  "keyToStringList": {
-    "DatabaseDriversLRU": [
-      "mysql_aurora",
-      "postgresql"
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;mysql_aurora&quot;,
+      &quot;postgresql&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/lambda" />
@@ -410,6 +375,7 @@
       <workItem from="1744753512391" duration="22112000" />
       <workItem from="1744897824417" duration="1111000" />
       <workItem from="1744899004187" duration="12711000" />
+      <workItem from="1745033923342" duration="8094000" />
     </task>
     <task id="LOCAL-00001" summary="billing page testing and subscription creation update">
       <option name="closed" value="true" />

@@ -50,6 +50,12 @@ export class DynamoStack extends cdk.Stack {
       },
       deletionProtection:isProd
     });
+    organizationTable.addGlobalSecondaryIndex({
+      indexName: "name-index",
+      partitionKey: { name: "search_name", type: aws_dynamodb.AttributeType.STRING },
+      projectionType: aws_dynamodb.ProjectionType.INCLUDE,
+      nonKeyAttributes: ["id", "name"]
+    });
 
     // shops Table
     const shopTable = new aws_dynamodb.Table(this, 'Shops-Table', {
