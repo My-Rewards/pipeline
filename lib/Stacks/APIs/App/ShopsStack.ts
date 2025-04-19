@@ -131,7 +131,7 @@ export class ShopApiStack extends cdk.NestedStack {
         orgTable.grantReadData(discoverShopsLambda);
         likesTable.grantReadData(discoverShopsLambda);
 
-        const searchOrganizations = new nodejs.NodejsFunction( this, "searchOrganinations",
+        const searchShops = new nodejs.NodejsFunction( this, "searchOrganinations",
             {
                 runtime: lambda.Runtime.NODEJS_20_X,
                 entry: "lambda/organization/search.ts",
