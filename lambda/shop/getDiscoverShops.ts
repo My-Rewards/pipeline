@@ -96,7 +96,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
               },
             })
           );
-          console.log("Shop hours and location: ", shopRes.Item);
+
           const shop = shopRes.Item;
           if (!shop){
             return null;
@@ -137,7 +137,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
             id: shopDetails.shop_id?.toString().slice(0, 4),
             shop_id: shopDetails.shop_id,
             organization_id: shopDetails.org_id,
-            preview: org.images?.banner?.url || "",
+            preview: org.images?.preview?.url || "",
             name: org.name,
             distance: miles,
             favorite,
@@ -153,10 +153,6 @@ export const handler = async (event: APIGatewayProxyEvent) => {
         }
       })
     );
-
-    console.log("Aurora Result:", auroraResult);
-    console.log("Shop Details:", shopDetails);
-    console.log("Enriched Shops:", enrichedShops);
 
     return {
       statusCode: 200,

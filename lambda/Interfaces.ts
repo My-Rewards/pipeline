@@ -15,6 +15,7 @@ export interface OrganizationProps {
     rewards_loyalty: unknown;
     rewards_milestone: unknown;
     name: string;
+    search_name:string;
     description: string;
     rl_active: boolean;
     rm_active: boolean;
@@ -87,7 +88,8 @@ export interface RewardSystem {
 }
 
 export interface PlanProps {
-    id:string,
+    rl_id:string | undefined,
+    rm_id:string | undefined,
     reward_plan:RewardSystem,
     visits:number,
     points:number,
@@ -96,7 +98,6 @@ export interface PlanProps {
     rm_active:boolean,
     name:string,
     firstPlan:boolean,
-    activePlan:boolean,
     redeemableRewards:string[],
     active:boolean
 }

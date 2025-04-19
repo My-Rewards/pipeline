@@ -27,8 +27,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
     try {
         const shopParams = new GetCommand({
             TableName: shopTable,
-            Key: { id:shop_id },
-            ProjectionExpression: "orgId, latitude, longitude, location, shop_hours, menu",
+            Key: { id:shop_id }
         });
 
         const shopResult = await dynamoDb.send(shopParams);
@@ -40,6 +39,8 @@ export const handler = async (event: APIGatewayProxyEvent) => {
                 body: JSON.stringify({ error: "Shop not found" }),
             };
         }
+
+        console.log(shop)
 
         const orgParams = new GetCommand({
             TableName: orgTable,
@@ -83,7 +84,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
             latitude: shop.latitude,
             longitude: shop.longitude,
             menu: shop.menu,
-            phoneNumber: shop.phoneNumber,
+            phoneNumber: shop.phone,
             location: shop.location,
             shop_hours: shop.shop_hours,
             favorite
