@@ -155,7 +155,7 @@ export class ShopApiStack extends cdk.NestedStack {
 
         const getShop = new apigateway.LambdaIntegration(getShopLambda);
         const discoverIntegration = new apigateway.LambdaIntegration(discoverShopsLambda);
-        const searchIntegration = new apigateway.LambdaIntegration(searchShopApi);
+        const searchIntegration = new apigateway.LambdaIntegration(searchOrganizations);
 
     discoverShopApi.addMethod("GET", discoverIntegration, {
       authorizer: props.authorizer,
