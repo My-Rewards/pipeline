@@ -1,3 +1,4 @@
+import { bool } from "aws-sdk/clients/signer";
 import Stripe from "stripe";
 
 export interface OrganizationProps {
@@ -88,23 +89,19 @@ export interface RewardSystem {
 }
 
 export interface PlanProps {
-    rl_id:string | undefined,
-    rm_id:string | undefined,
-    reward_plan:RewardSystem,
+    id:string,
+    user_id: string,
+    org_id: string,
+    start_date: string,
     visits:number,
+    visits_total:number,
     points:number,
-    organization_id:string
-    rl_active:boolean,
-    rm_active:boolean,
-    name:string,
-    firstPlan:boolean,
-    redeemableRewards:string[],
-    active:boolean
+    points_total:number
 }
 
 export interface ShopProps {
-    shop_id: string; 
-    organization_id: string; 
+    id: string; 
+    orgId: string; // We need to stop mixing snake and camel case
     name:string;
     banner: string;
     logo:string;
@@ -120,4 +117,17 @@ export interface ShopProps {
     };
     latitude: number;
     longitude: number;
-  }
+    square_location_id: string
+}
+
+export interface VisitProps {
+    id?: string,
+    user_id: string,
+    order_id: string,
+    org_id: string,
+    shop_id: string,
+    visitTimestamp: string,
+    total: bigint | null,
+    rl_active: bool, // if org loyalty rewards were active at time of visit
+    rm_active: bool // if org milestone rewards were active at time of visit
+}
