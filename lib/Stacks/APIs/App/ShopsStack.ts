@@ -180,9 +180,10 @@ export class ShopApiStack extends cdk.NestedStack {
         orgTable.grantReadData(searchShops);
 
         // API Gateway integration
-        const filterByShops = shopApi.addResource("filter");
 
         const shopApi = props.appRoot.addResource("shops");
+        const filterByShops = shopApi.addResource("filter");
+
         const getShopApi = shopApi.addResource("shop");
         const discoverShopApi = shopApi.addResource("discover");
         const searchShopApi = shopApi.addResource("search");
