@@ -1,7 +1,7 @@
 import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
 import * as ssm from "aws-cdk-lib/aws-ssm";
-import { SSMStackProps } from "../../global/props";
+import { GenericStackProps } from "../../global/props";
 import {
   UP_CUSTOMER_ID,
   UPC_CUSTOMER,
@@ -18,7 +18,7 @@ import {
 import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 
 export class SSMStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props: SSMStackProps) {
+  constructor(scope: Construct, id: string, props: GenericStackProps) {
     super(scope, id, props);
 
     const stripeData = cdk.aws_secretsmanager.Secret.fromSecretNameV2(

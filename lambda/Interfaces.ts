@@ -16,6 +16,7 @@ export interface OrganizationProps {
     rewards_loyalty: unknown;
     rewards_milestone: unknown;
     name: string;
+    search_name:string;
     description: string;
     rl_active: boolean;
     rm_active: boolean;

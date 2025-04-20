@@ -8,19 +8,15 @@ import { UserPoolStack } from './Stacks/userPool-stack';
 import { SSMStack } from './Stacks/ssm-stack';
 import { WebsiteStack } from './Stacks/website-stack';
 import {
-    AmplifyStackProps,
     ApiStackProps,
-    AppConfigStackProps,
     CustomEmailProps,
-    DynamoStackProps,
+    GenericStackProps,
     HostedZoneProps,
-    SSMStackProps,
     StageProps,
     UserPoolStackProps,
     WebsiteStackProps,
     BusinessWebsiteStackProps,
     ImageBucketProps,
-    AuroraStackProps
 } from '@/global/props';
 import { HostedZoneStack } from './Stacks/hostedZone-stack';
 import { AppConfigStack } from './Stacks/appConfigStack';
@@ -29,6 +25,7 @@ import { ImageBucketStack } from './Stacks/ImageBucket-stack';
 import { CloudWatchStack } from './Stacks/cloudWatch-stack';
 import { AuroraStack } from './Stacks/aurora-stack';
 import { VpcStack } from './Stacks/vpc-stack';
+import {KmsStack} from "./Stacks/kms-stack";
 
 export class PipelineAppStage extends cdk.Stage {
     constructor(scope: Construct, id: string, props: StageProps) {
@@ -55,19 +52,22 @@ export class PipelineAppStage extends cdk.Stage {
         const hostedZone_stack = new HostedZoneStack(this, 'HostedZone-Stack', hostedZoneProps);
         hostedZone_stack.terminationProtection = true;
 
-        let dynamoDbProp = this.createDynamoProps(props, this.stageName);
+        let dynamoDbProp = this.createGenericStackProps(props, this.stageName);
         const dynamo_stack = new DynamoStack(this, 'Dynamo-Stack', dynamoDbProp);
         dynamo_stack.terminationProtection = true;
 
-        let vpcStackProps = this.createVpcStackProps(props, this.stageName);
+        let vpcStackProps = this.createGenericStackProps(props, this.stageName);
         const vpcStack = new VpcStack(this, 'Vpc-Stack', vpcStackProps);
 
-        let auroraStackProps = this.createAuroraStackProps(props, this.stageName);
+        let kmsStackProps = this.createGenericStackProps(props, this.stageName);
+        const kmsStack = new KmsStack(this, 'KMS-Stack', kmsStackProps);
+
+        let auroraStackProps = this.createGenericStackProps(props, this.stageName);
         const auroraStack = new AuroraStack(this, 'Aurora-Stack', auroraStackProps);
         auroraStack.terminationProtection = true;
         auroraStack.addDependency(vpcStack);
 
-        let appConfigProps = this.createAppConfigProps(props, this.stageName);
+        let appConfigProps = this.createGenericStackProps(props, this.stageName);
         const appConfigStack = new AppConfigStack(this, 'AppConfig-Stack', appConfigProps);
 
         let customEmailProps = this.createCustomEmailProps(props, this.stageName, authDomain);
@@ -89,15 +89,16 @@ export class PipelineAppStage extends cdk.Stage {
         apiGateway_stack.addDependency(userPool_stack);
         apiGateway_stack.addDependency(imageBucket_stack);
         apiGateway_stack.addDependency(auroraStack);
+        apiGateway_stack.addDependency(kmsStack);
 
-        let cloudWatchProp = this.createCloudWatchProps(props, this.stageName);
+        let cloudWatchProp = this.createGenericStackProps(props, this.stageName);
         const cloudWatchStack = new CloudWatchStack(this, 'CloudWatch-Stack', cloudWatchProp);
         cloudWatchStack.addDependency(apiGateway_stack);
 
-        let amplifyProp = this.createAmplifyProps(props, this.stageName);
+        let amplifyProp = this.createGenericStackProps(props, this.stageName);
         const amplify_stack = new AmplifyStack(this, 'Amplify-Stack', amplifyProp);
 
-        let ssmProps = this.createSSMProps(props, this.stageName);
+        let ssmProps = this.createGenericStackProps(props, this.stageName);
         const ssm_Stack = new SSMStack(this, 'Ssm-Stack', ssmProps);
         ssm_Stack.addDependency(amplify_stack);
         ssm_Stack.addDependency(appConfigStack);
@@ -128,37 +129,7 @@ export class PipelineAppStage extends cdk.Stage {
     }
     }
 
-    createDynamoProps(props:StageProps, stage:string):DynamoStackProps{
-        return{
-            env: {
-                account: props.env?.account,
-                region: props.env?.region
-            },
-            stageName: stage
-        }
-    }
-
-    createVpcStackProps(props:StageProps, stage:string):AuroraStackProps{
-        return{
-            env: {
-                account: props.env?.account,
-                region: props.env?.region
-            },
-            stageName: stage
-        }
-    }
-
-    createAuroraStackProps(props:StageProps, stage:string):AuroraStackProps{
-        return{
-            env: {
-                account: props.env?.account,
-                region: props.env?.region
-            },
-                stageName: stage
-        }
-    }
-
-    createAppConfigProps(props:StageProps, stage:string):AppConfigStackProps{
+    createGenericStackProps(props:StageProps, stage:string):GenericStackProps{
         return{
             env: {
                 account: props.env?.account,
@@ -204,46 +175,17 @@ export class PipelineAppStage extends cdk.Stage {
     }
 
     createApiProps(props:StageProps, stage:string, apiDomain:string):ApiStackProps{
-    return{
-        env: {
-            account: props.env?.account,
-            region: props.env?.region
-        },
-        stageName: stage,
-        subDomain:props.subDomain,
-        apiDomain
-    }
-    }
-
-    createAmplifyProps(props:StageProps, stage:string):AmplifyStackProps{
-    return{
-        env: {
-            account: props.env?.account,
-            region: props.env?.region
-        },
-        stageName: stage
-    }
+        return{
+            env: {
+                account: props.env?.account,
+                region: props.env?.region
+            },
+            stageName: stage,
+            subDomain:props.subDomain,
+            apiDomain
+        }
     }
 
-    createSSMProps(props:StageProps, stage:string):SSMStackProps{
-    return{
-        env: {
-            account: props.env?.account,
-            region: props.env?.region
-        },
-        stageName: stage
-    }
-    }
-
-    createCloudWatchProps(props:StageProps, stage:string):SSMStackProps{
-    return{
-        env: {
-            account: props.env?.account,
-            region: props.env?.region
-        },
-        stageName: stage
-    }
-    }
     mainWebsiteProps(props:StageProps, stage:string, authDomain:string):WebsiteStackProps{
     return{
       env: {

@@ -27,8 +27,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
     try {
         const shopParams = new GetCommand({
             TableName: shopTable,
-            Key: { id:shop_id },
-            ProjectionExpression: "orgId, latitude, longitude, location, shop_hours, menu",
+            Key: { id:shop_id }
         });
 
         const shopResult = await dynamoDb.send(shopParams);
@@ -41,10 +40,13 @@ export const handler = async (event: APIGatewayProxyEvent) => {
             };
         }
 
+        console.log(shop)
+
         const orgParams = new GetCommand({
             TableName: orgTable,
             Key: { id:shop.orgId },
-            ProjectionExpression: "id, name, description, images",
+            ProjectionExpression: "id, #org_name, description, images",
+            ExpressionAttributeNames: { "#org_name": "name" },
         });
 
         const orgResult = await dynamoDb.send(orgParams);
@@ -60,8 +62,8 @@ export const handler = async (event: APIGatewayProxyEvent) => {
         const likeParam = new GetCommand({
             TableName: likesTable,
             Key: {
-              PK: `USER#${userSub}`,
-              SK: `SHOP#${shop.id}`
+              userId: userSub,
+              shopId: shop.id
             }
         });
 
@@ -82,7 +84,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
             latitude: shop.latitude,
             longitude: shop.longitude,
             menu: shop.menu,
-            phoneNumber: shop.phoneNumber,
+            phoneNumber: shop.phone,
             location: shop.location,
             shop_hours: shop.shop_hours,
             favorite

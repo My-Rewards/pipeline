@@ -10,6 +10,27 @@ import {
 const dynamoClient = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
 
+interface Plan {
+    userId: string;
+    SK: string;
+    orgId?: string;
+    type?: string;
+    visits?: number;
+    points?: number;
+    active: boolean;
+    updatedAt: string;
+    id: string;
+}
+
+interface GroupedPlan {
+    userId: string;
+    orgId: string;
+    loyaltyPlan?: Omit<Plan, 'type' | 'orgId'>;
+    milestonePlan?: Omit<Plan, 'type' | 'orgId'>;
+    organization?: any;
+}
+
+
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     const plansTable = process.env.PLANS_TABLE;
     const orgTable = process.env.ORG_TABLE;
@@ -33,22 +54,17 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     }
 
     try {
-        const queryParams: QueryCommandInput = {
+        const queryParams = new QueryCommand({
             TableName: plansTable,
-            IndexName: "userId-index",
             KeyConditionExpression: "userId = :userId",
-            FilterExpression: "active = :activeStatus",
             ExpressionAttributeValues: {
-                ":userId": userSub,
-                ":activeStatus": true
+                ":userId": userSub
             },
             Limit: limit,
-            ScanIndexForward: false,
-            ProjectionExpression: "visits, points, active, updatedAt, orgId, id",
-            ExclusiveStartKey: lastEvaluatedKey
-        };
+        });
 
-        const plansResult = await dynamoDb.send(new QueryCommand(queryParams));
+
+        const plansResult = await dynamoDb.send(queryParams);
 
         if (!plansResult.Items || plansResult.Items.length === 0) {
             return {
@@ -61,37 +77,68 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             };
         }
 
-        const enhancedPlans = await Promise.all(plansResult.Items.map(async (plan) => {
-            const getOrg = new GetCommand({
-                TableName: orgTable,
-                Key: { id: plan.orgId },
-                ProjectionExpression: "images, name, rm_active, rl_active, rewards_loyalty, rewards_milestone"
-            });
+        const plansMap: Record<string, GroupedPlan> = {};
 
-            const orgResult = await dynamoDb.send(getOrg);
-            const org = orgResult.Item;
+        plansResult.Items.forEach((item) => {
+            const plan = item as Plan;
 
-            let logoUrl = null;
-            let previewImageUrl = null;
+            const [orgId, planType] = plan.SK.split('#');
 
-            if (org && org.logo) {
-                logoUrl = `https://${imageDomain}/${org.logo}`;
+            if (!plansMap[orgId]) {
+                plansMap[orgId] = {
+                    userId: plan.userId,
+                    orgId
+                };
             }
 
-            if (org && org.preview_image) {
-                previewImageUrl = `https://${imageDomain}/${org.preview_image}`;
-            }
+            const { type, orgId: _, ...planData } = plan;
 
-            return {
-                ...plan,
-                organization: {
-                    id: org?.id || plan.orgId,
-                    name: org?.org_name || "Unknown Organization",
-                    logo: logoUrl,
-                    previewImage: previewImageUrl
+            if (planType === 'LOYALTY') {
+                plansMap[orgId].loyaltyPlan = planData;
+            } else if (planType === 'MILESTONE') {
+                plansMap[orgId].milestonePlan = planData;
+            }
+        });
+
+        const enhancedPlans = await Promise.all(
+            Object.values(plansMap).map(async (planGroup) => {
+                if (!planGroup.organization) {
+                    const getOrg = new GetCommand({
+                        TableName: orgTable,
+                        Key: { id: planGroup.orgId },
+                        ProjectionExpression: "id, #org_name, images, rm_active, rl_active",
+                        ExpressionAttributeNames: {
+                            "#org_name": "name"
+                        }
+                    });
+
+                    const orgResult = await dynamoDb.send(getOrg);
+                    const org = orgResult.Item;
+
+                    if (org) {
+                        planGroup.organization = {
+                            id: org.id,
+                            name: org.name || "Unknown Organization",
+                            logo: org.images.logo.url || null,
+                            bannerImage:org.images.banner.url || null,
+                            loyaltyActive: org.rl_active || false,
+                            milestoneActive: org.rm_active || false
+                        };
+                    } else {
+                        planGroup.organization = {
+                            id: planGroup.orgId,
+                            name: "Unknown Organization",
+                            logo: null,
+                            bannerImage: null,
+                            loyaltyActive: false,
+                            milestoneActive: false
+                        };
+                    }
                 }
-            };
-        }));
+
+                return planGroup;
+            })
+        );
 
         const response = {
             plans: enhancedPlans,

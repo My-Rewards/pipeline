@@ -14,7 +14,7 @@ export const handler = async (event:PostConfirmationTriggerEvent) => {
 
     try {
         const { request: { userAttributes } } = event;
-        
+
         const getUserParams = {
             TableName: tableName,
             Key: { id: userAttributes.sub },
@@ -25,13 +25,11 @@ export const handler = async (event:PostConfirmationTriggerEvent) => {
             console.log('User already exists');
             return event;
         }
-        
+
         if (!userAttributes.email || !userAttributes.given_name || !userAttributes.family_name || !userAttributes.sub || !tableName) {
             console.error('Missing required attributes');
             throw new Error('Missing required attributes');
         }
-
-        // look for invites
 
         const userData = {
             id: userAttributes.sub,
@@ -62,7 +60,7 @@ export const handler = async (event:PostConfirmationTriggerEvent) => {
                 return event;
             }
             throw error;
-        }        
+        }
 
         const emailParams = {
             Source: `MyRewards <${emailSender}>`,

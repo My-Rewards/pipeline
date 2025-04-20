@@ -1,11 +1,11 @@
 import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
-import { VpcStackProps} from "../../global/props";
+import { GenericStackProps} from "../../global/props";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 
 export class VpcStack extends cdk.Stack {
 
-    constructor(scope: Construct, id: string, props: VpcStackProps) {
+    constructor(scope: Construct, id: string, props: GenericStackProps) {
         super(scope, id, props);
 
         const vpc = new ec2.Vpc(this, 'AuroraVpc', {

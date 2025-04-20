@@ -41,7 +41,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const updateCommand = new UpdateCommand({
       TableName: userTable,
       Key: { id: userSub },
-      UpdateExpression: "set fullName = :name",
+      UpdateExpression: "set fullname = :name",
       ExpressionAttributeValues: {
         ":name": name,
       },

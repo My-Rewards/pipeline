@@ -1,5 +1,5 @@
 /*
-TODO
+
 
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
@@ -197,5 +197,5 @@ describe('recordVisit Lambda Tests', () => {
             expect(mockDynamoDb.send).toHaveBeenCalledWith(expect.any(PutCommand));
         });
     });
-    */
-});
+    
+});*/

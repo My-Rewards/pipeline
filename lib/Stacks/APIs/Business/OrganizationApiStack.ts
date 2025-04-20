@@ -5,7 +5,7 @@ import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as nodejs from 'aws-cdk-lib/aws-lambda-nodejs'
 import * as iam from 'aws-cdk-lib/aws-iam';
-import { METER_PRICE } from '../../../../global/constants';
+import {DATABASE_NAME, METER_PRICE} from '../../../../global/constants';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 
 interface OrgApiStackProps extends cdk.NestedStackProps {
@@ -28,6 +28,7 @@ export class OrgApiStack extends cdk.NestedStack {
     const ImageBucketARN = cdk.Fn.importValue('OrganizationImageBucketARN');
     const ImageCloudfrontId = cdk.Fn.importValue('ImageCloudfrontId');
     const clusterSecret = cdk.aws_secretsmanager.Secret.fromSecretCompleteArn(this, 'auroraSecret', cdk.Fn.importValue('AuroraSecretARN'));
+    const clusterArn = cdk.Fn.importValue('ClusterARN');
 
     const vpc = ec2.Vpc.fromVpcAttributes(this, 'ImportedVPC', {
       vpcId: cdk.Fn.importValue('ClusterVPC-Id'),
@@ -78,6 +79,8 @@ export class OrgApiStack extends cdk.NestedStack {
         IMAGE_DOMAIN: ImageDomain,
         STRIPE_ARN: stripeData.secretArn,
         CLUSTER_SECRET_ARN: clusterSecret.secretArn,
+        CLUSTER_ARN: clusterArn,
+        DB_NAME: DATABASE_NAME
     },
       bundling: {
         nodeModules: ['stripe', 'aws-sdk']
@@ -234,6 +237,8 @@ export class OrgApiStack extends cdk.NestedStack {
         USER_TABLE: userTable.tableName,
         STRIPE_ARN: stripeData.secretArn,
         CLUSTER_SECRET_ARN: clusterSecret.secretArn,
+        CLUSTER_ARN: clusterArn,
+        DB_NAME: DATABASE_NAME
       },
       bundling: {
         nodeModules: ['stripe', 'aws-sdk']

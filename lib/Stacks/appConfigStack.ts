@@ -1,7 +1,7 @@
 import * as cdk from "aws-cdk-lib";
 import * as appconfig from "aws-cdk-lib/aws-appconfig";
 import { Construct } from "constructs";
-import { AppConfigStackProps } from "../../global/props";
+import { GenericStackProps } from "../../global/props";
 import * as fs from "fs";
 import * as path from "path";
 import {
@@ -10,7 +10,7 @@ import {
   APPCONFIG_PROFILE_ID,
 } from "../../global/constants";
 export class AppConfigStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props: AppConfigStackProps) {
+  constructor(scope: Construct, id: string, props: GenericStackProps) {
     super(scope, id, props);
     const APPCONFIG_CONSTANTS = getConstants(props.stageName);
 
