@@ -144,7 +144,8 @@ export class ShopApiStack extends cdk.NestedStack {
                 },
             }
         );
-        orgTable.grantReadData(searchShops);
+        orgTable.grantReadData(searchOrganizations);
+
 
         // API Gateway integration
         const shopApi = props.appRoot.addResource("shops");
