@@ -212,5 +212,15 @@ export class ShopApiStack extends cdk.NestedStack {
       authorizer: props.authorizer,
       authorizationType: apigateway.AuthorizationType.COGNITO,
     });
+
+    getShopApi.addMethod("GET", getShop, {
+        authorizer: props.authorizer,
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+    });
+
+    searchShopApi.addMethod("GET", searchIntegration, {
+        authorizer: props.authorizer,
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+    });
   }
 }

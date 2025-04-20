@@ -18,7 +18,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c38fec59-b241-48cf-a190-0dfc032fdfce" name="Local Files" comment="remade dynamo-stack.ts" />
+    <list default="true" id="c38fec59-b241-48cf-a190-0dfc032fdfce" name="Local Files" comment="remade dynamo-stack.ts">
+      <change beforePath="$PROJECT_DIR$/lib/Stacks/APIs/App/ShopsStack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/APIs/App/ShopsStack.ts" afterDir="false" />
+    </list>
     <list id="79a675d0-e669-4fab-ac29-b64f9bdb9a1c" name="Unversioned Files" comment="Unversioned Files" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
