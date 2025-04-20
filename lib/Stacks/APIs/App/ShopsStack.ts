@@ -98,6 +98,39 @@ export class ShopApiStack extends cdk.NestedStack {
         orgTable.grantReadData(getShopLambda);
         likesTable.grantReadData(getShopLambda);
 
+        // Radius Shops API
+        const radiusShopsLambda = new nodejs.NodejsFunction(
+            this,
+            "radiusShopsLambda",
+            {
+                runtime: lambda.Runtime.NODEJS_20_X,
+                entry: "lambda/shop/getRadiusShops.ts",
+                handler: "handler",
+                vpc,
+                role: clusterRole,
+                securityGroups: [securityGroupResolvers],
+                vpcSubnets: {
+                    subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+                },
+                environment: {
+                    SHOP_TABLE: shopTable.tableName,
+                    ORG_TABLE: orgTable.tableName,
+                    LIKES_TABLE: likesTable.tableName,
+                    DB_NAME: DATABASE_NAME,
+                    CLUSTER_ARN: cdk.Fn.importValue("ClusterARN"),
+                    SECRET_ARN: cdk.Fn.importValue("AuroraSecretARN"),
+                    GET_SHOP_LAMBDA_NAME: getShopLambda.functionName,
+                },
+                bundling: {
+                    externalModules: ["aws-sdk"],
+                },
+            }
+        );
+
+        shopTable.grantReadData(radiusShopsLambda);
+        orgTable.grantReadData(radiusShopsLambda);
+        likesTable.grantReadData(radiusShopsLambda);
+
         // Discover Shops API
         const discoverShopsLambda = new nodejs.NodejsFunction(
             this,
@@ -144,18 +177,21 @@ export class ShopApiStack extends cdk.NestedStack {
                 },
             }
         );
-        orgTable.grantReadData(searchOrganizations);
-
+        orgTable.grantReadData(searchShops);
 
         // API Gateway integration
+        const filterByShops = shopApi.addResource("filter");
+
         const shopApi = props.appRoot.addResource("shops");
         const getShopApi = shopApi.addResource("shop");
         const discoverShopApi = shopApi.addResource("discover");
         const searchShopApi = shopApi.addResource("search");
+        const filterByRadius = filterByShops.addResource("radius");
 
         const getShop = new apigateway.LambdaIntegration(getShopLambda);
         const discoverIntegration = new apigateway.LambdaIntegration(discoverShopsLambda);
         const searchIntegration = new apigateway.LambdaIntegration(searchShops);
+        const radiusIntegration = new apigateway.LambdaIntegration(radiusShopsLambda);
 
         discoverShopApi.addMethod("GET", discoverIntegration, {
             authorizer: props.authorizer,
@@ -170,48 +206,9 @@ export class ShopApiStack extends cdk.NestedStack {
             authorizationType: apigateway.AuthorizationType.COGNITO,
         });
 
-    // Radius Shops API
-    const radiusShopsLambda = new nodejs.NodejsFunction(
-      this,
-      "radiusShopsLambda",
-      {
-        runtime: lambda.Runtime.NODEJS_20_X,
-        entry: "lambda/shop/getRadiusShops.ts",
-        handler: "handler",
-        vpc,
-        role: clusterRole,
-        securityGroups: [securityGroupResolvers],
-        vpcSubnets: {
-          subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
-        },
-        environment: {
-          SHOP_TABLE: shopTable.tableName,
-          ORG_TABLE: orgTable.tableName,
-          LIKES_TABLE: likesTable.tableName,
-          DB_NAME: DATABASE_NAME,
-          CLUSTER_ARN: cdk.Fn.importValue("ClusterARN"),
-          SECRET_ARN: cdk.Fn.importValue("AuroraSecretARN"),
-          GET_SHOP_LAMBDA_NAME: getShopLambda.functionName,
-        },
-        bundling: {
-          externalModules: ["aws-sdk"],
-        },
-      }
-    );
-
-    shopTable.grantReadData(radiusShopsLambda);
-    orgTable.grantReadData(radiusShopsLambda);
-    likesTable.grantReadData(radiusShopsLambda);
-
-    const filterByShops = shopApi.addResource("filter");
-    const filterByRadius = filterByShops.addResource("radius");
-    const radiusIntegration = new apigateway.LambdaIntegration(
-      radiusShopsLambda
-    );
-
-    filterByRadius.addMethod("GET", radiusIntegration, {
-      authorizer: props.authorizer,
-      authorizationType: apigateway.AuthorizationType.COGNITO,
-    });
-  }
+        filterByRadius.addMethod("GET", radiusIntegration, {
+          authorizer: props.authorizer,
+          authorizationType: apigateway.AuthorizationType.COGNITO,
+        });
+    }
 }
