@@ -35,7 +35,7 @@ export class PlansApiStack extends cdk.NestedStack {
 
         const fetchPlansLambda = new nodejs.NodejsFunction(this, "fetchAppPlans",{
             runtime: lambda.Runtime.NODEJS_20_X,
-            entry: 'lambda/user/Plans/getPlan.ts',
+            entry: 'lambda/user/Plans/getPlans.ts',
             handler: 'handler',
             environment: {
                 PLANS_TABLE: plansTable.tableName,
@@ -45,15 +45,20 @@ export class PlansApiStack extends cdk.NestedStack {
                 externalModules: ['aws-sdk'],
             },
         })
-        orgTable.grantReadData(fetchPlanLambda);
-        plansTable.grantReadData(fetchPlanLambda);
+        orgTable.grantReadData(fetchPlansLambda);
+        plansTable.grantReadData(fetchPlansLambda);
 
         const planApi = props.appRoot.addResource('plans');
-        const fetchPlansApi = planApi.addResource('plan');
+        const fetchPlanApi = planApi.addResource('plan');
 
         const fetchPlan = new apigateway.LambdaIntegration(fetchPlanLambda);
+        const fetchPlans = new apigateway.LambdaIntegration(fetchPlansLambda);
 
-        fetchPlansApi.addMethod('GET', fetchPlan, {
+        fetchPlanApi.addMethod('GET', fetchPlan, {
+            authorizer: props.authorizer,
+            authorizationType: apigateway.AuthorizationType.COGNITO,
+        });
+        planApi.addMethod('GET', fetchPlans, {
             authorizer: props.authorizer,
             authorizationType: apigateway.AuthorizationType.COGNITO,
         });

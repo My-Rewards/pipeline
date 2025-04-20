@@ -59,7 +59,7 @@ const getStripe = async (stripe_id:string):Promise<stripeClientProps> => {
 
         const subscription = subscriptions.data[0];
 
-        const upcomingInvoice = await stripe?.invoices.retrieveUpcoming({
+        const upcomingInvoice = await stripe?.invoices.createPreview({
             customer: stripe_id,
             subscription: subscription.id,
         });
@@ -99,7 +99,7 @@ const getStripe = async (stripe_id:string):Promise<stripeClientProps> => {
                 period_end: invoice.period_end,
                 upcoming: false,
                 download:invoice.invoice_pdf || null,
-                paid: invoice.paid,
+                paid: invoice.status == 'paid',
             });
         });
         
@@ -112,11 +112,11 @@ const getStripe = async (stripe_id:string):Promise<stripeClientProps> => {
                    ? customerResponse.invoice_settings.default_payment_method 
                    : customerResponse.invoice_settings.default_payment_method?.id || null)
                 : null,
-                tax: upcomingInvoice ? upcomingInvoice.tax : null,
+                tax: upcomingInvoice?.total_taxes ? upcomingInvoice.total_taxes[0].amount : null,
                 active: true,
                 paymentWindow:{
-                    start: subscription.current_period_start,
-                    end: subscription.current_period_end
+                    start: subscription.items.data[0].current_period_start,
+                    end: subscription.items.data[0].current_period_end
                 },
                 invoices: allInvoices,
                 paymentMethods: paymentMethods ? paymentMethods.data : []
@@ -149,7 +149,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const getUser = new GetCommand ({
             TableName: userTable,
             Key: { id: userSub},
-            ProjectionExpression: "orgId, #userPermissions",      
+            ProjectionExpression: "org_id, #userPermissions",
             ExpressionAttributeNames: { 
                 "#userPermissions": "permissions"
             },      
@@ -157,11 +157,11 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
         const resultUser = await dynamoDb.send(getUser);
 
-        if (!resultUser.Item?.orgId) {
+        if (!resultUser.Item?.org_id) {
             return { statusCode: 210, body: JSON.stringify({ info: "Organization not Found" }) };
         }
 
-        const orgId = resultUser.Item.orgId ;
+        const orgId = resultUser.Item.org_id ;
         const permissions = resultUser.Item.permissions;
 
         if (!orgId) {

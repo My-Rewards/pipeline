@@ -12,7 +12,7 @@ export class DynamoStack extends cdk.Stack {
 
     // users Table
     const userTable = new aws_dynamodb.Table(this, 'App-Users-Table', {
-      tableName: `${props.stageName}-App-Users`,
+      tableName: `App-Users-${props.stageName}`,
       partitionKey: { name: 'id', type: aws_dynamodb.AttributeType.STRING },
       billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy:cdk.RemovalPolicy.RETAIN,
@@ -24,7 +24,7 @@ export class DynamoStack extends cdk.Stack {
 
     // business users Table
     const businessUserTable = new aws_dynamodb.Table(this, 'Business-Users-Table', {
-      tableName: `${props.stageName}-Business-Users`,
+      tableName: `Business-Users-${props.stageName}`,
       partitionKey: { name: 'id', type: aws_dynamodb.AttributeType.STRING },
       billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy:cdk.RemovalPolicy.RETAIN,
@@ -35,13 +35,13 @@ export class DynamoStack extends cdk.Stack {
     });
     businessUserTable.addGlobalSecondaryIndex({
       indexName: "OrgIndex",
-      partitionKey: { name: "orgId", type: aws_dynamodb.AttributeType.STRING },
+      partitionKey: { name: "org_id", type: aws_dynamodb.AttributeType.STRING },
       projectionType: aws_dynamodb.ProjectionType.ALL,
     });
 
     // Organizations Table
     const organizationTable = new aws_dynamodb.Table(this, 'Organizations-Table', {
-      tableName: `${props.stageName}-Organizations`,
+      tableName: `Organizations-${props.stageName}`,
       partitionKey: { name: 'id', type: aws_dynamodb.AttributeType.STRING },
       billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy:cdk.RemovalPolicy.RETAIN,
@@ -59,7 +59,7 @@ export class DynamoStack extends cdk.Stack {
 
     // shops Table
     const shopTable = new aws_dynamodb.Table(this, 'Shops-Table', {
-      tableName: `${props.stageName}-Shops`,
+      tableName: `Shops-${props.stageName}`,
       partitionKey: { name: 'id', type: aws_dynamodb.AttributeType.STRING },
       billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy:cdk.RemovalPolicy.RETAIN,
@@ -70,15 +70,15 @@ export class DynamoStack extends cdk.Stack {
     });
     shopTable.addGlobalSecondaryIndex({
       indexName: "OrgIndex",
-      partitionKey: { name: "orgId", type: aws_dynamodb.AttributeType.STRING },
+      partitionKey: { name: "org_id", type: aws_dynamodb.AttributeType.STRING },
       projectionType: aws_dynamodb.ProjectionType.ALL,
     });
 
     // plans Table
     const planTable = new aws_dynamodb.Table(this, 'Plans-Table', {
-      tableName: `${props.stageName}-Plans`,
-      partitionKey: { name: 'userId', type: aws_dynamodb.AttributeType.STRING },
-      sortKey: { name: 'orgId', type: aws_dynamodb.AttributeType.STRING },
+      tableName: `Plans-${props.stageName}`,
+      partitionKey: { name: 'user_id', type: aws_dynamodb.AttributeType.STRING },
+      sortKey: { name: 'org_id', type: aws_dynamodb.AttributeType.STRING },
       billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.RETAIN,
       pointInTimeRecoverySpecification: {
@@ -88,8 +88,8 @@ export class DynamoStack extends cdk.Stack {
     });
     planTable.addGlobalSecondaryIndex({
       indexName: 'byOrg',
-      partitionKey: { name: 'orgId', type: aws_dynamodb.AttributeType.STRING },
-      sortKey: { name: 'updatedAt', type: aws_dynamodb.AttributeType.STRING },
+      partitionKey: { name: 'org_id', type: aws_dynamodb.AttributeType.STRING },
+      sortKey: { name: 'updated_at', type: aws_dynamodb.AttributeType.STRING },
       projectionType: aws_dynamodb.ProjectionType.ALL
     });
     planTable.addGlobalSecondaryIndex({
@@ -100,7 +100,7 @@ export class DynamoStack extends cdk.Stack {
 
     // visits Table
     const visitTable = new aws_dynamodb.Table(this, 'Visits-Table', {
-      tableName: `${props.stageName}-Visits`,
+      tableName: `Visits-${props.stageName}`,
       partitionKey: { name: 'id', type: aws_dynamodb.AttributeType.STRING },
       billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy:cdk.RemovalPolicy.RETAIN,
@@ -109,22 +109,22 @@ export class DynamoStack extends cdk.Stack {
 
     // Likes Table
     const likesTable = new aws_dynamodb.Table(this, 'Likes-Table', {
-      tableName: `${props.stageName}-Likes`,
-      partitionKey: { name: 'userId', type: aws_dynamodb.AttributeType.STRING },
-      sortKey: { name: 'shopId', type: aws_dynamodb.AttributeType.STRING },
+      tableName: `Likes-${props.stageName}`,
+      partitionKey: { name: 'user_id', type: aws_dynamodb.AttributeType.STRING },
+      sortKey: { name: 'shop_id', type: aws_dynamodb.AttributeType.STRING },
       billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy:cdk.RemovalPolicy.RETAIN,
       deletionProtection: isProd
     });
     likesTable.addGlobalSecondaryIndex({
       indexName: 'ShopLikes',
-      partitionKey: { name: 'shopId', type: aws_dynamodb.AttributeType.STRING },
-      sortKey: { name: 'userId', type: aws_dynamodb.AttributeType.STRING },
+      partitionKey: { name: 'shop_id', type: aws_dynamodb.AttributeType.STRING },
+      sortKey: { name: 'user_id', type: aws_dynamodb.AttributeType.STRING },
     });
 
     // Rewards Table
     const rewardsTable = new aws_dynamodb.Table(this, 'Rewards-Table', {
-      tableName: `${props.stageName}-Rewards`,
+      tableName: `Rewards-${props.stageName}`,
       partitionKey: { name: 'id', type: aws_dynamodb.AttributeType.STRING },
       billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy:cdk.RemovalPolicy.RETAIN,

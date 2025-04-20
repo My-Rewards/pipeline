@@ -33,7 +33,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
         const shopResult = await dynamoDb.send(shopParams);
         const shop = shopResult.Item;
 
-        if (!shop || !shop.id || !shop.orgId || !shop.latitude || !shop.longitude) {
+        if (!shop || !shop.id || !shop.org_id || !shop.latitude || !shop.longitude) {
             return {
                 statusCode: 404,
                 body: JSON.stringify({ error: "Shop not found" }),
@@ -44,7 +44,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
 
         const orgParams = new GetCommand({
             TableName: orgTable,
-            Key: { id:shop.orgId },
+            Key: { id:shop.org_id },
             ProjectionExpression: "id, #org_name, description, images",
             ExpressionAttributeNames: { "#org_name": "name" },
         });
@@ -62,8 +62,8 @@ export const handler = async (event: APIGatewayProxyEvent) => {
         const likeParam = new GetCommand({
             TableName: likesTable,
             Key: {
-              userId: userSub,
-              shopId: shop.id
+              user_id: userSub,
+              shop_id: shop.id
             }
         });
 
@@ -75,16 +75,16 @@ export const handler = async (event: APIGatewayProxyEvent) => {
         }
 
         const finalShop:ShopProps = {
-            organization_id: org.id,
+            org_id: org.id,
             name: org.name,
             banner: org.images.banner.url,
             logo: org.images.logo.url,
             description: org.description,
-            shop_id: shop.id,
+            id: shop.id,
             latitude: shop.latitude,
             longitude: shop.longitude,
             menu: shop.menu,
-            phoneNumber: shop.phone,
+            phone_number: shop.phone,
             location: shop.location,
             shop_hours: shop.shop_hours,
             favorite

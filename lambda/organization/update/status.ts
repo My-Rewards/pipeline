@@ -36,7 +36,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const getUser = new GetCommand({
       TableName: userTable,
       Key: {id: userSub},
-      ProjectionExpression: "orgId, #userPermissions",
+      ProjectionExpression: "org_id, #userPermissions",
       ExpressionAttributeNames: { 
         "#userPermissions": "permissions"
       }
@@ -44,11 +44,11 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       
     const resultUser = await dynamoDb.send(getUser);
     
-    if (!resultUser.Item?.orgId) {
+    if (!resultUser.Item?.org_id) {
       return { statusCode: 210, body: JSON.stringify({ info: "Organization not Found" }) };
     }
     
-    const orgId = resultUser.Item.orgId;
+    const orgId = resultUser.Item.org_id;
     const permissions = resultUser.Item.permissions;
 
     const getOrg = new GetCommand({
@@ -84,7 +84,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const updateOrg = new UpdateCommand({
             TableName: orgTable,
             Key: { id: orgId },
-            UpdateExpression: 'SET active = :active, updatedAt = :updatedAt',
+            UpdateExpression: 'SET active = :active, updated_at = :updatedAt',
             ExpressionAttributeValues: {
             ':active': !org.Item.active,
             ':updatedAt': dateNow.toISOString()
@@ -98,7 +98,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
                 resourceArn: clusterArn,
                 database: dbName,
                 sql:`
-                    UPDATE Organizations SET active = $1 WHERE id = $2
+                    UPDATE Organizations SET active = :active WHERE id = :orgId
                 `,
                 parameters: [
                     { name: "active", value: { booleanValue: !org.Item.active } },

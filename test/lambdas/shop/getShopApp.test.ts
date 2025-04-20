@@ -118,7 +118,7 @@ describe("Lambda Handler - Merging shop/org/likes", () => {
     .resolvesOnce({
       Item: {
         id: "shop1",
-        orgId: "org1",
+        org_id: "org1",
         latitude: 29.65,
         longitude: -82.33,
         location: { city: "Gainesville", state: "FL" },
@@ -144,7 +144,7 @@ describe("Lambda Handler - Merging shop/org/likes", () => {
         .resolvesOnce({
             Item: {
                 id: "shop1",
-                orgId: "org1",
+                org_id: "org1",
                 latitude: 29.65,
                 longitude: -82.33,
                 location: { city: "Gainesville", state: "FL" },
@@ -186,7 +186,7 @@ describe("Lambda Handler - Merging shop/org/likes", () => {
     .resolvesOnce({
       Item: {
         id: "shop1",
-        orgId: "org1",
+        org_id: "org1",
         latitude: 29.65,
         longitude: -82.33,
         location: { city: "Gainesville", state: "FL" },

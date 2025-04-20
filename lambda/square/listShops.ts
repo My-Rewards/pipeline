@@ -49,7 +49,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const params: GetCommandInput = {
             TableName: userTable,
             Key: { id: user_id },
-            ProjectionExpression: "accessToken",
+            ProjectionExpression: "access_token",
         };
         const response = await dynamoDb.send(new GetCommand(params));
 

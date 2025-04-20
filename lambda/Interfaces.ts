@@ -4,15 +4,14 @@ import Stripe from "stripe";
 export interface OrganizationProps {
     id: string;
     stripe_id: string | null;
-    accessToken: string | null;
-    refreshToken: string | null;
-    updatedAt: string | null;
+    access_token: string | null;
+    refresh_token: string | null;
+    updated_at: string | null;
     expiresAt: string | null;
     square_merchant_id: string | null;
     tags:Set<string>;
     owner_id:string;
     date_registered: string;
-    lastUpdate: string;
     rewards_loyalty: unknown;
     rewards_milestone: unknown;
     name: string;
@@ -101,13 +100,13 @@ export interface PlanProps {
 
 export interface ShopProps {
     id: string; 
-    orgId: string; // We need to stop mixing snake and camel case
+    org_id: string;
     name:string;
     banner: string;
     logo:string;
     favorite:boolean;
     menu:string|undefined;
-    phoneNumber:string;
+    phone_number:string;
     description:string;
     shop_hours: ShopHour[];
     location:{
@@ -117,7 +116,6 @@ export interface ShopProps {
     };
     latitude: number;
     longitude: number;
-    square_location_id: string
 }
 
 export interface VisitProps {

@@ -83,7 +83,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const getUser = new GetCommand ({
             TableName: userTable,
             Key: { id: userSub},
-            ProjectionExpression: "orgId, #userPermissions",      
+            ProjectionExpression: "org_id, #userPermissions",
             ExpressionAttributeNames: { 
                 "#userPermissions": "permissions"
             },      
@@ -91,11 +91,11 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
         const resultUser = await dynamoDb.send(getUser);
 
-        if (!resultUser.Item?.orgId) {
+        if (!resultUser.Item?.org_id) {
             return { statusCode: 210, body: JSON.stringify({ info: "User not Found" }) };
         }
 
-        const orgId = resultUser.Item.orgId ;
+        const orgId = resultUser.Item.org_id ;
         const permissions = resultUser.Item.permissions;
         
         const getOrg = new GetCommand({
