@@ -108,10 +108,11 @@ export class DynamoStack extends cdk.Stack {
       deletionProtection:isProd
     });
 
-    // likes Table
-    const likesTable = new aws_dynamodb.Table(this, 'LikesTable', {
-      partitionKey: { name: 'id', type: aws_dynamodb.AttributeType.STRING }, 
-      tableName: `Likes`,
+    // Likes Table
+    const likesTable = new aws_dynamodb.Table(this, 'Likes-Table', {
+      tableName: `${props.stageName}-Likes`,
+      partitionKey: { name: 'userId', type: aws_dynamodb.AttributeType.STRING },
+      sortKey: { name: 'shopId', type: aws_dynamodb.AttributeType.STRING },
       billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy:cdk.RemovalPolicy.RETAIN,
       deletionProtection: isProd
