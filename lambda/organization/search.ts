@@ -13,7 +13,6 @@ interface Organization {
     name?: string;
 }
 
-
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     const orgTable = process.env.ORG_TABLE;
 
@@ -49,7 +48,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
         const result = await dynamoDb.send(queryParams);
 
-        const organizations: Organization[] = result.Items;
+        const organizations: Organization[] = result.Items as Organization[] || [];
 
         const response = {
             organizations,

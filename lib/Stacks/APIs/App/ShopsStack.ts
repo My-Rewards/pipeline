@@ -131,7 +131,7 @@ export class ShopApiStack extends cdk.NestedStack {
         orgTable.grantReadData(discoverShopsLambda);
         likesTable.grantReadData(discoverShopsLambda);
 
-        const searchOrganizations = new nodejs.NodejsFunction( this, "searchOrganinations",
+        const searchShops = new nodejs.NodejsFunction( this, "searchOrganinations",
             {
                 runtime: lambda.Runtime.NODEJS_20_X,
                 entry: "lambda/organization/search.ts",
@@ -144,8 +144,7 @@ export class ShopApiStack extends cdk.NestedStack {
                 },
             }
         );
-        orgTable.grantReadData(searchOrganizations);
-
+        orgTable.grantReadData(searchShops);
 
         // API Gateway integration
         const shopApi = props.appRoot.addResource("shops");
@@ -155,7 +154,7 @@ export class ShopApiStack extends cdk.NestedStack {
 
         const getShop = new apigateway.LambdaIntegration(getShopLambda);
         const discoverIntegration = new apigateway.LambdaIntegration(discoverShopsLambda);
-        const searchIntegration = new apigateway.LambdaIntegration(searchOrganizations);
+        const searchIntegration = new apigateway.LambdaIntegration(searchShops);
 
         discoverShopApi.addMethod("GET", discoverIntegration, {
             authorizer: props.authorizer,
@@ -169,7 +168,7 @@ export class ShopApiStack extends cdk.NestedStack {
             authorizer: props.authorizer,
             authorizationType: apigateway.AuthorizationType.COGNITO,
         });
-  
+
     // Radius Shops API
     const radiusShopsLambda = new nodejs.NodejsFunction(
       this,
