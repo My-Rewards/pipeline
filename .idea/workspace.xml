@@ -18,38 +18,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c38fec59-b241-48cf-a190-0dfc032fdfce" name="Local Files" comment="minor fixes to fix build">
-      <change afterPath="$PROJECT_DIR$/lambda/shop/nearestShop.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/global/constants.ts" beforeDir="false" afterPath="$PROJECT_DIR$/global/constants.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/Interfaces.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/Interfaces.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/cloudWatch/squareTokenUpdater.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/cloudWatch/squareTokenUpdater.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/likes/setLike.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/likes/setLike.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/organization/addPayment.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/addPayment.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/organization/getAccount.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/getAccount.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/organization/getBilling.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/getBilling.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/organization/getOrg.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/getOrg.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/organization/newOrganization.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/newOrganization.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/organization/removePayment.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/removePayment.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/organization/setDefaultPayment.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/setDefaultPayment.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/organization/square/link.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/square/link.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/organization/square/unlink.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/square/unlink.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/organization/update/data.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/update/data.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/organization/update/images.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/update/images.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/organization/update/status.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/update/status.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/shop/getRadiusShops.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/shop/getRadiusShops.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/shop/getShopApp.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/shop/getShopApp.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/shop/newShop.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/shop/newShop.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/square/listShops.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/square/listShops.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/user/Plans/getPlan.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/user/Plans/getPlan.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/user/Plans/getPlans.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/user/Plans/getPlans.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/Stacks/APIs/App/PlansApiStack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/APIs/App/PlansApiStack.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/Stacks/APIs/App/ShopsStack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/APIs/App/ShopsStack.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/Stacks/dynamo-stack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/dynamo-stack.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/lambdas/shop/getShopApp.test.ts" beforeDir="false" afterPath="$PROJECT_DIR$/test/lambdas/shop/getShopApp.test.ts" afterDir="false" />
-    </list>
+    <list default="true" id="c38fec59-b241-48cf-a190-0dfc032fdfce" name="Local Files" comment="updated dynamo values" />
     <list id="79a675d0-e669-4fab-ac29-b64f9bdb9a1c" name="Unversioned Files" comment="Unversioned Files" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -151,7 +120,7 @@
     "Node.js.business-website-stack.ts.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "Brian",
+    "git-widget-placeholder": "#71 on Brian",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "/Users/brian/myRewards/pipeline",
     "node.js.detected.package.eslint": "true",
@@ -397,7 +366,7 @@
       <workItem from="1745114341135" duration="2846000" />
       <workItem from="1745169222832" duration="100000" />
       <workItem from="1745169346642" duration="405000" />
-      <workItem from="1745170119233" duration="6904000" />
+      <workItem from="1745170119233" duration="7675000" />
     </task>
     <task id="LOCAL-00001" summary="billing page testing and subscription creation update">
       <option name="closed" value="true" />
@@ -511,7 +480,15 @@
       <option name="project" value="LOCAL" />
       <updated>1745120539370</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="updated dynamo values">
+      <option name="closed" value="true" />
+      <created>1745179479845</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1745179479845</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -538,7 +515,8 @@
     <MESSAGE value="Unversioned Files" />
     <MESSAGE value="remade dynamo-stack.ts" />
     <MESSAGE value="minor fixes to fix build" />
-    <option name="LAST_COMMIT_MESSAGE" value="minor fixes to fix build" />
+    <MESSAGE value="updated dynamo values" />
+    <option name="LAST_COMMIT_MESSAGE" value="updated dynamo values" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
