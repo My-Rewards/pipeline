@@ -101,8 +101,7 @@ export class DynamoStack extends cdk.Stack {
     // visits Table
     const visitTable = new aws_dynamodb.Table(this, 'Visits-Table', {
       tableName: `${props.stageName}-Visits`,
-      partitionKey: { name: 'userId', type: aws_dynamodb.AttributeType.STRING },
-      sortKey: { name: 'SK', type: aws_dynamodb.AttributeType.STRING },
+      partitionKey: { name: 'id', type: aws_dynamodb.AttributeType.STRING },
       billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy:cdk.RemovalPolicy.RETAIN,
       deletionProtection:isProd
