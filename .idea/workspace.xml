@@ -18,23 +18,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c38fec59-b241-48cf-a190-0dfc032fdfce" name="Local Files" comment="remade dynamo-stack.ts">
-      <change afterPath="$PROJECT_DIR$/lambda/organization/search.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/Stacks/APIs/App/PlansApiStack.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_rebase__Local_Files_.xml" beforeDir="false" />
+    <list default="true" id="c38fec59-b241-48cf-a190-0dfc032fdfce" name="Local Files" comment="minor fixes to fix build">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/lib/Stacks/APIs/Business/ShopsApiStack.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/lib/Stacks/APIs/Business/ShopsApiStack.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/lib/Stacks/APIs/Business/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/lib/Stacks/APIs/Business/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/Interfaces.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/Interfaces.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/organization/newOrganization.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/newOrganization.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/shop/getDiscoverShops.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/shop/getDiscoverShops.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/shop/getShopApp.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/shop/getShopApp.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/user/Plans/getPlan.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/user/Plans/getPlan.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/user/Plans/getPlans.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/user/Plans/getPlans.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/Stacks/APIs/App/ShopsStack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/APIs/App/ShopsStack.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/Stacks/apiGateway-stack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/apiGateway-stack.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/Stacks/dynamo-stack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/dynamo-stack.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
     </list>
     <list id="79a675d0-e669-4fab-ac29-b64f9bdb9a1c" name="Unversioned Files" comment="Unversioned Files" />
     <option name="SHOW_DIALOG" value="false" />
@@ -375,7 +361,9 @@
       <workItem from="1744753512391" duration="22112000" />
       <workItem from="1744897824417" duration="1111000" />
       <workItem from="1744899004187" duration="12711000" />
-      <workItem from="1745033923342" duration="8094000" />
+      <workItem from="1745033923342" duration="9414000" />
+      <workItem from="1745104702288" duration="40000" />
+      <workItem from="1745114341135" duration="2846000" />
     </task>
     <task id="LOCAL-00001" summary="billing page testing and subscription creation update">
       <option name="closed" value="true" />
@@ -457,7 +445,31 @@
       <option name="project" value="LOCAL" />
       <updated>1744774969940</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="remade dynamo-stack.ts">
+      <option name="closed" value="true" />
+      <created>1745076358479</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1745076358479</updated>
+    </task>
+    <task id="LOCAL-00012" summary="minor fixes to fix build">
+      <option name="closed" value="true" />
+      <created>1745118457503</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1745118457503</updated>
+    </task>
+    <task id="LOCAL-00013" summary="minor fixes to fix build">
+      <option name="closed" value="true" />
+      <created>1745118853823</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1745118853823</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -483,7 +495,8 @@
     <MESSAGE value="Local Files" />
     <MESSAGE value="Unversioned Files" />
     <MESSAGE value="remade dynamo-stack.ts" />
-    <option name="LAST_COMMIT_MESSAGE" value="remade dynamo-stack.ts" />
+    <MESSAGE value="minor fixes to fix build" />
+    <option name="LAST_COMMIT_MESSAGE" value="minor fixes to fix build" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
