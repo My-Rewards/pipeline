@@ -28,7 +28,18 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     }
 
     try {
-        const { square_id, latitude, longitude, shop_hours } = JSON.parse(event.body);
+        const {
+            square_id,
+            latitude,
+            longitude,
+            shop_hours,
+            phone,
+            name,
+            location,
+            geohash,
+            square_location_id
+        } = JSON.parse(event.body);
+
         const userSub = event.requestContext.authorizer?.claims?.sub;
 
         if (!userSub) {
@@ -45,18 +56,18 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const getUser = new GetCommand({
             TableName: userTable,
             Key: { id: userSub },
-            ProjectionExpression: "org_id, #userPermissions",
+            ProjectionExpression: "orgId, #userPermissions",
             ExpressionAttributeNames: { "#userPermissions": "permissions" },
         });
         const resultUser = await dynamoDb.send(getUser);
 
         if (!resultUser.Item) {
             return { statusCode: 210, body: JSON.stringify({ error: "User email not found in database or User already linked to Organization" }) };
-        } else if (!resultUser.Item.org_id) {
+        } else if (!resultUser.Item.orgId) {
             return { statusCode: 210, body: JSON.stringify({ error: "Organization not found" }) };
         }
 
-        const orgId = resultUser.Item.org_id;
+        const orgId = resultUser.Item.orgId;
 
 
         const orgResult = await dynamoDb.send(new GetCommand({
@@ -74,9 +85,9 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const userResult = await dynamoDb.send(new GetCommand({
             TableName: userTable,
             Key: { id: userSub },
-            ProjectionExpression: "org_id",
+            ProjectionExpression: "orgId",
         }));
-        if (!userResult.Item || userResult.Item.org_id !== orgId) {
+        if (!userResult.Item || userResult.Item.orgId !== orgId) {
             return {
                 statusCode: 403,
                 body: JSON.stringify({ error: "User is not associated with the specified Organization" }),
@@ -91,22 +102,27 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
                 id: shopId,
                 org_id: orgId,
                 square_id,
+                square_location_id,
+                name,
+                phone,
+                location,
                 latitude,
                 longitude,
+                geohash,
                 shop_hours,
-                active: false,
+                active: true,
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString(),
             },
         }));
 
 
-        await dynamoDb.send(new UpdateCommand({
-            TableName: orgTable,
-            Key: { id: orgId },
-            UpdateExpression: "SET shopId = :shopId",
-            ExpressionAttributeValues: { ":shopId": shopId },
-        }));
+        /* await dynamoDb.send(new UpdateCommand({
+             TableName: orgTable,
+             Key: { id: orgId },
+             UpdateExpression: "SET shopId = :shopId",
+             ExpressionAttributeValues: { ":shopId": shopId },
+         }));*/
 
         return {
             statusCode: 201,

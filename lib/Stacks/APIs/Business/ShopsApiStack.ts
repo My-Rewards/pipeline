@@ -49,7 +49,7 @@ export class ShopApiStack extends cdk.NestedStack {
     });
 
     shopTable.grantReadWriteData(createShopLambda);
-    orgTable.grantReadData(createShopLambda);
+    orgTable.grantReadWriteData(createShopLambda);
     userTable.grantReadData(createShopLambda);
     props.encryptionKey.grantEncryptDecrypt(createShopLambda);
 
