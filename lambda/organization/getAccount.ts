@@ -49,7 +49,7 @@ export const handler = async (
       };
     }
 
-    const orgId = user.Item ? user.Item.orgId : null;
+    const orgId = user.Item ? user.Item.org_id : null;
 
     if (!orgId) {
       return {

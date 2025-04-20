@@ -60,44 +60,34 @@ export const handler = async (event: APIGatewayProxyEvent) => {
       };
     }
 
-    const loyaltyParams = new GetCommand({
+    const planParam = new GetCommand({
       TableName: plansTable,
       Key: {
-        userId: userSub,
-        SK: `${org_id}#LOYALTY`
+        user_id: userSub,
+        org_id: org_id
       }
     });
 
-    const milestoneParams = new GetCommand({
-      TableName: plansTable,
-      Key: {
-        userId: userSub,
-        SK: `${org_id}#MILESTONE`
-      }
-    });
-
-    const rl_result = await dynamoDb.send(loyaltyParams);
-    const rm_result = await dynamoDb.send(milestoneParams);
+    const planResult = await dynamoDb.send(planParam);
 
     let activePlan = false;
 
-    if(rl_result.Item && rm_result.Item){
+    if(planResult.Item){
       activePlan=true;
     }
 
-    const shopPlan: PlanProps = {
+    const shopPlan = {
       reward_plan: {
         rewards_loyalty: org.rl_active ? org.rewards_loyalty : undefined,
         rewards_milestone: org.rm_active ? org.rewards_milestone : undefined
       },
-      visits: rl_result.Item?.visits || 0,
-      points: rm_result.Item?.points || 0,
+      visits: planResult.Item?.visits || 0,
+      points: planResult.Item?.points || 0,
       redeemableRewards: [],
       rl_active: org.rl_active || false,
       rm_active: org.rm_active || false,
       firstPlan: false,
-      rm_id: rm_result.Item?.id || undefined,
-      rl_id: rl_result.Item?.id || undefined,
+      if:planResult.Item?.id,
       active:activePlan,
       organization_id: org.id,
       name: org.name

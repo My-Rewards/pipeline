@@ -59,7 +59,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const getUser = new GetCommand({
       TableName: userTable,
       Key: { id: userSub},
-      ProjectionExpression: "orgId, #userPermissions",      
+      ProjectionExpression: "org_id, #userPermissions",
       ExpressionAttributeNames: { 
         "#userPermissions": "permissions"
       }
@@ -67,13 +67,13 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
     const userResult = await dynamoDb.send(getUser);
 
-    if(!userResult?.Item || !userResult.Item.orgId){
+    if(!userResult?.Item || !userResult.Item.org_id){
       return { statusCode: 210, body: JSON.stringify({ info: "User not found" }) };
     }
 
     const getOrg = new GetCommand({
       TableName: orgTable,
-      Key: { id: userResult.Item.orgId },
+      Key: { id: userResult.Item.org_id },
     });
 
     const orgResult = await dynamoDb.send(getOrg);
@@ -152,7 +152,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const updateOrg = new UpdateCommand({
       TableName: orgTable,
       Key: { id: organization.id },
-      UpdateExpression: 'SET accessToken = :accessToken, refreshToken = :refreshToken, updatedAt = :updatedAt, expiresAt = :expiresAt, square_merchant_id = :square_merchant_id, linked = :linked',
+      UpdateExpression: 'SET access_token = :accessToken, refresh_token = :refreshToken, updated_at = :updatedAt, expires_at = :expiresAt, square_merchant_id = :square_merchant_id, linked = :linked',
       ExpressionAttributeValues: {
         ':accessToken': encryptedAccessToken,
         ':refreshToken': encryptedRefreshToken,

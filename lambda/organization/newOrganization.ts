@@ -23,12 +23,12 @@ const getUserEmailFromDynamoDB = async (userId: string, userTable:string): Promi
         const params = new GetCommand({
             TableName: userTable,
             Key: { id: userId },
-            ProjectionExpression: "email, orgId",
+            ProjectionExpression: "email, org_id",
         });
 
         const response = await dynamoDb.send(params);
 
-        if (!response || !response.Item || response.Item.orgId) {
+        if (!response || !response.Item || response.Item.org_id) {
             return null;
         }
 
@@ -143,15 +143,14 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             Item: <OrganizationProps> {
                 id:organization_id,
                 stripe_id: stripeCustomer.id,
-                accessToken:null,
-                refreshToken:null,
-                updatedAt:null,
+                access_token:null,
+                refresh_token:null,
+                updated_at:dateNow.toISOString(),
                 expiresAt:null,
                 square_merchant_id: null,
                 owner_id:userSub,
                 tags:businessTags,
                 date_registered: dateNow.toISOString(),
-                lastUpdate: dateNow.toISOString(),
                 rewards_loyalty,
                 rewards_milestone,
                 name:org_name,
@@ -182,7 +181,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const updateUser = new UpdateCommand({
             TableName: userTable,
             Key: { id: userSub },
-            UpdateExpression: 'SET orgId = :org_id',
+            UpdateExpression: 'SET org_id = :org_id',
             ExpressionAttributeValues: {
             ':org_id': organization_id,
             },
@@ -199,10 +198,9 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
                 sql:`
                     INSERT INTO Organizations (id, active, updated_at) 
                     VALUES ($1, $2, $3),
-                `
-                ,
+                `,
                 parameters: [
-                    { name: "orgId", value: { stringValue: organization_id } },
+                    { name: "org_id", value: { stringValue: organization_id } },
                     { name: "active", value: { booleanValue: false } },
                     { name: "updated_at", value: { stringValue: dateNow.toISOString() } }
                 ],

@@ -8,9 +8,9 @@ const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
 
 interface OrganizationSquare {
     id: string;
-    expiresAt?: string;
-    refreshToken?: string;
-    accessToken?: string;
+    expires_at?: string;
+    refresh_token?: string;
+    access_token?: string;
 }
 
 export const handler = async () => {
@@ -55,7 +55,7 @@ export const handler = async () => {
         });
 
         const updatePromises = organizations.map(async (org) => {
-            if (!org.expiresAt || !org.refreshToken) return;
+            if (!org.expires_at || !org.refresh_token) return;
 
             const twentyFourHoursFromNow = new Date();
             twentyFourHoursFromNow.setHours(twentyFourHoursFromNow.getHours() + 24);
@@ -65,7 +65,7 @@ export const handler = async () => {
                     clientId: secretResult.client,
                     clientSecret: secretResult.secret,
                     grantType: 'refresh_token',
-                    refreshToken: org.refreshToken,
+                    refreshToken: org.refresh_token,
                 });
 
                 if (response.accessToken && response.refreshTokenExpiresAt && response.refreshToken) {

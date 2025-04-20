@@ -179,6 +179,30 @@ export class ShopApiStack extends cdk.NestedStack {
         );
         orgTable.grantReadData(searchShops);
 
+        const nearestShopLambda = new nodejs.NodejsFunction( this, "nearestOrganization",
+            {
+                runtime: lambda.Runtime.NODEJS_20_X,
+                entry: "lambda/shop/nearestShop.ts",
+                handler: "handler",
+                vpc,
+                role: clusterRole,
+                securityGroups: [securityGroupResolvers],
+                vpcSubnets: {
+                    subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+                },
+                environment: {
+                    ORG_TABLE: orgTable.tableName,
+                    DB_NAME: DATABASE_NAME,
+                    CLUSTER_ARN: cdk.Fn.importValue("ClusterARN"),
+                    SECRET_ARN: cdk.Fn.importValue("AuroraSecretARN")
+                },
+                bundling: {
+                    externalModules: ["aws-sdk"],
+                },
+            }
+        );
+        orgTable.grantReadData(searchShops);
+
         // API Gateway integration
 
         const shopApi = props.appRoot.addResource("shops");
@@ -188,11 +212,13 @@ export class ShopApiStack extends cdk.NestedStack {
         const discoverShopApi = shopApi.addResource("discover");
         const searchShopApi = shopApi.addResource("search");
         const filterByRadius = filterByShops.addResource("radius");
+        const nearestShopApi = shopApi.addResource("nearest");
 
         const getShop = new apigateway.LambdaIntegration(getShopLambda);
         const discoverIntegration = new apigateway.LambdaIntegration(discoverShopsLambda);
         const searchIntegration = new apigateway.LambdaIntegration(searchShops);
         const radiusIntegration = new apigateway.LambdaIntegration(radiusShopsLambda);
+        const nearestShopIntegration = new apigateway.LambdaIntegration(nearestShopLambda);
 
         discoverShopApi.addMethod("GET", discoverIntegration, {
             authorizer: props.authorizer,
@@ -206,10 +232,13 @@ export class ShopApiStack extends cdk.NestedStack {
             authorizer: props.authorizer,
             authorizationType: apigateway.AuthorizationType.COGNITO,
         });
-
         filterByRadius.addMethod("GET", radiusIntegration, {
           authorizer: props.authorizer,
           authorizationType: apigateway.AuthorizationType.COGNITO,
+        });
+        nearestShopApi.addMethod("GET", nearestShopIntegration, {
+            authorizer: props.authorizer,
+            authorizationType: apigateway.AuthorizationType.COGNITO,
         });
     }
 }

@@ -38,7 +38,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
                 PK: `USER#${userId}`,
                 SK: `SHOP#${shop_id}`
             },
-            UpdateExpression: 'SET favorite = :liked, updatedAt = if_not_exists(createdAt, :now)',
+            UpdateExpression: 'SET favorite = :liked, updated_at = if_not_exists(createdAt, :now)',
             ExpressionAttributeValues: {
                 ':liked': newFavoriteValue,
                 ':now': new Date().toISOString()

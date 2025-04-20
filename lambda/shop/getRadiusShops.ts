@@ -48,17 +48,17 @@ export const handler = async (event: APIGatewayProxyEvent) => {
         resourceArn: process.env.CLUSTER_ARN,
         database: process.env.DB_NAME,
         sql: `
-  SELECT 
-    s.id, 
-    s.organization_id, 
-    ST_Distance(s.location, ST_MakePoint(:lon, :lat)::geography) AS distance
-  FROM shops s
-  JOIN organizations o ON o.id = s.organization_id
-  WHERE s.active = TRUE 
-    AND o.active = TRUE
-    AND ST_Distance(s.location, ST_MakePoint(:lon, :lat)::geography) <= 80467
-  ORDER BY distance;
-`,
+          SELECT 
+            s.id, 
+            s.organization_id, 
+            ST_Distance(s.location, ST_MakePoint(:lon, :lat)::geography) AS distance
+          FROM shops s
+          JOIN organizations o ON o.id = s.organization_id
+          WHERE s.active = TRUE 
+            AND o.active = TRUE
+            AND ST_Distance(s.location, ST_MakePoint(:lon, :lat)::geography) <= 80467
+          ORDER BY distance;
+        `,
         parameters: [
           { name: "lat", value: { doubleValue: latitude } },
           { name: "lon", value: { doubleValue: longitude } },

@@ -42,7 +42,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     } = JSON.parse(event.body);
 
     const updates: Record<string, any> = { name, description, tags, rl_active, rm_active, rewards_loyalty, rewards_milestone};
-    updates.updatedAt = new Date().toISOString();
+    updates.updated_at = new Date().toISOString();
     
     const validUpdates = Object.entries(updates).filter(([_, v]) => v !== undefined);
 
@@ -57,7 +57,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const getUser = new GetCommand({
       TableName: userTable,
       Key: {id: userSub},
-      ProjectionExpression: "orgId, #userPermissions",
+      ProjectionExpression: "org_id, #userPermissions",
       ExpressionAttributeNames: { 
         "#userPermissions": "permissions"
       }
@@ -65,11 +65,11 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       
     const resultUser = await dynamoDb.send(getUser);
     
-    if (!resultUser.Item?.orgId) {
+    if (!resultUser.Item?.org_id) {
       return { statusCode: 210, body: JSON.stringify({ info: "Organization not Found" }) };
     }
     
-    const orgId = resultUser.Item.orgId;
+    const orgId = resultUser.Item.org_id;
     const permissions = resultUser.Item.permissions;
 
     const getOrg = new GetCommand({

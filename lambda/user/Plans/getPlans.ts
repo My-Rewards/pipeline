@@ -12,30 +12,42 @@ const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
 
 interface Plan {
     userId: string;
-    SK: string;
-    orgId?: string;
-    type?: string;
-    visits?: number;
-    points?: number;
+    type: string;
+    org_id:string;
+    visits: number;
+    visits_total:number;
+    points_total:number;
+    start_date:string;
+    points: number;
     active: boolean;
-    updatedAt: string;
     id: string;
 }
 
 interface GroupedPlan {
-    userId: string;
-    orgId: string;
-    loyaltyPlan?: Omit<Plan, 'type' | 'orgId'>;
-    milestonePlan?: Omit<Plan, 'type' | 'orgId'>;
-    organization?: any;
+    reward_plan:
+        {
+            rewards_loyalty: any|undefined,
+            rewards_milestone: any|undefined,
+        },
+    visits: number|undefined,
+    points: number|undefined,
+    redeemableRewards: string[]|undefined,
+    rl_active:boolean|undefined,
+    rm_active:boolean|undefined,
+    banner: string|undefined,
+    logo: string|undefined,
+    org_id: string|undefined,
+    name: string|undefined,
+    id: string|undefined,
+    activePlan:boolean|undefined,
+    active:boolean|undefined
+    favorite:boolean|undefined;
 }
 
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     const plansTable = process.env.PLANS_TABLE;
     const orgTable = process.env.ORG_TABLE;
-    const userTable = process.env.USER_TABLE;
-    const imageDomain = process.env.IMAGE_DOMAIN;
 
     const userSub = event.requestContext.authorizer?.claims?.sub;
 
@@ -45,18 +57,16 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         : undefined;
 
     switch(true) {
-        case (!plansTable || !orgTable || !userTable):
+        case (!plansTable || !orgTable):
             return { statusCode: 500, body: JSON.stringify({ error: "Missing table environment variables" }) };
         case (!userSub):
             return { statusCode: 400, body: JSON.stringify({ error: "User ID is required" }) };
-        case (!imageDomain):
-            return { statusCode: 500, body: JSON.stringify({ error: "Missing image domain environment variable" }) };
     }
 
     try {
         const queryParams = new QueryCommand({
             TableName: plansTable,
-            KeyConditionExpression: "userId = :userId",
+            KeyConditionExpression: "user_id = :userId",
             ExpressionAttributeValues: {
                 ":userId": userSub
             },
@@ -82,58 +92,75 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         plansResult.Items.forEach((item) => {
             const plan = item as Plan;
 
-            const [orgId, planType] = plan.SK.split('#');
-
-            if (!plansMap[orgId]) {
-                plansMap[orgId] = {
-                    userId: plan.userId,
-                    orgId
-                };
+            if (!plansMap[plan.org_id]) {
+                plansMap[plan.org_id] = {
+                    org_id: undefined,
+                    visits: undefined,
+                    points: undefined,
+                    id: undefined,
+                    reward_plan: {
+                        rewards_loyalty: undefined,
+                        rewards_milestone: undefined
+                    }
+                } as GroupedPlan;
             }
 
-            const { type, orgId: _, ...planData } = plan;
+            plansMap[plan.org_id].org_id = plan.org_id;
+            plansMap[plan.org_id].visits = plan.visits;
+            plansMap[plan.org_id].points = plan.points;
+            plansMap[plan.org_id].id = plan.id;
 
-            if (planType === 'LOYALTY') {
-                plansMap[orgId].loyaltyPlan = planData;
-            } else if (planType === 'MILESTONE') {
-                plansMap[orgId].milestonePlan = planData;
-            }
+
         });
 
         const enhancedPlans = await Promise.all(
             Object.values(plansMap).map(async (planGroup) => {
-                if (!planGroup.organization) {
-                    const getOrg = new GetCommand({
-                        TableName: orgTable,
-                        Key: { id: planGroup.orgId },
-                        ProjectionExpression: "id, #org_name, images, rm_active, rl_active",
-                        ExpressionAttributeNames: {
-                            "#org_name": "name"
-                        }
-                    });
-
-                    const orgResult = await dynamoDb.send(getOrg);
-                    const org = orgResult.Item;
-
-                    if (org) {
-                        planGroup.organization = {
-                            id: org.id,
-                            name: org.name || "Unknown Organization",
-                            logo: org.images.logo.url || null,
-                            bannerImage:org.images.banner.url || null,
-                            loyaltyActive: org.rl_active || false,
-                            milestoneActive: org.rm_active || false
-                        };
-                    } else {
-                        planGroup.organization = {
-                            id: planGroup.orgId,
-                            name: "Unknown Organization",
-                            logo: null,
-                            bannerImage: null,
-                            loyaltyActive: false,
-                            milestoneActive: false
-                        };
+                const getOrg = new GetCommand({
+                    TableName: orgTable,
+                    Key: { id: planGroup.org_id },
+                    ProjectionExpression: "id, #org_name, images, rm_active, rl_active",
+                    ExpressionAttributeNames: {
+                        "#org_name": "name"
                     }
+                });
+
+                const orgResult = await dynamoDb.send(getOrg);
+                const org = orgResult.Item;
+
+                if (org) {
+                    planGroup.name = org.name;
+                    planGroup.id = org.id;
+                    planGroup.banner = org.images.banner.url;
+                    planGroup.logo = org.images.logo.url;
+
+                    planGroup.rl_active = org.rl_active || false;
+                    planGroup.rm_active = org.rm_active || false;
+
+                   planGroup.activePlan = planGroup.activePlan || false;
+                    planGroup.active = planGroup.active || true;
+
+                    planGroup.reward_plan={
+                        rewards_milestone:planGroup.reward_plan.rewards_milestone || org.rewards_milestone,
+                        rewards_loyalty:planGroup.reward_plan.rewards_loyalty || org.rewards_loyalty
+                    }
+
+                    planGroup.redeemableRewards=[]
+                    planGroup.favorite=false;
+
+                } else {
+                    planGroup.name = "Error";
+                    planGroup.id = planGroup.org_id;
+                    planGroup.logo = undefined;
+                    planGroup.banner = undefined;
+                    planGroup.rl_active = false;
+                    planGroup.rm_active = false;
+                    planGroup.redeemableRewards=[]
+                    planGroup.favorite=false;
+                    planGroup.reward_plan={
+                        rewards_milestone:undefined,
+                        rewards_loyalty:undefined
+                    }
+
                 }
 
                 return planGroup;

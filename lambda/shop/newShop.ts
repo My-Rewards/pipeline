@@ -104,7 +104,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         await dynamoDb.send(new UpdateCommand({
             TableName: orgTable,
             Key: { id: orgId },
-            UpdateExpression: "SET shopId = :shopId",
+            UpdateExpression: "SET shop_id = :shopId",
             ExpressionAttributeValues: { ":shopId": shopId },
         }));
 
