@@ -144,8 +144,7 @@ export class ShopApiStack extends cdk.NestedStack {
                 },
             }
         );
-        orgTable.grantReadData(searchOrganizations);
-
+        orgTable.grantReadData(searchShops);
 
         // API Gateway integration
         const shopApi = props.appRoot.addResource("shops");
@@ -212,16 +211,6 @@ export class ShopApiStack extends cdk.NestedStack {
     filterByRadius.addMethod("GET", radiusIntegration, {
       authorizer: props.authorizer,
       authorizationType: apigateway.AuthorizationType.COGNITO,
-    });
-
-    getShopApi.addMethod("GET", getShop, {
-        authorizer: props.authorizer,
-        authorizationType: apigateway.AuthorizationType.COGNITO,
-    });
-
-    searchShopApi.addMethod("GET", searchIntegration, {
-        authorizer: props.authorizer,
-        authorizationType: apigateway.AuthorizationType.COGNITO,
     });
   }
 }
