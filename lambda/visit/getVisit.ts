@@ -23,9 +23,10 @@ exports.handler = async (event:APIGatewayProxyEvent) => {
     const params = {
         TableName: tableName,
         Key: {
-            id,
+            id: id,
         },
     };
+    console.log(params);
 
     try {
         const result = await dynamoDb.send(new GetCommand(params));
@@ -53,6 +54,7 @@ exports.handler = async (event:APIGatewayProxyEvent) => {
             body: JSON.stringify({
                 error: "Could not fetch visit",
                 details: error,
+                tablename: tableName
             }),
         };
     }

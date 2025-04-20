@@ -4,14 +4,12 @@ import { DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand } from '@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { KMSClient, DecryptCommand } from '@aws-sdk/client-kms';
 import { randomUUID } from "crypto";
+import { ShopProps, VisitProps, OrganizationProps, PlanProps } from '../Interfaces';
+import { json } from 'stream/consumers';
 
-console.log("Starting function initialization");
 const client = new DynamoDBClient({});
-console.log("DynamoDB client initialized");
 const dynamoDb = DynamoDBDocumentClient.from(client);
-console.log("DynamoDB document client initialized");
 const kmsClient = new KMSClient({});
-console.log("KMS client initialized");
 const shopsTable = process.env.SHOPS_TABLE;
 const organizationsTable = process.env.ORGANIZATIONS_TABLE;
 const plansTable = process.env.PLANS_TABLE;
@@ -19,25 +17,34 @@ const visitsTable = process.env.VISITS_TABLE;
 const appEnv = process.env.APP_ENV;
 const scanWindow = 3; // Amount of time user has to scan order after they pay (minutes)
 
-exports.handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     console.log("Handler started");
     console.log("Event received: ", JSON.stringify(event, null, 2));
 
-    validateEnvVariables();
-    const { user_id, shop_id, timestamp } = parseAndValidateInput(event);
     try {
+        validateEnvVariables();
+        const { user_id, shop_id, timestamp } = parseAndValidateInput(event);
         const shop = await getShop(shop_id);
         const organization = await getOrg(shop.orgId);
-        const decryptedSquareToken = await decryptToken(organization.square_oauth_encrypted);        
+        const decryptedSquareToken = await decryptToken(organization.accessToken);
         const orgSquareClient = await getOrgSquareClient(decryptedSquareToken);
         const mostRecentOrder = await getMostRecentOrder(shop, timestamp, orgSquareClient);
         if (mostRecentOrder == undefined) return visitNotFoundResponse();
-        const visitId = await recordVisit(user_id, mostRecentOrder, shop);
-        await recordLoyaltyReward(user_id, visitId, mostRecentOrder, shop, organization);
-        await recordExpenditureReward(user_id, visitId, mostRecentOrder, shop, organization);
+        const visitData : VisitProps = {
+            user_id: user_id,
+            shop_id: shop.id,
+            org_id: organization.id,
+            order_id: mostRecentOrder.id || "",
+            visitTimestamp: mostRecentOrder.createdAt || "",
+            total: mostRecentOrder.netAmounts?.totalMoney?.amount || null,
+            rl_active: organization.rl_active,
+            rm_active: organization.rm_active,
+        }
+
+        const visitId = await recordVisit(visitData);
+        await updatePlan(user_id, organization.id, mostRecentOrder.netAmounts?.totalMoney?.amount, organization.rm_active, organization.rl_active);
         return successResponse(visitId);
     } catch (error) {
-        //console.error(`Error in handler: ${error}`);
         return errorResponse(error as Error);
     }
 }; 
@@ -55,13 +62,12 @@ function validateEnvVariables(): void {
 function parseAndValidateInput(event: APIGatewayProxyEvent): { user_id: string; shop_id: string; timestamp: string } {
     const { user_id, shop_id, timestamp } = event.queryStringParameters || {};
     if (!user_id || !shop_id || !timestamp) {
-        //console.error("Missing required attributes:", { user_id, shop_id, timestamp });
-        throw new Error("Missing required attributes: user_id, shop_id, timestamp");
+        throw new Error(`Missing required attributes: user_id: ${user_id}, shop_id: ${shop_id}, timestamp: ${timestamp}`);
     }
     return { user_id, shop_id, timestamp };
 }
 
-async function getShop(shop_id: string) {
+async function getShop(shop_id: string): Promise<ShopProps> {
     let shopsGetParams = {
         TableName: shopsTable,
         Key: {
@@ -74,14 +80,14 @@ async function getShop(shop_id: string) {
         if (!result.Item) {
             throw new Error(`Shop with id '${shop_id}' not found`);
         }
-        return result.Item;
+        console.log(`Received shop ${JSON.stringify(result.Item)}`);
+        return result.Item as ShopProps;
     } catch (error) {
-        console.error("Error fetching shop:", error);
-        throw new Error(`Shop with id '${shop_id}' not found`);
+        throw new Error(`Error fetching shop: ${error}`);
     }
 }
 
-async function getOrg(organization_id: string) {
+async function getOrg(organization_id: string): Promise<OrganizationProps> {
     let organizationsGetParams = {
         TableName: organizationsTable,
         Key: {
@@ -94,15 +100,17 @@ async function getOrg(organization_id: string) {
         if (!result.Item) {
             throw new Error(`Organization with id '${organization_id}' not found`);
         }
-        return result.Item;
+        console.log(`Received Organization ${JSON.stringify(result.Item)}`)
+        return result.Item as OrganizationProps;
     } catch (error) {
-        //console.error("Error fetching organization:", error);
         throw new Error(`Failed to fetch organization with id ${organization_id}: ${error}`)
     }
 }
 
-async function decryptToken(square_oauth_encrypted: string) {
-    // Once key is obtained from AWS, decrypt using KMS
+async function decryptToken(square_oauth_encrypted: string | null): Promise<string> {
+    // Decrypts auth token using AWS kms
+    if (square_oauth_encrypted == null) throw new Error("Can't decrypt empty token");
+
     let decryptedToken;
     try {
         const decryptParams = {
@@ -110,19 +118,20 @@ async function decryptToken(square_oauth_encrypted: string) {
         }
         const decryptCommand = new DecryptCommand(decryptParams);
         const decryptResponse = await kmsClient.send(decryptCommand);
-        decryptedToken = Buffer.from(decryptResponse.Plaintext || '').toString();
-        
+        if (!decryptResponse.Plaintext) {
+            throw new Error('Error occured with kms while trying to decrypt token');
+        }
+        decryptedToken = Buffer.from(decryptResponse.Plaintext).toString();
         if (!decryptedToken) {
             throw new Error('Failed to decrypt token');
         }
         return decryptedToken;
     } catch (error) {
-        //console.error("Error decrypting organization's square oauth token: ", error);
-        throw new Error("Failed to decrypt square oauth token");
+        throw new Error(`Failed to decrypt square oauth token: ${error}`);
     }
 }
 
-async function getOrgSquareClient(decryptedToken: string) {
+async function getOrgSquareClient(decryptedToken: string): Promise<SquareClient> {
     let squareClient;
     
     try {
@@ -133,12 +142,11 @@ async function getOrgSquareClient(decryptedToken: string) {
         console.log("SquareClient initialized successfully");
         return squareClient;
     } catch (error) {
-        //console.error("Error initializing SquareClient:", error);
-        throw new Error("Error establishing connection with square")
+        throw new Error(`Error initializing SquareClient: ${error}`);
     }
 }
 
-async function getMostRecentOrder(shop: any, timestamp: string, squareClient: SquareClient) {
+async function getMostRecentOrder(shop: any, timestamp: string, squareClient: SquareClient): Promise<Square.Order | undefined> {
     
     // Get orders up to 3 minutes before
     let beginTime = new Date(new Date(timestamp).getTime() - scanWindow * 60 * 1000).toISOString();
@@ -170,7 +178,6 @@ async function getMostRecentOrder(shop: any, timestamp: string, squareClient: Sq
         }
 
         if (result.errors) {
-            //console.error('Error from Square:', result.errors);
             throw new Error(`Received errors from Square: ${result.errors}`)
         }
 
@@ -179,26 +186,19 @@ async function getMostRecentOrder(shop: any, timestamp: string, squareClient: Sq
                 return !order.refunds || order.refunds.length === 0;
               });
         }
+        if (mostRecentOrder == undefined) {
+            throw new Error(`No orders within ${scanWindow} minutes at shop with ID ${shop.id}`)
+        }
         return mostRecentOrder;
 
     } catch (error) {
-        //console.error(`Error searching orders: ${error}`);
         throw new Error(`Error searching orders: ${error}`);
     }
 }
 
-async function recordVisit(user_id: string, mostRecentOrder: any, shop: any, ) {
+async function recordVisit(visitData: VisitProps) {
 
-    const visitId = randomUUID();
-    const visitData = {
-      id: visitId,
-      user_id: user_id,
-      orderId: mostRecentOrder.id,
-      organizationId: shop.orgId,
-      shop_id: shop.id,
-      visitTimestamp: mostRecentOrder.createdAt,
-      total: mostRecentOrder.totalMoney
-    };
+    visitData.id = randomUUID();
 
     try {
         const putParams = {
@@ -208,139 +208,93 @@ async function recordVisit(user_id: string, mostRecentOrder: any, shop: any, ) {
         };
 
         await dynamoDb.send(new PutCommand(putParams));
-        return visitId;
+        return visitData.id;
     } catch (error) {
-        //console.error('Error recording visit:', error);
         throw new Error(`Failed to record visit in DynamoDB: ${error}`);
     }
 }
 
-async function recordLoyaltyReward(user_id: string, visitId: string, mostRecentOrder: any, shop: any, organization: any) {
-    // Loyalty Rewards
-    if (!organization.rl_active) return;
+async function createNewPlan(user_id: string, org_id: string) {
+    // Create new loyalty plan
+    const newPlanId = randomUUID();
+    const newPlan: PlanProps = {
+        user_id: user_id,
+        org_id: org_id,
+        id: newPlanId,
+        start_date: new Date().toISOString(),
+        visits: 0,
+        visits_total: 0,
+        points: 0,
+        points_total: 0,
+    }
 
-    const plansKeyLoyalty = {
-        PK: user_id,
-        SK: `${shop.orgId}#LOYALTY`,
-    };
-    const loyaltyPlanResult = await dynamoDb.send(new GetCommand({
+    const newLoyaltyPlan = {
         TableName: plansTable,
-        Key: plansKeyLoyalty
-    }));
-
-    if (loyaltyPlanResult.Item) {
-        // Update existing loyalty plan
-        const updateParams = {
-            TableName: plansTable,
-            Key: plansKeyLoyalty,
-            UpdateExpression: "SET currentValue = currentValue + :inc, lifetimeValue = lifetimeValue + :inc, visits = list_append(visits, :visit)",
-            ExpressionAttributeValues: {
-                ":inc": 1,
-                ":visit": [visitId]
-            },
-            ReturnValues: "ALL_NEW" as const
-        };
-        try {
-            await dynamoDb.send(new UpdateCommand(updateParams));
-        } catch (error) {
-            //console.error(`Failed to update loyalty plan for visit ${visitId}`);
-            throw new Error(`Failed to update loyalty plan for visit ${visitId} with error: ${error}`)
-        }
-        console.log(`Successfully updated loyalty plan with key ${plansKeyLoyalty.PK}#${plansKeyLoyalty.SK}`);
-    } else {
-        // Create new loyalty plan
-        const newPlanId = randomUUID();
-        const newLoyaltyPlan = {
-            TableName: plansTable,
-            Item: {
-                PK: user_id,
-                SK: `${shop.orgId}#LOYALTY`,
-                organizationId: shop.orgId,
-                startDate: new Date().toISOString(),
-                lifetimeValue: 1,
-                currentValue: 1,
-                favorite: false,
-                visits: [visitId],
-                type: "LOYALTY",
-                id: newPlanId,
-            }
-        };
-        try {
-            await dynamoDb.send(new PutCommand(newLoyaltyPlan));
-        } catch (error) {
-            //console.error(`Failed to create new loyalty plan for visit ${visitId}`);
-            throw new Error(`Failed to create new loyalty plan for visit ${visitId} with error: ${error}`)
-        }
-        console.log(`Successfully created new loyalty plan for user ${user_id} at shop ${shop.id} with plan id ${newPlanId}`);
+        Item: newPlan
+    };
+    try {
+        await dynamoDb.send(new PutCommand(newLoyaltyPlan));
+    } catch (error) {
+        throw new Error(`Failed to create new plan for user ${user_id} at org ${org_id} with error: ${error}`)
     }
 }
 
-async function recordExpenditureReward(user_id: string, visitId: string, mostRecentOrder: any, shop: any, organization: any) {
-    // Expenditure rewards
-    if (!organization.rm_active) return;
+async function updatePlan(user_id: string, org_id: string, amount_spent: bigint | null | undefined, rm_active: boolean, rl_active: boolean) {
+    if (!amount_spent) amount_spent = 0n;
 
-    const plansKeyExpenditure = {
+    let plansResult = await getPlanByUserAndOrg(user_id, org_id);
+    if (!plansResult) {
+        createNewPlan(user_id, org_id);
+    }
+    
+    const plansKey = {
         PK: user_id,
-        SK: `${shop.orgId}#EXPENDITURE`,
+        SK: org_id
     };
-    let plansResult;
 
+    const visitValue = Number(amount_spent ?? 0) / 100.0;
+    let updateExpression = generateUpdateExpression(rm_active, rl_active);
+    const updateParams = {
+        TableName: plansTable,
+        Key: plansKey,
+        UpdateExpression: updateExpression,
+        ExpressionAttributeValues: {
+            ":rm_inc": visitValue,
+            ":rl_inc": 1
+        },
+        ReturnValues: "ALL_NEW" as const
+    };
     try {
-        plansResult = await dynamoDb.send(new GetCommand({
+        await dynamoDb.send(new UpdateCommand(updateParams));
+    } catch (error) {
+        throw new Error(`Failed to update plan for user ${user_id} with org ${org_id} with error: ${error}`)
+    }
+    console.log(`Successfully updated expenditure rewards plan for plan with key PK: ${plansKey.PK} SK: ${plansKey.SK}`);
+}
+
+async function getPlanByUserAndOrg(user_id: string, org_id: string): Promise<PlanProps | null> {
+    const plansKey = {
+        PK: user_id,
+        SK: org_id
+    };
+    
+    try {
+        let plansResult = await dynamoDb.send(new GetCommand({
             TableName: plansTable,
-            Key: plansKeyExpenditure
+            Key: plansKey
         }));
+        return plansResult.Item ? plansResult.Item as PlanProps : null;
     } catch (error) {
         throw new Error("Failed to connect to plans table")
     }
+}
 
-    const visitValue = Number(mostRecentOrder.netAmounts?.totalMoney?.amount ?? 0) / 10;
-    if (plansResult.Item) {
-        // Update existing rewards plan
-        const updateParams = {
-            TableName: plansTable,
-            Key: plansKeyExpenditure,
-            UpdateExpression: "SET lifetimeValue = lifetimeValue + :inc, currentValue = currentValue + :inc, visits = list_append(visits, :visit)",
-            ExpressionAttributeValues: {
-                ":inc": visitValue,
-                ":visit": [visitId]
-            },
-            ReturnValues: "ALL_NEW" as const
-        };
-        try {
-            await dynamoDb.send(new UpdateCommand(updateParams));
-        } catch (error) {
-            //console.error(`Failed to update expenditure plan for visit ${visitId}`);
-            throw new Error(`Failed to update expenditure plan for visit ${visitId} with error: ${error}`)
-        }
-        console.log(`Successfully updated expenditure rewards plan for plan with key ${plansKeyExpenditure}##${plansKeyExpenditure.SK}`);
-    } else {
-        // Create new rewards plan
-        const newPlanId = randomUUID();
-        const newRewardsPlan = {
-            TableName: plansTable,
-            Item: {
-                PK: user_id,
-                SK: `${shop.orgId}#EXPENDITURE`,
-                organizationId: shop.orgId,
-                startDate: new Date().toISOString(),
-                lifetimeValue: visitValue,
-                currentValue: visitValue,
-                favorite: false,
-                visits: [visitId],
-                type: "EXPENDITURE",
-                id: newPlanId
-            }
-        };
-
-        try {
-            await dynamoDb.send(new PutCommand(newRewardsPlan));
-        } catch (error) {
-            //console.error(`Failed to create new expenditure plan for visit ${visitId}`);
-            throw new Error(`Failed to create new expenditure plan for visit ${visitId} with error: ${error}`)
-        }
-        console.log(`Successfully created new expenditure plan for user ${user_id} at shop ${shop.id} with plan id ${newPlanId}`);
-    }
+function generateUpdateExpression(rm_active: boolean, rl_active: boolean) {
+    let updateExpression = rm_active ? "SET points_total = points_total + :rm_inc, points = points + :rm_inc"
+    : "SET points_total = points_total + :rm_inc";
+    updateExpression += rl_active ? "SET visits_total = visits_total + :rm_inc, visits = visits + :rm_inc"
+    : "SET visits_total = visits_total + :rl_inc";
+    return updateExpression;
 }
 
 function successResponse(visitId: string): APIGatewayProxyResult {
@@ -380,8 +334,9 @@ export const _test = {
     getOrgSquareClient,
     getMostRecentOrder,
     recordVisit,
-    recordLoyaltyReward,
-    recordExpenditureReward,
+    updatePlan,
+    getPlanByUserAndOrg,
+    generateUpdateExpression,
     successResponse,
     visitNotFoundResponse,
     errorResponse
