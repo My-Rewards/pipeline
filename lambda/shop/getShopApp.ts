@@ -40,8 +40,6 @@ export const handler = async (event: APIGatewayProxyEvent) => {
             };
         }
 
-        console.log(shop)
-
         const orgParams = new GetCommand({
             TableName: orgTable,
             Key: { id:shop.org_id },

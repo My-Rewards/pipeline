@@ -60,9 +60,9 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const queryShops = new QueryCommand({
             TableName: shopTable,
             IndexName: "OrgIndex",
-            KeyConditionExpression: "orgId = :org_id",
+            KeyConditionExpression: "org_id = :orgId",
             ExpressionAttributeValues: {
-              ":org_id": orgId,
+              ":orgId": orgId,
             }
           });
 

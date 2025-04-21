@@ -186,7 +186,7 @@ describe('getBilling Lambda', () => {
             ]
         });
 
-        (stripeMock.invoices.retrieveUpcoming as jest.Mock).mockResolvedValue({
+        (stripeMock.invoices.createPreview as jest.Mock).mockResolvedValue({
             total: 2000,
             amount_due: 2000,
             total_excluding_tax: 1800,

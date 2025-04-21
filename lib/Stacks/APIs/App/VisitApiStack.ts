@@ -4,11 +4,12 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as nodejs from 'aws-cdk-lib/aws-lambda-nodejs'
+import * as kms from "aws-cdk-lib/aws-kms";
 
 interface VisitsApiStackProps extends cdk.NestedStackProps {
-  api: apigateway.RestApi;
+  appRoot:  cdk.aws_apigateway.Resource
   authorizer: cdk.aws_apigateway.CognitoUserPoolsAuthorizer;
-  encryptionKey: cdk.aws_kms.Key;
+  encryptionKey: kms.IKey;
 }
 
 export class VisitsApiStack extends cdk.NestedStack {
@@ -58,7 +59,7 @@ export class VisitsApiStack extends cdk.NestedStack {
     props.encryptionKey.grantDecrypt(recordVisitLambda);
 
     // API Gateway integration
-    const visitsApi = props.api.root.addResource('visit');
+    const visitsApi = props.appRoot.addResource('visit');
     const getVisitIntegration = new apigateway.LambdaIntegration(getVisitLambda);
     const recordVisitIntegration = new apigateway.LambdaIntegration(recordVisitLambda);
 
