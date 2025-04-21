@@ -118,7 +118,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
                 const getOrg = new GetCommand({
                     TableName: orgTable,
                     Key: { id: planGroup.org_id },
-                    ProjectionExpression: "id, #org_name, images, rm_active, rl_active",
+                    ProjectionExpression: "id, #org_name, images, rm_active, rl_active, rewards_loyalty, rewards_milestone, active",
                     ExpressionAttributeNames: {
                         "#org_name": "name"
                     }
@@ -137,11 +137,11 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
                     planGroup.rm_active = org.rm_active || false;
 
                    planGroup.activePlan = planGroup.activePlan || false;
-                    planGroup.active = planGroup.active || true;
+                    planGroup.active = org.active;
 
                     planGroup.reward_plan={
-                        rewards_milestone:planGroup.reward_plan.rewards_milestone || org.rewards_milestone,
-                        rewards_loyalty:planGroup.reward_plan.rewards_loyalty || org.rewards_loyalty
+                        rewards_milestone: org.rewards_milestone,
+                        rewards_loyalty:org.rewards_loyalty
                     }
 
                     planGroup.redeemableRewards=[]

@@ -15,6 +15,7 @@ import { ShopApiStack } from "./APIs/Business/ShopsApiStack";
 import { UsersApiStack as BusinessApiStack } from "./APIs/Business/UserApiStack";
 import { ShopApiStack as AppShopApiStack } from "./APIs/App/ShopsStack";
 import {PlansApiStack} from "./APIs/App/PlansApiStack";
+import {VisitsApiStack} from "./APIs/App/VisitApiStack";
 export class ApiGatewayStack extends cdk.Stack {
 
   constructor(scope: Construct, id: string, props: ApiStackProps) {
@@ -96,6 +97,12 @@ export class ApiGatewayStack extends cdk.Stack {
     new AppShopApiStack(this, "AppShopApiStack", {
       appRoot: appPath,
       authorizer: authorizerUser,
+    });
+
+    new VisitsApiStack(this, "AppVisitsApiStack", {
+      appRoot: appPath,
+      authorizer: authorizerUser,
+      encryptionKey: encryptionKey
     });
 
     new PlansApiStack(this, "AppPlanApiStack", {

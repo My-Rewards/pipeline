@@ -23,10 +23,15 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
     try {
         validateEnvVariables();
-        const { user_id, shop_id, timestamp } = parseAndValidateInput(event);
+        const { shop_id, timestamp } = parseAndValidateInput(event);
+        const user_id = event.requestContext.authorizer?.claims?.sub;
+        if(!user_id) throw new Error(
+            `Missing user id in request`
+        )
+
         const shop = await getShop(shop_id);
-        const organization = await getOrg(shop.orgId);
-        const decryptedSquareToken = await decryptToken(organization.accessToken);
+        const organization = await getOrg(shop.org_id);
+        const decryptedSquareToken = await decryptToken(organization.access_token);
         const orgSquareClient = await getOrgSquareClient(decryptedSquareToken);
         const mostRecentOrder = await getMostRecentOrder(shop, timestamp, orgSquareClient);
         if (mostRecentOrder == undefined) return visitNotFoundResponse();
@@ -59,12 +64,12 @@ function validateEnvVariables(): void {
     }
 }
 
-function parseAndValidateInput(event: APIGatewayProxyEvent): { user_id: string; shop_id: string; timestamp: string } {
-    const { user_id, shop_id, timestamp } = event.queryStringParameters || {};
-    if (!user_id || !shop_id || !timestamp) {
-        throw new Error(`Missing required attributes: user_id: ${user_id}, shop_id: ${shop_id}, timestamp: ${timestamp}`);
+function parseAndValidateInput(event: APIGatewayProxyEvent): { shop_id: string; timestamp: string } {
+    const { shop_id, timestamp } = event.queryStringParameters || {};
+    if ( !shop_id || !timestamp) {
+        throw new Error(`Missing required attributes: shop_id: ${shop_id}, timestamp: ${timestamp}`);
     }
-    return { user_id, shop_id, timestamp };
+    return { shop_id, timestamp };
 }
 
 async function getShop(shop_id: string): Promise<ShopProps> {

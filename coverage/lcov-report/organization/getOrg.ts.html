@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">57.14% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>35/35</span>
+                <span class='fraction'>20/35</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">62.5% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>8/8</span>
+                <span class='fraction'>5/8</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">55.88% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>34/34</span>
+                <span class='fraction'>19/34</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line medium'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -203,50 +203,50 @@
 <span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -301,7 +301,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise&lt;APIGatewa
         const getUser = new GetCommand({
             TableName: userTable,
             Key: {id: userSub},
-            ProjectionExpression: "orgId, #userPermissions",
+            ProjectionExpression: "org_id, #userPermissions",
             ExpressionAttributeNames: { 
                 "#userPermissions": "permissions"
             },
@@ -309,51 +309,51 @@ export const handler = async (event: APIGatewayProxyEvent): Promise&lt;APIGatewa
           
         const resultUser = await dynamoDb.send(getUser);
         
-        if (!resultUser.Item?.orgId) {
+        if (!resultUser.Item?.org_id) {
             return { statusCode: 210, body: JSON.stringify({ info: "Organization not Found" }) };
         }
         
-        const orgId = resultUser.Item.orgId;
-        const permissions = resultUser.Item.permissions;
+        const orgId = <span class="cstat-no" title="statement not covered" >resultUser.Item.org_id;</span>
+        const permissions = <span class="cstat-no" title="statement not covered" >resultUser.Item.permissions;</span>
 &nbsp;
-        const getOrg = new GetCommand({
+        const getOrg = <span class="cstat-no" title="statement not covered" >new GetCommand({</span>
             TableName: orgTable,
             Key: { id: orgId },
           });
         
-        const resultOrg = await dynamoDb.send(getOrg);
+        const resultOrg = <span class="cstat-no" title="statement not covered" >await dynamoDb.send(getOrg);</span>
         
-        if (!resultOrg.Item) {
-            return { statusCode: 210, body: JSON.stringify({ info: "Organization not found" }) };
+<span class="cstat-no" title="statement not covered" >        <span class="missing-if-branch" title="if path not taken" >I</span>if (!resultOrg.Item) {</span>
+<span class="cstat-no" title="statement not covered" >            return { statusCode: 210, body: JSON.stringify({ info: "Organization not found" }) };</span>
         }
 &nbsp;
-        const organization = resultOrg.Item as OrganizationProps;
+        const organization = <span class="cstat-no" title="statement not covered" >resultOrg.Item as OrganizationProps;</span>
 &nbsp;
-        if(!organization?.linked){
-            return { 
+<span class="cstat-no" title="statement not covered" >        <span class="missing-if-branch" title="if path not taken" >I</span>if(!organization?.linked){</span>
+<span class="cstat-no" title="statement not covered" >            return { </span>
                 statusCode: 211, 
                 body: JSON.stringify({ info:'Organization not Linked' })
             };
         }
 &nbsp;
-        const queryShops = new QueryCommand({
+        const queryShops = <span class="cstat-no" title="statement not covered" >new QueryCommand({</span>
             TableName: shopTable,
             IndexName: "OrgIndex",
-            KeyConditionExpression: "orgId = :org_id",
+            KeyConditionExpression: "org_id = :orgId",
             ExpressionAttributeValues: {
-              ":org_id": orgId,
+              ":orgId": orgId,
             }
           });
 &nbsp;
-        const shopResults = await dynamoDb.send(queryShops);
+        const shopResults = <span class="cstat-no" title="statement not covered" >await dynamoDb.send(queryShops);</span>
 &nbsp;
-        if (!shopResults.Items) {
-            return { statusCode: 212, body: JSON.stringify({ info: "Error Fetching Shops" }) };
+<span class="cstat-no" title="statement not covered" >        <span class="missing-if-branch" title="if path not taken" >I</span>if (!shopResults.Items) {</span>
+<span class="cstat-no" title="statement not covered" >            return { statusCode: 212, body: JSON.stringify({ info: "Error Fetching Shops" }) };</span>
         }
 &nbsp;
-        const shops = shopResults.Items as ShopProps[];
+        const shops = <span class="cstat-no" title="statement not covered" >shopResults.Items as ShopProps[];</span>
 &nbsp;
-        return {
+<span class="cstat-no" title="statement not covered" >        return {</span>
             statusCode: 200,
             body: JSON.stringify({ 
                 organization:
@@ -391,7 +391,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise&lt;APIGatewa
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-04-17T21:09:56.856Z
+                at 2025-04-21T03:03:32.334Z
             </div>
         <script src="../prettify.js"></script>
         <script>

@@ -112,7 +112,7 @@ const getStripe = async (stripe_id:string):Promise<stripeClientProps> => {
                    ? customerResponse.invoice_settings.default_payment_method 
                    : customerResponse.invoice_settings.default_payment_method?.id || null)
                 : null,
-                tax: upcomingInvoice?.total_taxes ? upcomingInvoice.total_taxes[0].amount : null,
+                tax: upcomingInvoice?.total_taxes?.[0]?.amount || null,
                 active: true,
                 paymentWindow:{
                     start: subscription.items.data[0].current_period_start,
