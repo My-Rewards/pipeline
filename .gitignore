@@ -7,7 +7,7 @@
 node_modules
 
 /.idea/
-.idea/workspace.xml
+.idea
 
 # CDK asset staging directory
 .cdk.staging
@@ -21,3 +21,5 @@ dist
 local_test
 env.json
 template.yaml
+
+coverage
