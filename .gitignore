@@ -6,6 +6,20 @@
 *.d.ts
 node_modules
 
+/.idea/
+.idea
+
 # CDK asset staging directory
 .cdk.staging
 cdk.out
+
+.history
+
+dist
+.aws-sam
+
+local_test
+env.json
+template.yaml
+
+coverage
