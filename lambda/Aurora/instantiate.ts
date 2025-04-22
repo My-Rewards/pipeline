@@ -81,6 +81,7 @@ export const handler: Handler = async () => {
                 id VARCHAR(50) PRIMARY KEY,
                 active BOOLEAN DEFAULT TRUE,
                 updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                search_name VARCHAR(100),
              );
         `);
 

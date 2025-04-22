@@ -1,22 +1,12 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import {
-    DynamoDBDocumentClient,
-    QueryCommand
-} from "@aws-sdk/lib-dynamodb";
+import { RDSDataClient, ExecuteStatementCommand } from "@aws-sdk/client-rds-data";
 
-const dynamoClient = new DynamoDBClient({});
-const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
-
-interface Organization {
-    id: string;
-    name?: string;
-}
+const rdsClient = new RDSDataClient({region: "us-east-1"});
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     const orgTable = process.env.ORG_TABLE;
 
-    const searchQuery = event.queryStringParameters?.q?.trim();
+    let searchQuery = event.queryStringParameters?.q?.trim() || null;
 
     const limit = event.queryStringParameters?.limit ? parseInt(event.queryStringParameters.limit) : 10;
 
@@ -27,37 +17,57 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     if (!searchQuery) {
         return { statusCode: 400, body: JSON.stringify({ error: "Search query is required" }) };
     }
-
-    searchQuery.toLowerCase();
+    
+    searchQuery = searchQuery.toLowerCase();
 
     try {
-        const queryParams = new QueryCommand({
-            TableName: orgTable,
-            IndexName: "name-index",
-            KeyConditionExpression: "begins_with(#org_name, :searchQuery)",
-            ProjectionExpression: "id, #org_name",
-            Limit: limit,
-            ExpressionAttributeNames: {
-                "#org_name": "name"
-            },
-            ExpressionAttributeValues: {
-                ":searchQuery": searchQuery
-            },
+         const auroraResult = await rdsClient.send(
+              new ExecuteStatementCommand({
+                secretArn: process.env.SECRET_ARN,
+                resourceArn: process.env.CLUSTER_ARN,
+                database: process.env.DB_NAME,
+                sql: `
+                SELECT 
+                s.id, 
+                s.organization_id,
+                o.search_name
+                FROM shops s
+                JOIN organizations o ON o.id = s.organization_id
+                WHERE s.active = TRUE 
+                AND o.active = TRUE
+                AND o.search_name ILIKE '%' || :searchQuery || '%'
+                LIMIT 5
+                `,
+                parameters: [
+                    { name: 'searchQuery', value: { stringValue: searchQuery } },
+                  ],
+              }),  
+            );
 
-        });
+            const records = auroraResult.records || [];
+            console.log("Records from Aurora:", records);
 
-        const result = await dynamoDb.send(queryParams);
-
-        const organizations: Organization[] = result.Items as Organization[] || [];
-
-        const response = {
-            organizations,
-            count: organizations.length
-        };
+            const formattedRecords = records.map(record => {
+                return {
+                    id: record[0]?.stringValue,
+                    organization_id: record[1]?.stringValue,
+                    search_name: record[2]?.stringValue,
+                };
+            });
+    
+            if (formattedRecords.length === 0) {
+                return {
+                    statusCode: 200,
+                    body: JSON.stringify({
+                        message: "No shops found",
+                        value: [],
+                    }),
+                };
+            }
 
         return {
             statusCode: 200,
-            body: JSON.stringify(response)
+            body: JSON.stringify(formattedRecords)
         };
 
     } catch (error) {
