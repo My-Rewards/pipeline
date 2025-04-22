@@ -169,15 +169,23 @@ export class ShopApiStack extends cdk.NestedStack {
                 runtime: lambda.Runtime.NODEJS_20_X,
                 entry: "lambda/organization/search.ts",
                 handler: "handler",
+                vpc,
+                role: clusterRole,
+                securityGroups: [securityGroupResolvers],
+                vpcSubnets: {
+                    subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+                },
                 environment: {
                     ORG_TABLE: orgTable.tableName,
+                    DB_NAME: DATABASE_NAME,
+                    CLUSTER_ARN: cdk.Fn.importValue("ClusterARN"),
+                    SECRET_ARN: cdk.Fn.importValue("AuroraSecretARN"),
                 },
                 bundling: {
                     externalModules: ["aws-sdk"],
                 },
             }
         );
-        orgTable.grantReadData(searchShops);
 
         const nearestShopLambda = new nodejs.NodejsFunction( this, "nearestOrganization",
             {
