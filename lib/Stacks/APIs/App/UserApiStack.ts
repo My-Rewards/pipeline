@@ -19,7 +19,7 @@ export class UsersApiStack extends cdk.NestedStack {
     const usersTable = dynamodb.Table.fromTableArn(this, 'ImportedUsersTable', cdk.Fn.importValue('UserTableARN'));
     const orgTable = dynamodb.Table.fromTableArn(this, 'ImportedOrganizationTableARN', cdk.Fn.importValue('OrganizationTableARN'));
     const userPool = cognito.UserPool.fromUserPoolId(this, 'ImportedUserPool', cdk.Fn.importValue(UP_CUSTOMER_ID));
-    // Get Customer Account
+
     const getCustomerAccountLambda = new nodejs.NodejsFunction(this, "Get-Customer-User",{
       runtime: lambda.Runtime.NODEJS_20_X,
       entry: 'lambda/user/getUser.ts',

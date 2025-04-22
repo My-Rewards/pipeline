@@ -41,7 +41,7 @@ export const handler = async () => {
 
         const scanParams = new ScanCommand({
             TableName: orgTable,
-            FilterExpression: 'attribute_exists(refreshToken) AND expiresAt <= :expirationDate',
+            FilterExpression: 'attribute_exists(refresh_token) AND expires_at <= :expirationDate',
             ExpressionAttributeValues: {
                 ':expirationDate': OldestDate
             }
@@ -72,9 +72,9 @@ export const handler = async () => {
                     const newExpirationDate = new Date(response.refreshTokenExpiresAt);
 
                     const updateParams = new UpdateCommand({
-                        TableName: process.env.ORGANIZATIONS_TABLE,
+                        TableName: orgTable,
                         Key: { id: org.id },
-                        UpdateExpression: 'SET accessToken = :token, expiresAt = :expiration, refreshToken = :refresh',
+                        UpdateExpression: 'SET access_token = :token, expires_at = :expiration, refresh_token = :refresh',
                         ExpressionAttributeValues: {
                             ':token': response.accessToken,
                             ':expiration': newExpirationDate.toISOString(),

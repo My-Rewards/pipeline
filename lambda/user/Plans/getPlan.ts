@@ -87,7 +87,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
       rl_active: org.rl_active || false,
       rm_active: org.rm_active || false,
       firstPlan: false,
-      if:planResult.Item?.id,
+      id:planResult.Item?.id,
       active:activePlan,
       organization_id: org.id,
       name: org.name

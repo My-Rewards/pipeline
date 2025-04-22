@@ -44,7 +44,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
             TableName: orgTable,
             Key: { id:shop.org_id },
             ProjectionExpression: "id, #org_name, description, images",
-            ExpressionAttributeNames: { "#org_name": "name" },
+            ExpressionAttributeNames: { "#org_name": "name" }
         });
 
         const orgResult = await dynamoDb.send(orgParams);
@@ -57,20 +57,20 @@ export const handler = async (event: APIGatewayProxyEvent) => {
             };
         }
 
-        const likeParam = new GetCommand({
-            TableName: likesTable,
-            Key: {
-              user_id: userSub,
-              shop_id: shop.id
-            }
-        });
+        // const likeParam = new GetCommand({
+        //     TableName: likesTable,
+        //     Key: {
+        //       user_id: userSub,
+        //       shop_id: shop.id
+        //     }
+        // });
 
-        const likeResult = await dynamoDb.send(likeParam);
-        let favorite = false;
-
-        if(likeResult.Item) {
-            favorite = likeResult.Item.favorite;
-        }
+        // const likeResult = await dynamoDb.send(likeParam);
+        // let favorite = false;
+        //
+        // if(likeResult.Item) {
+        //     favorite = likeResult.Item.favorite;
+        // }
 
         const finalShop:ShopProps = {
             org_id: org.id,
@@ -85,7 +85,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
             phone_number: shop.phone,
             location: shop.location,
             shop_hours: shop.shop_hours,
-            favorite
+            favorite:false
         };
 
         return {

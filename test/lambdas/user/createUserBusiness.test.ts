@@ -83,7 +83,7 @@ describe('createUser Lambda Function', () => {
         expect(putParams.Item?.birthdate).toBeDefined();
         expect(typeof putParams.Item?.birthdate).toBe('string');
 
-        expect(putParams.Item?.orgId).toBe(undefined);
+        expect(putParams.Item?.org_id).toBe(undefined);
         expect(putParams.Item?.permissions).toEqual({
             modifyOrg: true,
             modifyBilling: true,

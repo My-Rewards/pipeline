@@ -83,9 +83,8 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
           resourceArn: clusterArn,
           database: dbName,
           sql:`
-                    UPDATE Organizations SET active = :active WHERE id = :orgId
-                `
-          ,
+                UPDATE Organizations SET active = :active WHERE id = :orgId
+          `,
           parameters: [
             { name: "active", value: { booleanValue: false} },
             { name: "orgId", value: { stringValue: organization.id } }

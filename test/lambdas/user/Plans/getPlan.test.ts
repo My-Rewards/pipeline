@@ -4,14 +4,11 @@ import { mockClient } from "aws-sdk-client-mock";
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { handler } from "@/lambda/user/Plans/getPlan";
 
-// Mock DynamoDB client
 const ddbMock = mockClient(DynamoDBDocumentClient);
 
-// Save original env and setup test env
 const originalEnv = process.env;
 
 describe('getPlan Lambda Handler', () => {
-  // Mock event with authorization
   const createMockEvent = (queryStringParameters: Record<string, string> = {}, userSub?: string): APIGatewayProxyEvent => {
     return {
       queryStringParameters,
@@ -26,11 +23,9 @@ describe('getPlan Lambda Handler', () => {
   };
 
   beforeEach(() => {
-    // Reset mocks before each test
     jest.resetModules();
     ddbMock.reset();
 
-    // Setup environment variables
     process.env = {
       ...originalEnv,
       PLANS_TABLE: 'test-plans-table',
@@ -40,64 +35,53 @@ describe('getPlan Lambda Handler', () => {
   });
 
   afterEach(() => {
-    // Restore environment
     process.env = originalEnv;
   });
 
   test('should return 500 when environment variables are missing', async () => {
-    // Arrange
     process.env.PLANS_TABLE = undefined;
     const event = createMockEvent({ org_id: 'test-org-id' }, 'test-user-id');
 
-    // Act
     const result = await handler(event);
 
-    // Assert
     expect(result.statusCode).toBe(500);
     expect(JSON.parse(result.body).error).toBe('Missing env values');
   });
 
   test('should return 404 when userSub is missing', async () => {
-    // Arrange
     const event = createMockEvent({ org_id: 'test-org-id' });
 
-    // Act
     const result = await handler(event);
 
-    // Assert
     expect(result.statusCode).toBe(404);
     expect(JSON.parse(result.body).error).toBe('Missing userSub');
   });
 
   test('should return 404 when org_id parameter is missing', async () => {
-    // Arrange
     const event = createMockEvent({}, 'test-user-id');
 
-    // Act
     const result = await handler(event);
 
-    // Assert
     expect(result.statusCode).toBe(404);
     expect(JSON.parse(result.body).error).toBe('Missing [org_id] parameter');
   });
 
   test('should return 404 when organization is not found', async () => {
-    // Arrange
     const event = createMockEvent({ org_id: 'non-existent-org' }, 'test-user-id');
 
-    // Mock DynamoDB to return null for organization
     ddbMock.on(GetCommand, {
       TableName: 'test-org-table',
       Key: { id: 'non-existent-org' },
-      ProjectionExpression: "id, name, description, images",
+      ProjectionExpression: "id, #org_name, description, images, rewards_loyalty, rewards_milestone, rl_active, rm_active, date_registered, active",
+      ExpressionAttributeNames: {
+        "#org_name": "name"
+      }
     }).resolves({
       Item: undefined
     });
 
-    // Act
     const result = await handler(event);
 
-    // Assert
     expect(result.statusCode).toBe(404);
     expect(JSON.parse(result.body).error).toBe('Organization not found');
   });
@@ -123,26 +107,26 @@ describe('getPlan Lambda Handler', () => {
     ddbMock.on(GetCommand, {
       TableName: 'test-org-table',
       Key: { id: orgId },
-      ProjectionExpression: "id, name, description, images",
+      ProjectionExpression: "id, #org_name, description, images, rewards_loyalty, rewards_milestone, rl_active, rm_active, date_registered, active",
+      ExpressionAttributeNames: {
+        "#org_name": "name"
+      }
     }).resolves({
       Item: mockOrg
     });
 
-    // Mock plan retrieval - no existing plan
     ddbMock.on(GetCommand, {
       TableName: 'test-plans-table',
       Key: {
-        PK: `USER#${userId}`,
-        SK: `ORG#${orgId}`
+        user_id: userId,
+        org_id: orgId
       }
     }).resolves({
       Item: undefined
     });
 
-    // Act
     const result = await handler(event);
 
-    // Assert
     expect(result.statusCode).toBe(200);
     const plan = JSON.parse(result.body);
     expect(plan).toEqual({
@@ -156,7 +140,6 @@ describe('getPlan Lambda Handler', () => {
       rl_active: true,
       rm_active: false,
       firstPlan: false,
-      activePlan: false,
       active: false,
       organization_id: mockOrg.id,
       name: mockOrg.name
@@ -164,12 +147,10 @@ describe('getPlan Lambda Handler', () => {
   });
 
   test('should return existing plan data when user has a plan', async () => {
-    // Arrange
     const orgId = 'test-org-id';
     const userId = 'test-user-id';
     const event = createMockEvent({ org_id: orgId }, userId);
 
-    // Mock organization retrieval
     const mockOrg = {
       id: orgId,
       name: 'Test Organization',
@@ -188,34 +169,32 @@ describe('getPlan Lambda Handler', () => {
     ddbMock.on(GetCommand, {
       TableName: 'test-org-table',
       Key: { id: orgId },
-      ProjectionExpression: "id, name, description, images",
-    }).resolves({
+      ProjectionExpression: "id, #org_name, description, images, rewards_loyalty, rewards_milestone, rl_active, rm_active, date_registered, active",
+      ExpressionAttributeNames: {
+        "#org_name": "name"
+      }    }).resolves({
       Item: mockOrg
     });
 
-    // Mock existing plan retrieval
     const mockPlan = {
       id: 'test-plan-id',
       visits: 5,
       points: 50,
-      redeemableRewards: ['Free Item'],
       active: true
     };
 
     ddbMock.on(GetCommand, {
       TableName: 'test-plans-table',
       Key: {
-        PK: `USER#${userId}`,
-        SK: `ORG#${orgId}`
+        user_id: userId,
+        org_id: orgId
       }
     }).resolves({
       Item: mockPlan
     });
 
-    // Act
     const result = await handler(event);
 
-    // Assert
     expect(result.statusCode).toBe(200);
     const plan = JSON.parse(result.body);
     expect(plan).toEqual({
@@ -225,11 +204,10 @@ describe('getPlan Lambda Handler', () => {
       },
       visits: 5,
       points: 50,
-      redeemableRewards: ['Free Item'],
+      redeemableRewards: [],
       rl_active: true,
       rm_active: true,
       firstPlan: false,
-      activePlan: true,
       id: 'test-plan-id',
       active: true,
       organization_id: mockOrg.id,
@@ -238,12 +216,10 @@ describe('getPlan Lambda Handler', () => {
   });
 
   test('should handle organizations with no reward programs active', async () => {
-    // Arrange
     const orgId = 'test-org-id';
     const userId = 'test-user-id';
     const event = createMockEvent({ org_id: orgId }, userId);
 
-    // Mock organization retrieval with no active reward programs
     const mockOrg = {
       id: orgId,
       name: 'Test Organization',
@@ -254,26 +230,26 @@ describe('getPlan Lambda Handler', () => {
     ddbMock.on(GetCommand, {
       TableName: 'test-org-table',
       Key: { id: orgId },
-      ProjectionExpression: "id, name, description, images",
+      ProjectionExpression: "id, #org_name, description, images, rewards_loyalty, rewards_milestone, rl_active, rm_active, date_registered, active",
+      ExpressionAttributeNames: {
+        "#org_name": "name"
+      }
     }).resolves({
       Item: mockOrg
     });
 
-    // Mock plan retrieval
     ddbMock.on(GetCommand, {
       TableName: 'test-plans-table',
       Key: {
-        PK: `USER#${userId}`,
-        SK: `ORG#${orgId}`
+        user_id: userId,
+        org_id: orgId
       }
     }).resolves({
       Item: undefined
     });
 
-    // Act
     const result = await handler(event);
 
-    // Assert
     expect(result.statusCode).toBe(200);
     const plan = JSON.parse(result.body);
     expect(plan.reward_plan.rewards_loyalty).toBeUndefined();
@@ -283,12 +259,10 @@ describe('getPlan Lambda Handler', () => {
   });
 
   test('should handle partial plan data', async () => {
-    // Arrange
     const orgId = 'test-org-id';
     const userId = 'test-user-id';
     const event = createMockEvent({ org_id: orgId }, userId);
 
-    // Mock organization retrieval
     const mockOrg = {
       id: orgId,
       name: 'Test Organization',
@@ -302,7 +276,10 @@ describe('getPlan Lambda Handler', () => {
     ddbMock.on(GetCommand, {
       TableName: 'test-org-table',
       Key: { id: orgId },
-      ProjectionExpression: "id, name, description, images",
+      ProjectionExpression: "id, #org_name, description, images, rewards_loyalty, rewards_milestone, rl_active, rm_active, date_registered, active",
+      ExpressionAttributeNames: {
+        "#org_name": "name"
+      }
     }).resolves({
       Item: mockOrg
     });
@@ -315,8 +292,8 @@ describe('getPlan Lambda Handler', () => {
     ddbMock.on(GetCommand, {
       TableName: 'test-plans-table',
       Key: {
-        PK: `USER#${userId}`,
-        SK: `ORG#${orgId}`
+        user_id: userId,
+        org_id: orgId
       }
     }).resolves({
       Item: mockPlan

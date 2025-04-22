@@ -1,11 +1,10 @@
-import { Square, SquareClient, SquareEnvironment } from 'square';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { KMSClient, DecryptCommand } from '@aws-sdk/client-kms';
-import { randomUUID } from "crypto";
-import { ShopProps, VisitProps, OrganizationProps, PlanProps } from '../Interfaces';
-import { json } from 'stream/consumers';
+import {Square, SquareClient, SquareEnvironment} from 'square';
+import {DynamoDBClient} from '@aws-sdk/client-dynamodb';
+import {DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand} from '@aws-sdk/lib-dynamodb';
+import {APIGatewayProxyEvent, APIGatewayProxyResult} from 'aws-lambda';
+import {DecryptCommand, KMSClient} from '@aws-sdk/client-kms';
+import {randomUUID} from "crypto";
+import {OrganizationProps, PlanProps, ShopProps, VisitProps} from '../Interfaces';
 
 const client = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(client);
@@ -24,6 +23,8 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     try {
         validateEnvVariables();
         const { shop_id, timestamp } = parseAndValidateInput(event);
+        console.log(`Received shop_id: ${shop_id}, timestamp: ${timestamp}`);
+
         const user_id = event.requestContext.authorizer?.claims?.sub;
         if(!user_id) throw new Error(
             `Missing user id in request`
@@ -31,7 +32,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
         const shop = await getShop(shop_id);
         const organization = await getOrg(shop.org_id);
-        const decryptedSquareToken = await decryptToken(organization.access_token);
+        const decryptedSquareToken = await decryptKMS(organization.access_token);
         const orgSquareClient = await getOrgSquareClient(decryptedSquareToken);
         const mostRecentOrder = await getMostRecentOrder(shop, timestamp, orgSquareClient);
         if (mostRecentOrder == undefined) return visitNotFoundResponse();
@@ -58,7 +59,8 @@ function validateEnvVariables(): void {
     if (!process.env.SHOPS_TABLE || 
         !process.env.ORGANIZATIONS_TABLE || 
         !process.env.PLANS_TABLE || 
-        !process.env.VISITS_TABLE || 
+        !process.env.VISITS_TABLE ||
+        !process.env.KMS_KEY_ID ||
         !process.env.APP_ENV) {
         throw new Error("Missing required environment variables");
     }
@@ -69,6 +71,7 @@ function parseAndValidateInput(event: APIGatewayProxyEvent): { shop_id: string; 
     if ( !shop_id || !timestamp) {
         throw new Error(`Missing required attributes: shop_id: ${shop_id}, timestamp: ${timestamp}`);
     }
+
     return { shop_id, timestamp };
 }
 
@@ -112,27 +115,21 @@ async function getOrg(organization_id: string): Promise<OrganizationProps> {
     }
 }
 
-async function decryptToken(square_oauth_encrypted: string | null): Promise<string> {
-    // Decrypts auth token using AWS kms
-    if (square_oauth_encrypted == null) throw new Error("Can't decrypt empty token");
-
-    let decryptedToken;
+async function decryptKMS(encryptedToken:string|null) {
     try {
-        const decryptParams = {
-            CiphertextBlob: Buffer.from(square_oauth_encrypted, 'base64')
-        }
-        const decryptCommand = new DecryptCommand(decryptParams);
-        const decryptResponse = await kmsClient.send(decryptCommand);
-        if (!decryptResponse.Plaintext) {
-            throw new Error('Error occured with kms while trying to decrypt token');
-        }
-        decryptedToken = Buffer.from(decryptResponse.Plaintext).toString();
-        if (!decryptedToken) {
-            throw new Error('Failed to decrypt token');
-        }
-        return decryptedToken;
+        const encryptedBuffer = Buffer.from(encryptedToken!, "hex");
+
+        const command = new DecryptCommand({
+            CiphertextBlob: encryptedBuffer,
+            KeyId: process.env.KMS_KEY_ID
+        });
+
+        const { Plaintext } = await kmsClient.send(command);
+        return new TextDecoder().decode(Plaintext);
+
     } catch (error) {
-        throw new Error(`Failed to decrypt square oauth token: ${error}`);
+        console.error("KMS Decryption Error:", error);
+        throw new Error("Failed to decrypt Square API token.");
     }
 }
 
@@ -191,9 +188,7 @@ async function getMostRecentOrder(shop: any, timestamp: string, squareClient: Sq
                 return !order.refunds || order.refunds.length === 0;
               });
         }
-        if (mostRecentOrder == undefined) {
-            throw new Error(`No orders within ${scanWindow} minutes at shop with ID ${shop.id}`)
-        }
+
         return mostRecentOrder;
 
     } catch (error) {
@@ -335,7 +330,7 @@ export const _test = {
     parseAndValidateInput,
     getShop,
     getOrg,
-    decryptToken,
+    decryptKMS,
     getOrgSquareClient,
     getMostRecentOrder,
     recordVisit,

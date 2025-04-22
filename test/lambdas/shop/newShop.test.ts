@@ -338,7 +338,7 @@ describe("Shop Creation Lambda Handler", () => {
         expect(result.statusCode).toBe(201);
         const body = JSON.parse(result.body);
         expect(body.message).toBe("Shop created successfully");
-        expect(body.shopId).toBe("mocked-uuid-123");
+        expect(body.shop_id).toBe("mocked-uuid-123");
 
         // Verify DynamoDB PutCommand
         const putCalls = ddbMock.commandCalls(PutCommand);
@@ -365,7 +365,7 @@ describe("Shop Creation Lambda Handler", () => {
         const updateParams = updateCalls[0].args[0].input;
         expect(updateParams.TableName).toBe("test-org-table");
         expect(updateParams.Key).toEqual({ id: "org123" });
-        expect(updateParams.UpdateExpression).toBe("SET shopId = :shopId");
+        expect(updateParams.UpdateExpression).toBe("SET shop_id = :shopId");
         expect(updateParams.ExpressionAttributeValues).toEqual({ ":shopId": "mocked-uuid-123" });
     });
 

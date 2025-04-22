@@ -1,6 +1,5 @@
 /*
 
-
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { KMSClient, DecryptCommand } from '@aws-sdk/client-kms';
@@ -197,5 +196,5 @@ describe('recordVisit Lambda Tests', () => {
             expect(mockDynamoDb.send).toHaveBeenCalledWith(expect.any(PutCommand));
         });
     });
-    
+
 });*/

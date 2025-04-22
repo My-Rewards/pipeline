@@ -197,7 +197,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
                 database: dbName,
                 sql:`
                     INSERT INTO Organizations (id, active, updated_at) 
-                    VALUES ($1, $2, $3),
+                    VALUES (:org_id, :active, :updated_at),
                 `,
                 parameters: [
                     { name: "org_id", value: { stringValue: organization_id } },
