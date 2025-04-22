@@ -11,15 +11,12 @@ const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
 async function decryptKMS(encryptedBase64:String, kmsKey:string) {
     try {
         const encryptedBuffer = Buffer.from(encryptedBase64, "hex");
-
         const command = new DecryptCommand({
             CiphertextBlob: encryptedBuffer,
             KeyId: kmsKey
         });
-        
         const { Plaintext } = await kms.send(command);
         return new TextDecoder().decode(Plaintext);
-
 
     } catch (error) {
         console.error("KMS Decryption Error:", error);
@@ -28,8 +25,6 @@ async function decryptKMS(encryptedBase64:String, kmsKey:string) {
 }
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-
-
 
     const userTable = process.env.USER_TABLE;
     const orgTable = process.env.ORG_TABLE;
@@ -44,39 +39,32 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     }
 
     const user_id = event.requestContext.authorizer?.claims?.sub;
-
     try {
 
         const userParams: GetCommandInput = {
             TableName: userTable,
             Key: { id: user_id },
-            ProjectionExpression: "orgId"
+            ProjectionExpression: "org_id"
         };
         const userResult = await dynamoDb.send(new GetCommand(userParams));
-        const orgId = userResult.Item?.orgId;
-
-        if (!orgId) {
+        const org_id = userResult.Item?.org_id;
+        if (!org_id) {
             return { statusCode: 404, body: JSON.stringify({ error: "Organization ID not found for user" }) };
         }
-
         const orgParams: GetCommandInput = {
             TableName: orgTable,
-            Key: { id: orgId },
-            ProjectionExpression: "accessToken"
+            Key: { id: org_id },
+            ProjectionExpression: "access_token"
         };
         const response = await dynamoDb.send(new GetCommand(orgParams));
-
-        const squareAccessToken = await decryptKMS(response.Item?.accessToken, kmsKey);
-
+        const squareAccessToken = await decryptKMS(response.Item?.access_token, kmsKey);
         const client = new square.SquareClient({
             environment: appEnv === 'prod'? square.SquareEnvironment.Production : square.SquareEnvironment.Sandbox,
             token:squareAccessToken
         });
-
         const shops = client.locations.list();
         const shopsResponse = await client.locations.list();
         console.log("Shops response from Square:", shopsResponse);
-
         return {
             statusCode: 200,
             body: JSON.stringify({

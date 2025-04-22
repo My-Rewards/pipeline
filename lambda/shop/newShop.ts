@@ -2,9 +2,15 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, PutCommand, GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { randomUUID } from "crypto";
+import {
+    RDSDataClient,
+    ExecuteStatementCommand,
+} from "@aws-sdk/client-rds-data";
+
 
 const client = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(client);
+const rdsClient = new RDSDataClient({});
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     if (!event.body) {
@@ -37,7 +43,8 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             name,
             location,
             geohash,
-            square_location_id
+            square_location_id,
+            menu
         } = JSON.parse(event.body);
 
         const userSub = event.requestContext.authorizer?.claims?.sub;
@@ -56,23 +63,23 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const getUser = new GetCommand({
             TableName: userTable,
             Key: { id: userSub },
-            ProjectionExpression: "orgId, #userPermissions",
+            ProjectionExpression: "org_id, #userPermissions",
             ExpressionAttributeNames: { "#userPermissions": "permissions" },
         });
         const resultUser = await dynamoDb.send(getUser);
 
         if (!resultUser.Item) {
             return { statusCode: 210, body: JSON.stringify({ error: "User email not found in database or User already linked to Organization" }) };
-        } else if (!resultUser.Item.orgId) {
+        } else if (!resultUser.Item.org_id) {
             return { statusCode: 210, body: JSON.stringify({ error: "Organization not found" }) };
         }
 
-        const orgId = resultUser.Item.orgId;
+        const org_id = resultUser.Item.org_id;
 
 
         const orgResult = await dynamoDb.send(new GetCommand({
             TableName: orgTable,
-            Key: { id: orgId },
+            Key: { id: org_id },
         }));
         if (!orgResult.Item) {
             return {
@@ -85,9 +92,9 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const userResult = await dynamoDb.send(new GetCommand({
             TableName: userTable,
             Key: { id: userSub },
-            ProjectionExpression: "orgId",
+            ProjectionExpression: "org_id",
         }));
-        if (!userResult.Item || userResult.Item.orgId !== orgId) {
+        if (!userResult.Item || userResult.Item.org_id !== org_id) {
             return {
                 statusCode: 403,
                 body: JSON.stringify({ error: "User is not associated with the specified Organization" }),
@@ -95,12 +102,29 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         }
 
         const shopId = randomUUID();
+        await rdsClient.send(
+            new ExecuteStatementCommand({
+                secretArn: process.env.SECRET_ARN!,
+                resourceArn: process.env.CLUSTER_ARN!,
+                database: process.env.DB_NAME!,
+                sql: `
+      INSERT INTO Shops (id, organization_id, location)
+      VALUES (:shopId, :orgId, ST_MakePoint(:lon, :lat)::geography)
+    `,
+                parameters: [
+                    { name: "shopId", value: { stringValue: shopId } },
+                    { name: "orgId", value: { stringValue: org_id } },
+                    { name: "lat", value: { doubleValue: latitude } },
+                    { name: "lon", value: { doubleValue: longitude } },
+                ],
+            })
+        );
 
         await dynamoDb.send(new PutCommand({
             TableName: shopTable,
             Item: {
                 id: shopId,
-                org_id: orgId,
+                org_id: org_id,
                 square_id,
                 square_location_id,
                 name,
@@ -110,6 +134,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
                 longitude,
                 geohash,
                 shop_hours,
+                menu,
                 active: true,
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString(),

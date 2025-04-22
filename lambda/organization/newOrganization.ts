@@ -112,7 +112,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         }
 
         if(!stripe){
-            stripe = new Stripe(cachedStripeKey, { apiVersion: STRIPE_API_VERSION });
+            stripe = new Stripe(cachedStripeKey, { apiVersion: STRIPE_API_VERSION as Stripe.LatestApiVersion });
             if (!stripe) return { statusCode: 500, body: JSON.stringify({ error: "Failed to open stripe Client" }) };
         }
 
