@@ -1,12 +1,10 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { KMSClient, DecryptCommand } from "@aws-sdk/client-kms";
-import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
-import { DynamoDBDocumentClient, GetCommand, GetCommandInput } from "@aws-sdk/lib-dynamodb";
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import {DynamoDBClient} from "@aws-sdk/client-dynamodb";
+import {DecryptCommand, KMSClient} from "@aws-sdk/client-kms";
+import {DynamoDBDocumentClient, GetCommand, GetCommandInput} from "@aws-sdk/lib-dynamodb";
+import {APIGatewayProxyEvent, APIGatewayProxyResult} from "aws-lambda";
 import * as square from 'square'
 
 const kms = new KMSClient({ region: process.env.AWS_REGION });
-const secretsManager = new SecretsManagerClient({ region: process.env.AWS_REGION });
 const dynamoClient = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
 
@@ -20,9 +18,7 @@ async function decryptKMS(encryptedBase64:String, kmsKey:string) {
         });
         
         const { Plaintext } = await kms.send(command);
-        const decryptedString = new TextDecoder().decode(Plaintext);
-        console.log("Decrypted value:", decryptedString);
-        return decryptedString;
+        return new TextDecoder().decode(Plaintext);
 
     } catch (error) {
         console.error("KMS Decryption Error:", error);
@@ -31,8 +27,9 @@ async function decryptKMS(encryptedBase64:String, kmsKey:string) {
 }
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-
-
+    if (!event.queryStringParameters || !event.queryStringParameters.owner_id) {
+        return { statusCode: 400, body: JSON.stringify({ error: "Missing owner_id query parameter" }) };
+    }
 
     const userTable = process.env.USER_TABLE;
     const appEnv = process.env.APP_ENV;
@@ -44,13 +41,13 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         case !kmsKey: return { statusCode: 500, body: JSON.stringify({ error: "KMS key Missing" }) };
     }
 
-    const user_id = event.requestContext.authorizer?.claims?.sub;
+    const user_id = event.queryStringParameters.owner_id;
 
     try {
         const params: GetCommandInput = {
             TableName: userTable,
             Key: { id: user_id },
-            ProjectionExpression: "accessToken",
+            ProjectionExpression: "access_token",
         };
         const response = await dynamoDb.send(new GetCommand(params));
 
@@ -59,7 +56,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const client = new square.SquareClient({
             environment: appEnv === 'prod'? square.SquareEnvironment.Production : square.SquareEnvironment.Sandbox,
             token:squareAccessToken
-
         });
 
         const shops = client.locations.list();

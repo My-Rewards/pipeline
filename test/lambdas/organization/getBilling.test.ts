@@ -1,340 +1,455 @@
-import { handler } from '../../../lambda/organization/getBilling';
-import { mockClient } from "aws-sdk-client-mock";
-import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
-import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
-import Stripe from "stripe";
+import { APIGatewayProxyEvent } from 'aws-lambda';
+import { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb';
+import { mockClient } from 'aws-sdk-client-mock';
+import Stripe from 'stripe';
+import { handler } from '@/lambda/organization/getBilling';
+import { getStripeSecret } from '@/lambda/constants/validOrganization';
+
+jest.mock('@/lambda/constants/validOrganization', () => ({
+    getStripeSecret: jest.fn(),
+}));
+
+jest.mock('stripe', () => {
+    const mockStripeInstance = {
+        customers: {
+            listPaymentMethods: jest.fn(),
+            retrieve: jest.fn(),
+        },
+        subscriptions: {
+            list: jest.fn(),
+        },
+        invoices: {
+            createPreview: jest.fn(),
+            list: jest.fn(),
+        },
+    };
+
+    const MockStripe = jest.fn(() => mockStripeInstance);
+
+    MockStripe.mockImplementation(() => mockStripeInstance);
+
+    return {
+        __esModule: true,
+        default: MockStripe
+    };
+});
 
 const ddbMock = mockClient(DynamoDBDocumentClient);
-const secretsMock = mockClient(SecretsManagerClient);
 
-jest.mock("stripe");
-const mockStripe = Stripe as jest.MockedClass<typeof Stripe>;
+const createMockEvent = (userSub?: string): APIGatewayProxyEvent => {
+    const claims: Record<string, any> = {};
 
-process.env.ORG_TABLE = "test-org-table";
-process.env.USER_TABLE = "test-user-table";
-process.env.STRIPE_ARN = "test-stripe-arn";
+    if (userSub) {
+        claims.sub = userSub;
+    }
 
-describe("getBilling Lambda Handler", () => {
+    return {
+        body: null,
+        headers: {},
+        httpMethod: "",
+        isBase64Encoded: false,
+        multiValueHeaders: {},
+        multiValueQueryStringParameters: null,
+        path: "",
+        pathParameters: null,
+        queryStringParameters: null,
+        resource: "",
+        stageVariables: null,
+        requestContext: {
+            authorizer: {
+                claims
+            },
+            accountId: '',
+            apiId: '',
+            protocol: '',
+            httpMethod: '',
+            identity: {} as any,
+            path: '',
+            stage: '',
+            requestId: '',
+            resourceId: '',
+            resourcePath: '',
+            requestTimeEpoch: 0
+        }
+    };
+};
+
+
+describe('getBilling Lambda', () => {
+    const eventWithUser = createMockEvent('test-user-id');
+    const eventWithOutUser = createMockEvent();
+
+    const mockStripeKey = 'mock-stripe-key';
+    const mockOrgId = 'test-org-id';
+    const mockStripeId = 'stripe-customer-id';
+
     beforeEach(() => {
+        process.env.ORG_TABLE = 'organizations';
+        process.env.USER_TABLE = 'users';
+        process.env.STRIPE_ARN = 'arn:aws:secretsmanager:us-east-1:123456789012:secret:test/stripe/key';
+
+        (getStripeSecret as jest.Mock).mockReset();
+        (getStripeSecret as jest.Mock).mockImplementation(() => Promise.resolve(mockStripeKey));
+    });
+
+    afterEach(()=>{
         jest.clearAllMocks();
         ddbMock.reset();
-        secretsMock.reset();
+    })
 
-        secretsMock.on(GetSecretValueCommand).resolves({
-            SecretString: JSON.stringify({ secretKey: "mock-stripe-key" }),
-        });
-    });
+    test('should return 404 when Stripe secret retrieval fails', async () => {
+        (getStripeSecret as jest.Mock).mockReset();
 
-    test("should return 500 if org table or user table is not defined", async () => {
-        process.env.ORG_TABLE = "";
-
-        const result = await handler({
-            requestContext: {
-                authorizer: {
-                    claims: { sub: "user123" }
-                }
-            }
-        } as any);
-
-        expect(result.statusCode).toBe(500);
-        expect(JSON.parse(result.body)).toEqual({ error: "No Org/User Table" });
-
-        process.env.ORG_TABLE = "test-org-table";
-    });
-
-    test("should return 401 if userSub is not provided", async () => {
-        const result = await handler({
-            requestContext: {
-                authorizer: { claims: {} }
-            }
-        } as any);
-
-        expect(result.statusCode).toBe(401);
-        expect(JSON.parse(result.body)).toEqual({ error: "no userID supplied" });
-    });
-
-    test("should return 404 if Stripe ARN is not defined", async () => {
-        process.env.STRIPE_ARN = "";
-
-        const result = await handler({
-            requestContext: {
-                authorizer: {
-                    claims: { sub: "user123" }
-                }
-            }
-        } as any);
-
-        expect(result.statusCode).toBe(500);
-        expect(JSON.parse(result.body)).toEqual({ error: "Missing Stripe Arn" });
-
-        process.env.STRIPE_ARN = "test-stripe-arn";
-    });
-
-    test("should return 210 if user's orgId is not found", async () => {
         ddbMock.on(GetCommand, {
-            TableName: "test-user-table",
-            Key: { id: "user123" }
-        }).resolves({
-            Item: { }
-        });
-
-        const result = await handler({
-            requestContext: {
-                authorizer: {
-                    claims: { sub: "user123" }
-                }
-            }
-        } as any);
-
-        expect(result.statusCode).toBe(210);
-        expect(JSON.parse(result.body)).toEqual({ info: "Organization not Found" });
-    });
-
-    test("should return 210 if organization is not found", async () => {
-        ddbMock.on(GetCommand, {
-            TableName: "test-user-table",
-            Key: { id: "user123" }
+            TableName: 'users',
+            Key: { id: 'test-user-id' },
         }).resolves({
             Item: {
-                orgId: "org123",
-                permissions: ["read", "write"]
+                org_id: mockOrgId,
+                permissions: ['admin']
             }
         });
 
         ddbMock.on(GetCommand, {
-            TableName: "test-org-table",
-            Key: { id: "org123" }
-        }).resolves({
-            Item: undefined
-        });
-
-        const result = await handler({
-            requestContext: {
-                authorizer: {
-                    claims: { sub: "user123" }
-                }
-            }
-        } as any);
-
-        expect(result.statusCode).toBe(210);
-        expect(JSON.parse(result.body)).toEqual({ info: "Organization not found" });
-    });
-
-    test("should return 211 if organization is not linked", async () => {
-        ddbMock.on(GetCommand, {
-            TableName: "test-user-table",
-            Key: { id: "user123" }
+            TableName: 'organizations',
+            Key: { id: mockOrgId },
         }).resolves({
             Item: {
-                orgId: "org123",
-                permissions: ["read", "write"]
-            }
-        });
-
-        ddbMock.on(GetCommand, {
-            TableName: "test-org-table",
-            Key: { id: "org123" }
-        }).resolves({
-            Item: {
-                id: "org123",
-                linked: false,
-                name: "Test Org",
-                images: { logo: "logo-url" },
-                date_registered: "2023-01-01"
-            }
-        });
-
-        const result = await handler({
-            requestContext: {
-                authorizer: {
-                    claims: { sub: "user123" }
-                }
-            }
-        } as any);
-
-        expect(result.statusCode).toBe(211);
-        expect(JSON.parse(result.body)).toEqual({ info: "Organization not Linked" });
-    });
-
-    test("should successfully return billing data for a linked organization", async () => {
-        ddbMock.on(GetCommand, {
-            TableName: "test-user-table",
-            Key: { id: "user123" }
-        }).resolves({
-            Item: {
-                orgId: "org123",
-                permissions: ["read", "write"]
-            }
-        });
-
-        // Setup organization data
-        ddbMock.on(GetCommand, {
-            TableName: "test-org-table",
-            Key: { id: "org123" }
-        }).resolves({
-            Item: {
-                id: "org123",
+                id: mockOrgId,
+                stripe_id: mockStripeId,
                 linked: true,
-                name: "Test Org",
-                stripe_id: "cus_123456",
-                images: { logo: "logo-url" },
-                date_registered: "2023-01-01"
+                name: 'Test Organization',
+                images: { logo: { url: 'https://example.com/logo.png' } },
+                date_registered: '2023-01-01',
+                active: true
             }
         });
 
-        const mockStripeInstance = {
-            customers: {
-                listPaymentMethods: jest.fn().mockResolvedValue({
-                    data: [{ id: "pm_123", card: { last4: "4242" } }]
-                }),
-                retrieve: jest.fn().mockResolvedValueOnce({
-                    invoice_settings: {
-                        default_payment_method: "pm_123"
+        (getStripeSecret as jest.Mock).mockImplementation(() => Promise.resolve(null));
+
+        const response = await handler(eventWithUser);
+
+        expect(response.statusCode).toBe(404);
+        expect(JSON.parse(response.body).error).toBe('Failed to retrieve Stripe secret key');
+    });
+
+    test('should return 200 and organization details with active subscription', async () => {
+        ddbMock.on(GetCommand, {
+            TableName: 'users',
+            Key: { id: 'test-user-id' },
+        }).resolves({
+            Item: {
+                org_id: mockOrgId,
+                permissions: ['admin']
+            }
+        });
+
+        ddbMock.on(GetCommand, {
+            TableName: 'organizations',
+            Key: { id: mockOrgId },
+        }).resolves({
+            Item: {
+                id: mockOrgId,
+                stripe_id: mockStripeId,
+                linked: true,
+                name: 'Test Organization',
+                images: { logo: { url: 'https://example.com/logo.png' } },
+                date_registered: '2023-01-01',
+                active: true
+            }
+        });
+
+        const stripeMock = new Stripe(mockStripeKey) as jest.Mocked<Stripe>;
+
+        (stripeMock.customers.listPaymentMethods as jest.Mock).mockResolvedValue({
+            data: [
+                { id: 'pm_123', card: { brand: 'visa', last4: '4242' } }
+            ]
+        });
+
+        (stripeMock.customers.retrieve as jest.Mock).mockResolvedValue({
+            id: mockStripeId,
+            deleted: false,
+            invoice_settings: {
+                default_payment_method: 'pm_123'
+            }
+        });
+
+        (stripeMock.subscriptions.list as jest.Mock).mockResolvedValue({
+            data: [
+                {
+                    id: 'sub_123',
+                    items: {
+                        data:[{
+                            current_period_start: 1672531200,
+                            current_period_end: 1675209600,
+                        }]
                     }
-                })
-            },
-            subscriptions: {
-                list: jest.fn().mockResolvedValueOnce({
-                    data: [{
-                        id: "sub_123",
-                        current_period_start: 1640995200,
-                        current_period_end: 1643673600
-                    }]
-                })
-            },
-            invoices: {
-                retrieveUpcoming: jest.fn().mockResolvedValueOnce({
-                    total: 1000,
-                    total_excluding_tax: 850,
-                    tax: 150,
-                    amount_due: 1000,
-                    created: 1640995200,
-                    period_start: 1640995200,
-                    period_end: 1643673600
-                }),
-                list: jest.fn().mockResolvedValueOnce({
-                    data: [{
-                        id: "inv_123",
-                        total: 1000,
-                        amount_due: 0,
-                        created: 1638316800,
-                        period_start: 1638316800,
-                        period_end: 1640995200,
-                        paid: true
-                    }]
-                })
-            }
-        };
-
-        mockStripe.mockImplementation(() => mockStripeInstance as any);
-
-        const result = await handler({
-            requestContext: {
-                authorizer: {
-                    claims: { sub: "user123" }
                 }
-            }
-        } as any);
+            ]
+        });
 
-        // Verify
-        expect(result.statusCode).toBe(200);
-        const responseBody = JSON.parse(result.body);
-        expect(responseBody).toHaveProperty("organization");
-        expect(responseBody.organization).toHaveProperty("billingData");
-        expect(responseBody.organization).toMatchObject({
-            name: "Test Org",
-            org_id: "org123",
-            logo: "logo-url",
-            date_registered: "2023-01-01"
+        (stripeMock.invoices.createPreview as jest.Mock).mockResolvedValue({
+            total: 2000,
+            amount_due: 2000,
+            total_excluding_tax: 1800,
+            tax: 200,
+            created: 1672531200,
+            period_start: 1672531200,
+            period_end: 1675209600,
         });
-        expect(responseBody.organization.billingData).toMatchObject({
-            total: 850,
-            tax: 150,
-            active: true,
-            currPaymentMethod: "pm_123"
+
+        (stripeMock.invoices.list as jest.Mock).mockResolvedValue({
+            data: [
+                {
+                    id: 'in_123',
+                    total: 2000,
+                    amount_due: 0,
+                    created: 1669939200,
+                    period_start: 1669939200,
+                    period_end: 1672531200,
+                    invoice_pdf: 'https://example.com/invoice.pdf',
+                    paid: true,
+                }
+            ]
         });
-        expect(responseBody.organization.billingData.paymentMethods).toHaveLength(1);
-        expect(responseBody.organization.billingData.invoices).toHaveLength(2); // Upcoming + 1 past invoice
+
+        const response = await handler(eventWithUser);
+
+        expect(response.statusCode).toBe(200);
+
+        const body = JSON.parse(response.body);
+        expect(body.organization).toBeDefined();
+        expect(body.organization.name).toBe('Test Organization');
+        expect(body.organization.logo).toBe('https://example.com/logo.png');
+        expect(body.organization.active).toBe(true);
+        expect(body.organization.billingData).toBeDefined();
+        expect(body.organization.billingData.active).toBe(true);
+        expect(body.organization.billingData.currPaymentMethod).toBe('pm_123');
+        expect(body.organization.billingData.invoices.length).toBe(2);
+        expect(body.organization.billingData.paymentMethods.length).toBe(1);
     });
 
-    test("should return inactive billing data when user has no active subscriptions", async () => {
+    test('should return 200 with inactive subscription when no subscriptions exist', async () => {
         ddbMock.on(GetCommand, {
-            TableName: "test-user-table",
-            Key: { id: "user123" }
+            TableName: 'users',
+            Key: { id: 'test-user-id' },
         }).resolves({
             Item: {
-                orgId: "org123",
-                permissions: ["read", "write"]
+                org_id: mockOrgId,
+                permissions: ['admin']
             }
         });
 
         ddbMock.on(GetCommand, {
-            TableName: "test-org-table",
-            Key: { id: "org123" }
+            TableName: 'organizations',
+            Key: { id: mockOrgId },
         }).resolves({
             Item: {
-                id: "org123",
+                id: mockOrgId,
+                stripe_id: mockStripeId,
                 linked: true,
-                name: "Test Org",
-                stripe_id: "cus_123456",
-                images: { logo: "logo-url" },
-                date_registered: "2023-01-01"
+                name: 'Test Organization',
+                images: { logo: { url: 'https://example.com/logo.png' } },
+                date_registered: '2023-01-01',
+                active: true
             }
         });
 
-        const mockStripeInstance = {
-            customers: {
-                listPaymentMethods: jest.fn().mockResolvedValueOnce({
-                    data: []
-                }),
-                retrieve: jest.fn().mockResolvedValueOnce({
-                    invoice_settings: null
-                })
-            },
-            subscriptions: {
-                list: jest.fn().mockResolvedValueOnce({
-                    data: []
-                })
-            }
-        };
+        const stripeMock = new Stripe(mockStripeKey) as jest.Mocked<Stripe>;
 
-        mockStripe.mockImplementation(() => mockStripeInstance as any);
+        (stripeMock.customers.listPaymentMethods as jest.Mock).mockResolvedValue({
+            data: [
+                { id: 'pm_123', card: { brand: 'visa', last4: '4242' } }
+            ]
+        });
 
-        const result = await handler({
-            requestContext: {
-                authorizer: {
-                    claims: { sub: "user123" }
-                }
-            }
-        } as any);
-
-        expect(result.statusCode).toBe(200);
-        const responseBody = JSON.parse(result.body);
-        expect(responseBody.organization.billingData).toMatchObject({
-            total: 0,
-            tax: 0,
-            active: false,
-            currPaymentMethod: null,
-            paymentWindow: {
-                start: null,
-                end: null
+        (stripeMock.customers.retrieve as jest.Mock).mockResolvedValue({
+            id: mockStripeId,
+            deleted: false,
+            invoice_settings: {
+                default_payment_method: 'pm_123'
             }
         });
-        expect(responseBody.organization.billingData.invoices).toEqual([]);
+
+        (stripeMock.subscriptions.list as jest.Mock).mockResolvedValue({
+            data: []
+        });
+
+        const response = await handler(eventWithUser );
+
+        expect(response.statusCode).toBe(200);
+
+        const body = JSON.parse(response.body);
+        expect(body.organization.billingData.active).toBe(false);
+        expect(body.organization.billingData.total).toBe(0);
+        expect(body.organization.billingData.tax).toBe(0);
+        expect(body.organization.billingData.paymentWindow.start).toBe(null);
+        expect(body.organization.billingData.paymentWindow.end).toBe(null);
+        expect(body.organization.billingData.invoices).toEqual([]);
     });
 
-    test("should handle errors gracefully", async () => {
-        ddbMock.on(GetCommand).rejects(new Error("Database error"));
+    test('should return 401 when no user ID is provided', async () => {
 
-        const result = await handler({
-            requestContext: {
-                authorizer: {
-                    claims: { sub: "user123" }
-                }
+        const response = await handler(eventWithOutUser );
+
+        expect(response.statusCode).toBe(401);
+        expect(JSON.parse(response.body).error).toBe('no userID supplied');
+    });
+
+    test('should return 210 when user has no associated organization', async () => {
+        ddbMock.on(GetCommand, {
+            TableName: 'users',
+            Key: { id: 'test-user-id' },
+        }).resolves({
+            Item: {
+                permissions: ['admin']
             }
-        } as any);
+        });
 
-        expect(result.statusCode).toBe(500);
-        expect(JSON.parse(result.body)).toHaveProperty("error");
+        const response = await handler(eventWithUser );
+
+        expect(response.statusCode).toBe(210);
+        expect(JSON.parse(response.body).info).toBe('Organization not Found');
+    });
+
+    test('should return 210 when organization is not found', async () => {
+        ddbMock.on(GetCommand, {
+            TableName: 'users',
+            Key: { id: 'test-user-id' },
+        }).resolves({
+            Item: {
+                org_id: mockOrgId,
+                permissions: ['admin']
+            }
+        });
+
+        ddbMock.on(GetCommand, {
+            TableName: 'organizations',
+            Key: { id: mockOrgId },
+        }).resolves({});
+
+        const response = await handler(eventWithUser );
+
+        expect(response.statusCode).toBe(210);
+        expect(JSON.parse(response.body).info).toBe('Organization not found');
+    });
+
+    test('should return 211 when organization is not linked', async () => {
+        ddbMock.on(GetCommand, {
+            TableName: 'users',
+            Key: { id: 'test-user-id' },
+        }).resolves({
+            Item: {
+                org_id: mockOrgId,
+                permissions: ['admin']
+            }
+        });
+
+        ddbMock.on(GetCommand, {
+            TableName: 'organizations',
+            Key: { id: mockOrgId },
+        }).resolves({
+            Item: {
+                id: mockOrgId,
+                stripe_id: mockStripeId,
+                linked: false,
+                name: 'Test Organization',
+                images: { logo: { url: 'https://example.com/logo.png' } },
+                date_registered: '2023-01-01',
+                active: true
+            }
+        });
+
+        const response = await handler(eventWithUser );
+
+        expect(response.statusCode).toBe(211);
+        expect(JSON.parse(response.body).info).toBe('Organization not Linked');
+    });
+
+    test('should handle Stripe API errors gracefully', async () => {
+        ddbMock.on(GetCommand, {
+            TableName: 'users',
+            Key: { id: 'test-user-id' },
+        }).resolves({
+            Item: {
+                org_id: mockOrgId,
+                permissions: ['admin']
+            }
+        });
+
+        ddbMock.on(GetCommand, {
+            TableName: 'organizations',
+            Key: { id: mockOrgId },
+        }).resolves({
+            Item: {
+                id: mockOrgId,
+                stripe_id: mockStripeId,
+                linked: true,
+                name: 'Test Organization',
+                images: { logo: { url: 'https://example.com/logo.png' } },
+                date_registered: '2023-01-01',
+                active: true
+            }
+        });
+
+        const stripeMock = new Stripe(mockStripeKey) as jest.Mocked<Stripe>;
+
+        (stripeMock.customers.listPaymentMethods as jest.Mock).mockRejectedValue(
+            new Error('Stripe API error')
+        );
+
+        const response = await handler(eventWithUser);
+
+        expect(response.statusCode).toBe(200);
+        const body = JSON.parse(response.body);
+        expect(body.organization.billingData).toBe(null);
+    });
+
+    test('should return 500 when environment variables are missing', async () => {
+        delete process.env.ORG_TABLE;
+
+        const response = await handler(eventWithUser);
+
+        expect(response.statusCode).toBe(500);
+        expect(JSON.parse(response.body).error).toBe('No Org/User Table');
+    });
+
+    test('should handle unexpected errors and log them properly', async () => {
+        const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+
+        ddbMock.on(GetCommand, {
+            TableName: 'users',
+            Key: { id: 'test-user-id' },
+        }).resolves({
+            Item: {
+                org_id: mockOrgId,
+                permissions: ['admin']
+            }
+        });
+
+        ddbMock.on(GetCommand, {
+            TableName: 'organizations',
+            Key: { id: mockOrgId },
+        }).rejects(new Error('Unexpected DynamoDB error'));
+
+        (getStripeSecret as jest.Mock).mockResolvedValue(mockStripeKey);
+
+        const mockError = new Error('Unexpected DynamoDB error');
+        const stripeMock = jest.requireMock('stripe').default;
+        stripeMock.mockImplementation(() => {
+            throw mockError;
+        });
+
+        const response = await handler(eventWithUser);
+
+        expect(response.statusCode).toBe(500);
+        expect(JSON.parse(response.body)).toEqual({
+            error: 'Error fetching Billing'
+        });
+
+        expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching Billing:', mockError);
+
+        consoleErrorSpy.mockRestore();
     });
 });

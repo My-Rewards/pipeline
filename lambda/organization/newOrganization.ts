@@ -1,4 +1,3 @@
-import { SecretsManagerClient, GetSecretValueCommand} from "@aws-sdk/client-secrets-manager"
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { randomUUID } from "crypto";
 import { DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
@@ -7,42 +6,34 @@ import Stripe from "stripe";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { OrganizationProps } from "../Interfaces";
+import { getStripeSecret } from "../constants/validOrganization";
+import { STRIPE_API_VERSION } from "../../global/constants";
+import { RDSDataClient, ExecuteStatementCommand } from "@aws-sdk/client-rds-data";
 
-const secretClient = new SecretsManagerClient({ region: "us-east-1" });
 const s3 = new S3Client({ region: "us-east-1" });
 const dynamoClient = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
+const rdsClient = new RDSDataClient({ region: "us-east-1" });
 
-let cachedStripeKey: string | null; 
+let cachedStripeKey: string | null;
 let stripe: Stripe| null;
-
-const getStripeSecret = async (stripeArn:string): Promise<string | null> => {
-    const data = await secretClient.send(new GetSecretValueCommand({ SecretId: stripeArn }));
-
-    if (!data.SecretString) {
-        throw new Error("Stripe key not found in Secrets Manager.");
-    }
-
-    const secret = JSON.parse(data.SecretString);
-    return secret.secretKey;
-};
 
 const getUserEmailFromDynamoDB = async (userId: string, userTable:string): Promise<string | null> => {
     try {
         const params = new GetCommand({
             TableName: userTable,
             Key: { id: userId },
-            ProjectionExpression: "email, orgId",
+            ProjectionExpression: "email, org_id",
         });
 
         const response = await dynamoDb.send(params);
 
-        if (!response || !response.Item || response.Item.orgId) {
+        if (!response || !response.Item || response.Item.org_id) {
             return null;
         }
 
         return response.Item.email;
-        
+
     } catch (error) {
         return null;
     }
@@ -58,7 +49,7 @@ const getPresignedUrls = async (fileKeys: string[], bucketName:string, types:str
             });
             return {
                 fileKey,
-                url: await getSignedUrl(s3, command, { expiresIn: 300 }),
+                url: await getSignedUrl(s3, command, { expiresIn: 60 }),
                 type:types[index]
             };
         })
@@ -78,22 +69,29 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const bucketName = process.env.BUCKET_NAME;
     const imageDomain = process.env.IMAGE_DOMAIN;
     const stripeArn = process.env.STRIPE_ARN;
+    const clusterSecretArn = process.env.CLUSTER_SECRET_ARN
+    const clusterArn = process.env.CLUSTER_ARN
+    const dbName = process.env.DB_NAME
 
     switch(true){
-        case !orgTable || !userTable: return{statusCode:404, body:'Missing Table Info'};
-        case !stripeArn: return{statusCode:404, body:'Missing Stripe ARN'};
-        case !imageDomain: return{statusCode:404, body:'Missing Image Domain'};
-        case !bucketName: return{statusCode:404, body:'Missing Image Bucket Name'};
+        case !orgTable || !userTable: return{statusCode:404, body:'Missing Table Info ENV'};
+        case !stripeArn: return{statusCode:404, body:'Missing Stripe ARN ENV'};
+        case !imageDomain: return{statusCode:404, body:'Missing Image Domain ENV'};
+        case !bucketName: return{statusCode:404, body:'Missing Image Bucket Name ENV'};
+        case !clusterSecretArn: return{statusCode:404, body:'Missing Aurora Secret ARN ENV'};
+        case !clusterArn: return{statusCode:404, body:'Missing Aurora ARN ENV'};
+        case !dbName: return{statusCode:404, body:'Missing DB Name ENV'};
     }
 
     try {
-        const { 
-            org_name, 
-            description, 
-            rewards_loyalty, 
-            rewards_milestone, 
-            rl_active, 
-            rm_active 
+        const {
+            org_name,
+            description,
+            rewards_loyalty,
+            rewards_milestone,
+            rl_active,
+            rm_active,
+            businessTags
         } = JSON.parse(event.body);
 
         const userSub = event.requestContext.authorizer?.claims?.sub;
@@ -114,7 +112,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         }
 
         if(!stripe){
-            stripe = new Stripe(cachedStripeKey, { apiVersion: "2025-01-27.acacia" });
+            stripe = new Stripe(cachedStripeKey, { apiVersion: STRIPE_API_VERSION });
             if (!stripe) return { statusCode: 500, body: JSON.stringify({ error: "Failed to open stripe Client" }) };
         }
 
@@ -132,57 +130,105 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         });
 
         if(!stripeCustomer){
-            throw Error('Stripe failed')
+            return { statusCode: 500, body: JSON.stringify({ error: "Stripe Failed to create Customer" }) };
         }
 
         const fileKeys = [`${organization_id}/logo`, `${organization_id}/preview`, `${organization_id}/banner`];
         const types = [`logo`, `preview`, `banner`];
         const publicUrls = fileKeys.map((fileKey) => `https://${process.env.IMAGE_DOMAIN}/${fileKey}`);
+        const dateNow = new Date();
 
         const dynamoDbItem = new PutCommand ({
             TableName: orgTable,
             Item: <OrganizationProps> {
                 id:organization_id,
                 stripe_id: stripeCustomer.id,
-                accessToken:null,
-                refreshToken:null,
-                updatedAt:null,
+                access_token:null,
+                refresh_token:null,
+                updated_at:dateNow.toISOString(),
                 expiresAt:null,
                 square_merchant_id: null,
                 owner_id:userSub,
-                date_registered: new Date().toISOString(),
-                lastUpdate: new Date().toISOString(),
+                tags:businessTags,
+                date_registered: dateNow.toISOString(),
                 rewards_loyalty,
                 rewards_milestone,
                 name:org_name,
+                search_name:org_name.toLowerCase(),
                 description,
                 rl_active,
                 rm_active,
                 active:false,
                 images: {
-                    logo: publicUrls[0],
-                    preview: publicUrls[1],
-                    banner: publicUrls[2],
+                    logo:{
+                        url:publicUrls[0],
+                        fileKey: fileKeys[0]
+                    },
+                    preview: {
+                        url:publicUrls[1],
+                        fileKey: fileKeys[1]
+                    },
+                    banner:{
+                        url:publicUrls[2],
+                        fileKey: fileKeys[2]
+                    },
                 },
                 linked:false
             },
         });
-        
-        await dynamoDb.send(dynamoDbItem);
+
 
         const updateUser = new UpdateCommand({
             TableName: userTable,
             Key: { id: userSub },
-            UpdateExpression: 'SET orgId = :org_id',
+            UpdateExpression: 'SET org_id = :org_id',
             ExpressionAttributeValues: {
             ':org_id': organization_id,
             },
             ReturnValues: 'UPDATED_NEW'
         });
-    
-        await dynamoDb.send(updateUser);
 
         const preSignedUrls = await getPresignedUrls(fileKeys, bucketName, types);
+
+        const auroraResult = await rdsClient.send(
+            new ExecuteStatementCommand({
+                secretArn: clusterSecretArn,
+                resourceArn: clusterArn,
+                database: dbName,
+                sql:`
+                    INSERT INTO Organizations (id, active, updated_at) 
+                    VALUES (:org_id, :active, :updated_at),
+                `,
+                parameters: [
+                    { name: "org_id", value: { stringValue: organization_id } },
+                    { name: "active", value: { booleanValue: false } },
+                    { name: "updated_at", value: { stringValue: dateNow.toISOString() } }
+                ],
+            })
+        );
+
+        if(auroraResult.numberOfRecordsUpdated == 0){
+            return {
+                statusCode: 500,
+                body: JSON.stringify({
+                    message: "Failed to Create Organization",
+                    db:'Aurora'
+                }),
+            };
+        }
+
+        const result = await dynamoDb.send(dynamoDbItem);
+        await dynamoDb.send(updateUser);
+
+        if(!result){
+            return {
+                statusCode: 500,
+                body: JSON.stringify({
+                    message: "Failed to Create Organization",
+                    db:'Dynamo'
+                }),
+            };
+        }
 
         return {
             statusCode: 200,
@@ -192,7 +238,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             }),
         };
     } catch (error) {
-        console.error("Error:", error);
         return {
             statusCode: 500,
             body: JSON.stringify({ message: "Failed", error: error instanceof Error ? error.message : error }),
