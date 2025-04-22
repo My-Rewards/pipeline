@@ -32,6 +32,10 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
         const shop = await getShop(shop_id);
         const organization = await getOrg(shop.org_id);
+        if(!organization.access_token) throw new Error(
+            `Missing access token for organization ${shop.org_id}`
+        )
+
         const decryptedSquareToken = await decryptKMS(organization.access_token);
         const orgSquareClient = await getOrgSquareClient(decryptedSquareToken);
         const mostRecentOrder = await getMostRecentOrder(shop, timestamp, orgSquareClient);
@@ -115,9 +119,9 @@ async function getOrg(organization_id: string): Promise<OrganizationProps> {
     }
 }
 
-async function decryptKMS(encryptedToken:string|null) {
+async function decryptKMS(encryptedToken:string) {
     try {
-        const encryptedBuffer = Buffer.from(encryptedToken!, "hex");
+        const encryptedBuffer = Buffer.from(encryptedToken, "hex");
 
         const command = new DecryptCommand({
             CiphertextBlob: encryptedBuffer,
