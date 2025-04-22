@@ -94,7 +94,7 @@ describe("getAccount Lambda Function", () => {
       Key: { id: "user-123" }
     }).resolves({
       Item: {
-        orgId: "org-123",
+        org_id: "org-123",
         fullName: "Test User",
         email: "test@example.com",
         preferences: {},
@@ -119,7 +119,7 @@ describe("getAccount Lambda Function", () => {
       Key: { id: "user-123" }
     }).resolves({
       Item: {
-        orgId: "org-123",
+        org_id: "org-123",
         fullName: "Test User",
         email: "test@example.com",
         preferences: {},
@@ -146,7 +146,7 @@ describe("getAccount Lambda Function", () => {
       Key: { id: "user-123" }
     }).resolves({
       Item: {
-        orgId: "org-123",
+        org_id: "org-123",
         fullName: "Test User",
         email: "test@example.com",
         preferences: { theme: "dark" },

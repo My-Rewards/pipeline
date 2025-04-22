@@ -177,7 +177,7 @@ describe('Square Integration Lambda', () => {
             TableName: 'users-table',
             Key: { id: 'user123' }
         }).resolves({
-            Item: { orgId: 'org123' }
+            Item: { org_id: 'org123' }
         });
 
         ddbMock.on(GetCommand, {
@@ -199,7 +199,7 @@ describe('Square Integration Lambda', () => {
             TableName: 'users-table',
             Key: { id: 'user123' }
         }).resolves({
-            Item: { orgId: 'org123' }
+            Item: { org_id: 'org123' }
         });
 
         ddbMock.on(GetCommand, {
@@ -221,7 +221,7 @@ describe('Square Integration Lambda', () => {
             TableName: 'users-table',
             Key: { id: 'user123' }
         }).resolves({
-            Item: { orgId: 'org123' }
+            Item: { org_id: 'org123' }
         });
 
         ddbMock.on(GetCommand, {
@@ -252,7 +252,7 @@ describe('Square Integration Lambda', () => {
             TableName: 'users-table',
             Key: { id: 'user123' }
         }).resolves({
-            Item: { orgId: 'org123' }
+            Item: { org_id: 'org123' }
         });
 
         ddbMock.on(GetCommand, {
@@ -295,7 +295,7 @@ describe('Square Integration Lambda', () => {
             TableName: 'users-table',
             Key: { id: 'user123' }
         }).resolves({
-            Item: { orgId: 'org123' }
+            Item: { org_id: 'org123' }
         });
 
         ddbMock.on(GetCommand, {
@@ -360,7 +360,7 @@ describe('Square Integration Lambda', () => {
             TableName: 'users-table',
             Key: { id: 'user123' }
         }).resolves({
-            Item: { orgId: 'org123' }
+            Item: { org_id: 'org123' }
         });
 
         ddbMock.on(GetCommand, {
@@ -394,7 +394,7 @@ describe('Square Integration Lambda', () => {
             TableName: 'users-table',
             Key: { id: 'user123' }
         }).resolves({
-            Item: { orgId: 'org123' }
+            Item: { org_id: 'org123' }
         });
 
         ddbMock.on(GetCommand, {

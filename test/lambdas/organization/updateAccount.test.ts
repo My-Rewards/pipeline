@@ -74,7 +74,7 @@ describe("updateAccount Lambda Function", () => {
     const event = createMockEvent({ name: "New Name", email: "new@example.com" });
     // Simulate a successful update by resolving UpdateCommand with Attributes
     ddbMock.on(UpdateCommand).resolves({
-      Attributes: { fullName: "New Name", email: "new@example.com", updatedAt: "2025-01-01T00:00:00Z" },
+      Attributes: { fullName: "New Name", email: "new@example.com", updated_at: "2025-01-01T00:00:00Z" },
     });
     const result = await handler(event);
     expect(result.statusCode).toBe(200);

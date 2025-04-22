@@ -18,8 +18,8 @@ describe("Lambda Handler", () => {
     jest.clearAllMocks();
   });
 
-  const buildEvent = (params: { shopId?: string; userSub?: string } = {}): APIGatewayProxyEvent => ({
-    pathParameters: params.shopId ? { shop_id: params.shopId } : null,
+  const buildEvent = (params: { shop_id?: string; userSub?: string } = {}): APIGatewayProxyEvent => ({
+    pathParameters: params.shop_id ? { shop_id: params.shop_id } : null,
     requestContext: {
       authorizer: {
         claims: { sub: params.userSub || undefined }
@@ -36,14 +36,14 @@ describe("Lambda Handler", () => {
 
   test("returns error when PLANS_TABLE is missing", async () => {
     delete process.env.PLANS_TABLE;
-    const event = buildEvent({ shopId: "shop1", userSub: "user123" });
+    const event = buildEvent({ shop_id: "shop1", userSub: "user123" });
     const response = await handler(event);
     expect(response.statusCode).toBe(500);
     expect(JSON.parse(response.body).error).toEqual("Missing Shop Table Info");
   });
 
   test("returns error when user id is missing", async () => {
-    const event = buildEvent({ shopId: "shop1" });
+    const event = buildEvent({ shop_id: "shop1" });
     const response = await handler(event);
     expect(response.statusCode).toBe(404);
     expect(JSON.parse(response.body).error).toEqual("Missing User ID");
@@ -56,7 +56,7 @@ describe("Lambda Handler", () => {
       .on(UpdateCommand)
       .resolves({ Attributes: { favorite: true } });
 
-    const event = buildEvent({ shopId: "shop1", userSub: "user123" });
+    const event = buildEvent({ shop_id: "shop1", userSub: "user123" });
 
     const response = await handler(event);
     expect(response.statusCode).toBe(200);
@@ -72,7 +72,7 @@ describe("Lambda Handler", () => {
       .on(UpdateCommand)
       .resolves({ Attributes: { favorite: false } });
 
-    const event = buildEvent({ shopId: "shop1", userSub: "user123" });
+    const event = buildEvent({ shop_id: "shop1", userSub: "user123" });
 
     const response = await handler(event);
     expect(response.statusCode).toBe(200);

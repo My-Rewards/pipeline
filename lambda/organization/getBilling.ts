@@ -35,6 +35,7 @@ const getStripe = async (stripe_id:string):Promise<stripeClientProps> => {
             limit: 1,
         });
 
+
         if(!subscriptions || subscriptions?.data.length === 0){
             return{
                 success:true,
@@ -64,11 +65,13 @@ const getStripe = async (stripe_id:string):Promise<stripeClientProps> => {
             subscription: subscription.id,
         });
 
+
         const pastInvoices = await stripe?.invoices.list({
             customer: stripe_id,
             subscription: subscription.id,
             limit: 50,
         });
+
 
         let allInvoices:StripeInvoice[] = [];
 
@@ -88,7 +91,8 @@ const getStripe = async (stripe_id:string):Promise<stripeClientProps> => {
         const sortedPastInvoices = pastInvoices?.data
             .slice()
             .sort((a, b) => a.created - b.created) || [];
-        
+
+
         sortedPastInvoices.forEach((invoice) => {
             allInvoices.push({
                 id: invoice.id,
@@ -102,7 +106,7 @@ const getStripe = async (stripe_id:string):Promise<stripeClientProps> => {
                 paid: invoice.status == 'paid',
             });
         });
-        
+
         return {
             success:true,
             value:{
@@ -190,7 +194,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
         if (!cachedStripeKey) {
             cachedStripeKey = await getStripeSecret(stripeArn);
-            console.log(cachedStripeKey);
             if (!cachedStripeKey) return { statusCode: 404, body: JSON.stringify({ error: "Failed to retrieve Stripe secret key" }) };
         } 
 
@@ -200,8 +203,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         }
     
         const stripeData = await getStripe(org.Item.stripe_id)
-
-        return { 
+        return {
             statusCode: 200, 
             body: JSON.stringify({ 
             organization: { 

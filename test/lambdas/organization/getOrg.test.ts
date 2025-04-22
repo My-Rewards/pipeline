@@ -112,7 +112,7 @@ describe('GetOrg Lambda Function', () => {
             Key: { id: '123456789' }
         }).resolves({
             Item: {
-                orgId: 'org-123',
+                org_id: 'org-123',
                 permissions: ['read']
             }
         });
@@ -138,7 +138,7 @@ describe('GetOrg Lambda Function', () => {
             Key: { id: '123456789' }
         }).resolves({
             Item: {
-                orgId: 'org-123',
+                org_id: 'org-123',
                 permissions: ['read']
             }
         });
@@ -167,7 +167,7 @@ describe('GetOrg Lambda Function', () => {
             TableName: 'test-user-table'
         }).resolves({
             Item: {
-                orgId: 'org-123',
+                org_id: 'org-123',
                 permissions: ['read']
             }
         });
@@ -233,12 +233,12 @@ describe('GetOrg Lambda Function', () => {
             {
                 id: 'shop-1',
                 name: 'Shop 1',
-                orgId: 'org-123'
+                org_id: 'org-123'
             },
             {
                 id: 'shop-2',
                 name: 'Shop 2',
-                orgId: 'org-123'
+                org_id: 'org-123'
             }
         ];
 
@@ -246,7 +246,7 @@ describe('GetOrg Lambda Function', () => {
             TableName: 'test-user-table'
         }).resolves({
             Item: {
-                orgId: 'org-123',
+                org_id: 'org-123',
                 permissions: ['read']
             }
         });

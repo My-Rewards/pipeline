@@ -19,7 +19,7 @@ jest.mock('stripe', () => {
             list: jest.fn(),
         },
         invoices: {
-            retrieveUpcoming: jest.fn(),
+            createPreview: jest.fn(),
             list: jest.fn(),
         },
     };
@@ -33,7 +33,6 @@ jest.mock('stripe', () => {
         default: MockStripe
     };
 });
-
 
 const ddbMock = mockClient(DynamoDBDocumentClient);
 
@@ -106,7 +105,7 @@ describe('getBilling Lambda', () => {
             Key: { id: 'test-user-id' },
         }).resolves({
             Item: {
-                orgId: mockOrgId,
+                org_id: mockOrgId,
                 permissions: ['admin']
             }
         });
@@ -140,7 +139,7 @@ describe('getBilling Lambda', () => {
             Key: { id: 'test-user-id' },
         }).resolves({
             Item: {
-                orgId: mockOrgId,
+                org_id: mockOrgId,
                 permissions: ['admin']
             }
         });
@@ -180,8 +179,12 @@ describe('getBilling Lambda', () => {
             data: [
                 {
                     id: 'sub_123',
-                    current_period_start: 1672531200,
-                    current_period_end: 1675209600,
+                    items: {
+                        data:[{
+                            current_period_start: 1672531200,
+                            current_period_end: 1675209600,
+                        }]
+                    }
                 }
             ]
         });
@@ -211,7 +214,7 @@ describe('getBilling Lambda', () => {
             ]
         });
 
-        const response = await handler(eventWithUser );
+        const response = await handler(eventWithUser);
 
         expect(response.statusCode).toBe(200);
 
@@ -223,7 +226,7 @@ describe('getBilling Lambda', () => {
         expect(body.organization.billingData).toBeDefined();
         expect(body.organization.billingData.active).toBe(true);
         expect(body.organization.billingData.currPaymentMethod).toBe('pm_123');
-        expect(body.organization.billingData.invoices.length).toBe(2); // Upcoming + past
+        expect(body.organization.billingData.invoices.length).toBe(2);
         expect(body.organization.billingData.paymentMethods.length).toBe(1);
     });
 
@@ -233,7 +236,7 @@ describe('getBilling Lambda', () => {
             Key: { id: 'test-user-id' },
         }).resolves({
             Item: {
-                orgId: mockOrgId,
+                org_id: mockOrgId,
                 permissions: ['admin']
             }
         });
@@ -316,7 +319,7 @@ describe('getBilling Lambda', () => {
             Key: { id: 'test-user-id' },
         }).resolves({
             Item: {
-                orgId: mockOrgId,
+                org_id: mockOrgId,
                 permissions: ['admin']
             }
         });
@@ -338,7 +341,7 @@ describe('getBilling Lambda', () => {
             Key: { id: 'test-user-id' },
         }).resolves({
             Item: {
-                orgId: mockOrgId,
+                org_id: mockOrgId,
                 permissions: ['admin']
             }
         });
@@ -370,7 +373,7 @@ describe('getBilling Lambda', () => {
             Key: { id: 'test-user-id' },
         }).resolves({
             Item: {
-                orgId: mockOrgId,
+                org_id: mockOrgId,
                 permissions: ['admin']
             }
         });
@@ -420,7 +423,7 @@ describe('getBilling Lambda', () => {
             Key: { id: 'test-user-id' },
         }).resolves({
             Item: {
-                orgId: mockOrgId,
+                org_id: mockOrgId,
                 permissions: ['admin']
             }
         });
@@ -445,10 +448,8 @@ describe('getBilling Lambda', () => {
             error: 'Error fetching Billing'
         });
 
-        // Verify the error was logged
         expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching Billing:', mockError);
 
-        // Clean up
         consoleErrorSpy.mockRestore();
     });
 });

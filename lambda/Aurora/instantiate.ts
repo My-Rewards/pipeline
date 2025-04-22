@@ -89,7 +89,7 @@ export const handler: Handler = async () => {
                 id VARCHAR(50) PRIMARY KEY,
                 organization_id VARCHAR(50) NOT NULL,
                 active BOOLEAN DEFAULT TRUE,
-                location GEOGRAPHY(POINT),
+                location GEOGRAPHY(POINT) NOT NULL,
                 updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 
                  FOREIGN KEY (organization_id) REFERENCES Organizations(id)

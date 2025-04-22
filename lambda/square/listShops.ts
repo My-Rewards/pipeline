@@ -1,7 +1,7 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { KMSClient, DecryptCommand } from "@aws-sdk/client-kms";
-import { DynamoDBDocumentClient, GetCommand, GetCommandInput } from "@aws-sdk/lib-dynamodb";
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import {DynamoDBClient} from "@aws-sdk/client-dynamodb";
+import {DecryptCommand, KMSClient} from "@aws-sdk/client-kms";
+import {DynamoDBDocumentClient, GetCommand, GetCommandInput} from "@aws-sdk/lib-dynamodb";
+import {APIGatewayProxyEvent, APIGatewayProxyResult} from "aws-lambda";
 import * as square from 'square'
 
 const kms = new KMSClient({ region: process.env.AWS_REGION });
@@ -18,9 +18,7 @@ async function decryptKMS(encryptedBase64:String, kmsKey:string) {
         });
         
         const { Plaintext } = await kms.send(command);
-        const decryptedString = new TextDecoder().decode(Plaintext);
-        console.log("Decrypted value:", decryptedString);
-        return decryptedString;
+        return new TextDecoder().decode(Plaintext);
 
     } catch (error) {
         console.error("KMS Decryption Error:", error);

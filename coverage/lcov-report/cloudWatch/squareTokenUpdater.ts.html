@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">72.5% </span>
+                <span class="strong">95% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>29/40</span>
+                <span class='fraction'>38/40</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">57.14% </span>
+                <span class="strong">92.85% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>8/14</span>
+                <span class='fraction'>13/14</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">71.05% </span>
+                <span class="strong">94.73% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>27/38</span>
+                <span class='fraction'>36/38</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -226,23 +226,21 @@
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -251,10 +249,12 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -314,7 +314,7 @@ export const handler = async () =&gt; {
 &nbsp;
         const scanParams = new ScanCommand({
             TableName: orgTable,
-            FilterExpression: 'attribute_exists(refreshToken) AND expiresAt &lt;= :expirationDate',
+            FilterExpression: 'attribute_exists(refresh_token) AND expires_at &lt;= :expirationDate',
             ExpressionAttributeValues: {
                 ':expirationDate': OldestDate
             }
@@ -328,26 +328,26 @@ export const handler = async () =&gt; {
         });
 &nbsp;
         const updatePromises = organizations.map(async (org) =&gt; {
-            if (!org.expires_at || <span class="branch-1 cbranch-no" title="branch not covered" >!org.refresh_token)</span> return;
+            if (!org.expires_at || !org.refresh_token) return;
 &nbsp;
-            const twentyFourHoursFromNow = <span class="cstat-no" title="statement not covered" >new Date();</span>
-<span class="cstat-no" title="statement not covered" >            twentyFourHoursFromNow.setHours(twentyFourHoursFromNow.getHours() + 24);</span>
+            const twentyFourHoursFromNow = new Date();
+            twentyFourHoursFromNow.setHours(twentyFourHoursFromNow.getHours() + 24);
 &nbsp;
-<span class="cstat-no" title="statement not covered" >            try {</span>
-                const response = <span class="cstat-no" title="statement not covered" >await client.oAuth.obtainToken({</span>
+            try {
+                const response = await client.oAuth.obtainToken({
                     clientId: secretResult.client,
                     clientSecret: secretResult.secret,
                     grantType: 'refresh_token',
                     refreshToken: org.refresh_token,
                 });
 &nbsp;
-<span class="cstat-no" title="statement not covered" >                <span class="missing-if-branch" title="if path not taken" >I</span>if (response.accessToken &amp;&amp; response.refreshTokenExpiresAt &amp;&amp; response.refreshToken) {</span>
-                    const newExpirationDate = <span class="cstat-no" title="statement not covered" >new Date(response.refreshTokenExpiresAt);</span>
+                if (response.accessToken &amp;&amp; response.refreshTokenExpiresAt &amp;&amp; response.refreshToken) {
+                    const newExpirationDate = new Date(response.refreshTokenExpiresAt);
 &nbsp;
-                    const updateParams = <span class="cstat-no" title="statement not covered" >new UpdateCommand({</span>
-                        TableName: process.env.ORGANIZATIONS_TABLE,
+                    const updateParams = new UpdateCommand({
+                        TableName: orgTable,
                         Key: { id: org.id },
-                        UpdateExpression: 'SET accessToken = :token, expiresAt = :expiration, refreshToken = :refresh',
+                        UpdateExpression: 'SET access_token = :token, expires_at = :expiration, refresh_token = :refresh',
                         ExpressionAttributeValues: {
                             ':token': response.accessToken,
                             ':expiration': newExpirationDate.toISOString(),
@@ -355,10 +355,10 @@ export const handler = async () =&gt; {
                         },
                     });
 &nbsp;
-<span class="cstat-no" title="statement not covered" >                    await dynamoDb.send(updateParams);</span>
+                    await dynamoDb.send(updateParams);
                 }
             } catch (error) {
-<span class="cstat-no" title="statement not covered" >                console.error(`Error refreshing token for organization ${org.id}:`, error);</span>
+                console.error(`Error refreshing token for organization ${org.id}:`, error);
             }
         });
 &nbsp;
@@ -382,7 +382,7 @@ export const handler = async () =&gt; {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-04-21T03:03:32.334Z
+                at 2025-04-21T22:12:22.998Z
             </div>
         <script src="../prettify.js"></script>
         <script>

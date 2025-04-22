@@ -187,9 +187,9 @@ describe("createOrganization Lambda Handler", () => {
         ddbMock.on(GetCommand, {
             TableName: "test-user-table",
             Key: { id: "user123" },
-            ProjectionExpression: "email, orgId",
+            ProjectionExpression: "email, org_id",
         }).resolves({
-            Item: { orgId: "existing-org-id" }
+            Item: { org_id: "existing-org-id" }
         });
 
         const result = await handler(event);
@@ -248,7 +248,7 @@ describe("createOrganization Lambda Handler", () => {
         const updateCalls = ddbMock.commandCalls(UpdateCommand);
         expect(updateCalls).toHaveLength(1);
         expect(updateCalls[0].args[0].input.Key).toEqual({ id: "user123" });
-        expect(updateCalls[0].args[0].input.UpdateExpression).toBe("SET orgId = :org_id");
+        expect(updateCalls[0].args[0].input.UpdateExpression).toBe("SET org_id = :org_id");
         expect(updateCalls[0].args[0].input.ExpressionAttributeValues).toEqual({ ":org_id": "mocked-uuid-123" });
     });
 
@@ -310,7 +310,7 @@ describe("createOrganization Lambda Handler", () => {
         const result = await handler(event);
 
         expect(result.statusCode).toBe(500);
-        expect(JSON.parse(result.body)).toHaveProperty("db", "Dynamo");
+        expect(JSON.parse(result.body)).toHaveProperty("db", "Aurora");
         expect(JSON.parse(result.body)).toHaveProperty("message", "Failed to Create Organization");
     });
 
@@ -329,8 +329,8 @@ describe("createOrganization Lambda Handler", () => {
         const result = await handler(event);
 
         expect(result.statusCode).toBe(500);
-        expect(JSON.parse(result.body)).toHaveProperty("db", "Dynamo");
-        expect(JSON.parse(result.body)).toHaveProperty("message", "Failed to Create Organization");
+        expect(JSON.parse(result.body)).toHaveProperty("error", "Aurora execution error");
+        expect(JSON.parse(result.body)).toHaveProperty("message", "Failed");
     });
 
     test("should handle Stripe failure", async () => {

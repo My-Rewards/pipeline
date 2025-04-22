@@ -35,7 +35,6 @@ describe('squareTokenUpdater Lambda', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     ddbMock.reset();
-    obtainTokenMock.mockClear();
 
     const MockDate = class extends OriginalDate {
       constructor(...args: ConstructorParameters<typeof OriginalDate>) {
@@ -56,7 +55,6 @@ describe('squareTokenUpdater Lambda', () => {
         }
         return new OriginalDate(this.getTime()).toISOString();
       }
-
     };
 
     global.Date = MockDate as unknown as DateConstructor;
@@ -69,7 +67,6 @@ describe('squareTokenUpdater Lambda', () => {
     });
 
     process.env.ORG_TABLE = 'test-org-table';
-    process.env.ORGANIZATIONS_TABLE = 'test-org-table';
     process.env.SQUARE_ARN = 'arn:aws:secretsmanager:region:account:secret:square';
     process.env.KMS_KEY_ID = 'test-kms-key';
     process.env.APP_ENV = 'dev';
@@ -82,8 +79,7 @@ describe('squareTokenUpdater Lambda', () => {
 
   afterEach(() => {
     global.Date = OriginalDate;
-    jest.clearAllMocks();
-    jest.resetAllMocks();
+    obtainTokenMock.mockClear();
 
     delete process.env.ORG_TABLE;
     delete process.env.ORGANIZATIONS_TABLE;
@@ -92,42 +88,19 @@ describe('squareTokenUpdater Lambda', () => {
     delete process.env.APP_ENV;
   });
 
-  test('should handle missing required environment variables', async () => {
-    // Missing SQUARE_ARN
-    delete process.env.SQUARE_ARN;
-
-    const result = await handler();
-
-    expect(result).toEqual({
-      statusCode: 500,
-      body: JSON.stringify({ error: 'Square ARN required' }),
-    });
-  });
-
-  test('should handle missing KMS_KEY_ID', async () => {
-    delete process.env.KMS_KEY_ID;
-
-    const result = await handler();
-
-    expect(result).toEqual({
-      statusCode: 500,
-      body: JSON.stringify({ error: 'KMS Key ID is not configured' }),
-    });
-  });
-
   test('should process organizations with expiring tokens', async () => {
     const organizations = [
       {
         id: 'org1',
-        accessToken: 'existing-token-1',
-        expiresAt: '2023-01-01T20:00:00Z',
-        refreshToken: 'refresh-token-1',
+        access_token: 'existing-token-1',
+        expires_at: '2023-01-01T20:00:00Z',
+        refresh_token: 'refresh-token-1',
       },
       {
         id: 'org2',
-        accessToken: 'existing-token-2',
-        expiresAt: '2023-01-01T10:00:00Z',
-        refreshToken: 'refresh-token-2',
+        access_token: 'existing-token-2',
+        expires_at: '2023-01-01T10:00:00Z',
+        refresh_token: 'refresh-token-2',
       },
     ];
 
@@ -183,10 +156,10 @@ describe('squareTokenUpdater Lambda', () => {
     expect(firstUpdate).toEqual({
       TableName: 'test-org-table',
       Key: { id: 'org1' },
-      UpdateExpression: 'SET accessToken = :token, expiresAt = :expiration, refreshToken = :refresh',
+      UpdateExpression: 'SET access_token = :token, expires_at = :expiration, refresh_token = :refresh',
       ExpressionAttributeValues: {
         ':token': 'new-token-1',
-        ':expiration': '2023-02-01T12:00:00Z',
+        ':expiration': '2023-02-01T12:00:00.000Z',
         ':refresh': 'new-refresh-1',
       },
     });
@@ -196,14 +169,80 @@ describe('squareTokenUpdater Lambda', () => {
     expect(secondUpdate).toEqual({
       TableName: 'test-org-table',
       Key: { id: 'org2' },
-      UpdateExpression: 'SET accessToken = :token, expiresAt = :expiration, refreshToken = :refresh',
+      UpdateExpression: 'SET access_token = :token, expires_at = :expiration, refresh_token = :refresh',
       ExpressionAttributeValues: {
         ':token': 'new-token-2',
-        ':expiration': '2023-02-01T12:00:00Z',
+        ':expiration': '2023-02-01T12:00:00.000Z',
         ':refresh': 'new-refresh-2',
       },
     });
   });
+
+  test('should handle errors when refreshing tokens', async () => {
+    const organizations = [
+      {
+        id: 'org1',
+        access_token: 'existing-token-1',
+        expires_at: '2023-02-01T12:00:00Z',
+        refresh_token: 'refresh-token-1',
+      },
+    ];
+
+    ddbMock.on(ScanCommand).resolves({
+      Items: organizations,
+    });
+
+    const error = new Error('Token refresh failed');
+    obtainTokenMock.mockRejectedValue(error);
+
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+
+    const result = await handler();
+
+    expect(result).toEqual({
+      statusCode: 200,
+      body: JSON.stringify({ message: 'Token update process completed successfully' }),
+    });
+
+    expect(obtainTokenMock).toHaveBeenCalledTimes(1);
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Error refreshing token for organization org1:',
+        error
+    );
+
+    // Verify no DynamoDB updates were made
+    const updateCalls = ddbMock.commandCalls(UpdateCommand);
+    expect(updateCalls.length).toBe(0);
+
+    // Restore console.error
+    consoleErrorSpy.mockRestore();
+  });
+
+
+  test('should handle missing required environment variables', async () => {
+    // Missing SQUARE_ARN
+    delete process.env.SQUARE_ARN;
+
+    const result = await handler();
+
+    expect(result).toEqual({
+      statusCode: 500,
+      body: JSON.stringify({ error: 'Square ARN required' }),
+    });
+  });
+
+  test('should handle missing KMS_KEY_ID', async () => {
+    delete process.env.KMS_KEY_ID;
+
+    const result = await handler();
+
+    expect(result).toEqual({
+      statusCode: 500,
+      body: JSON.stringify({ error: 'KMS Key ID is not configured' }),
+    });
+  });
+
 
   test('should handle empty response from DynamoDB', async () => {
     // Mock empty DynamoDB scan response
@@ -226,54 +265,6 @@ describe('squareTokenUpdater Lambda', () => {
     // Verify that no DynamoDB updates were made
     const updateCalls = ddbMock.commandCalls(UpdateCommand);
     expect(updateCalls.length).toBe(0);
-  });
-
-  test('should handle errors when refreshing tokens', async () => {
-    const organizations = [
-      {
-        id: 'org1',
-        accessToken: 'existing-token-1',
-        expiresAt: '2023-02-01T12:00:00Z',
-        refreshToken: 'refresh-token-1',
-      },
-    ];
-
-    // Mock DynamoDB scan response
-    ddbMock.on(ScanCommand).resolves({
-      Items: organizations,
-    });
-
-    // Mock obtainToken to throw an error
-    const error = new Error('Token refresh failed');
-    obtainTokenMock.mockRejectedValueOnce(error);
-
-    // Spy on console.error
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-
-    // Execute the handler
-    const result = await handler();
-
-    // Verify the handler returned success despite the error
-    expect(result).toEqual({
-      statusCode: 200,
-      body: JSON.stringify({ message: 'Token update process completed successfully' }),
-    });
-
-    // Verify obtainToken was called
-    expect(obtainTokenMock).toHaveBeenCalledTimes(1);
-
-    // Verify error was logged
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Error refreshing token for organization org1:',
-        error
-    );
-
-    // Verify no DynamoDB updates were made
-    const updateCalls = ddbMock.commandCalls(UpdateCommand);
-    expect(updateCalls.length).toBe(0);
-
-    // Restore console.error
-    consoleErrorSpy.mockRestore();
   });
 
   test('should use production environment when app_env is prod', async () => {
@@ -299,21 +290,21 @@ describe('squareTokenUpdater Lambda', () => {
       {
         id: 'org1',
         // Missing refreshToken
-        accessToken: 'existing-token-1',
-        expiresAt: '2023-02-01T12:00:00Z',
+        access_token: 'existing-token-1',
+        expires_at: '2023-02-01T12:00:00Z',
       },
       {
         id: 'org2',
         // Missing expiresAt
-        accessToken: 'existing-token-2',
-        refreshToken: 'refresh-token-2',
+        access_token: 'existing-token-2',
+        refresh_token: 'refresh-token-2',
       },
       {
         id: 'org3',
         // Complete data
-        accessToken: 'existing-token-3',
-        expiresAt: '2023-02-01T12:00:00Z',
-        refreshToken: 'refresh-token-3',
+        access_token: 'existing-token-3',
+        expires_at: '2023-02-01T12:00:00Z',
+        refresh_token: 'refresh-token-3',
       },
     ];
 

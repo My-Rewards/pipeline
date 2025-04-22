@@ -43,11 +43,13 @@ export class VisitsApiStack extends cdk.NestedStack {
         ORGANIZATIONS_TABLE: organizationsTable.tableName,
         PLANS_TABLE: plansTable.tableName,
         APP_ENV: process.env.APP_ENV || 'dev',
+        KMS_KEY_ID: props.encryptionKey.keyId,
       },
       bundling: {
         externalModules: ['aws-sdk'],
         nodeModules: ['square']
       },
+      timeout: cdk.Duration.seconds(10),
     })
 
     // Grant permissions
