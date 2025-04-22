@@ -202,7 +202,8 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
                 parameters: [
                     { name: "org_id", value: { stringValue: organization_id } },
                     { name: "active", value: { booleanValue: false } },
-                    { name: "updated_at", value: { stringValue: dateNow.toISOString() } }
+                    { name: "updated_at", value: { stringValue: dateNow.toISOString() } },
+                    {name: "search_name", value: {stringValue: org_name.toLowerCase()}},
                 ],
             })
         );
