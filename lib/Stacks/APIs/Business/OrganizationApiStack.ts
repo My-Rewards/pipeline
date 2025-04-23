@@ -5,7 +5,8 @@ import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as nodejs from 'aws-cdk-lib/aws-lambda-nodejs'
 import * as iam from 'aws-cdk-lib/aws-iam';
-import { METER_PRICE } from '../../../../global/constants';
+import {DATABASE_NAME, METER_PRICE} from '../../../../global/constants';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
 
 interface OrgApiStackProps extends cdk.NestedStackProps {
   api: apigateway.RestApi;
@@ -19,29 +20,71 @@ export class OrgApiStack extends cdk.NestedStack {
     const orgTable = dynamodb.Table.fromTableArn(this, 'ImportedOrganizationTableARN', cdk.Fn.importValue('OrganizationTableARN'));
     const userTable = dynamodb.Table.fromTableArn(this, 'ImportedBizzUsersTable', cdk.Fn.importValue('BizzUserTableARN'));
     const shopTable = dynamodb.Table.fromTableArn(this, 'ImportedShopsTableARN', cdk.Fn.importValue('ShopTableARN'));
-    
+
     const stripeData = cdk.aws_secretsmanager.Secret.fromSecretNameV2(this, 'fetchStripeCredentials', 'stripe/credentials');
 
     const ImageDomain = cdk.Fn.importValue('ImageDomain');
     const ImageBucketName = cdk.Fn.importValue('OrganizationImageBucket');
     const ImageBucketARN = cdk.Fn.importValue('OrganizationImageBucketARN');
+    const ImageCloudfrontId = cdk.Fn.importValue('ImageCloudfrontId');
+    const clusterSecret = cdk.aws_secretsmanager.Secret.fromSecretCompleteArn(this, 'auroraSecret', cdk.Fn.importValue('AuroraSecretARN'));
+    const clusterArn = cdk.Fn.importValue('ClusterARN');
+
+    const vpc = ec2.Vpc.fromVpcAttributes(this, 'ImportedVPC', {
+      vpcId: cdk.Fn.importValue('ClusterVPC-Id'),
+      availabilityZones: cdk.Fn.getAzs(),
+      vpcCidrBlock: '10.0.0.0/24',
+      privateSubnetIds: [
+        cdk.Fn.importValue('PrivateSubnetWithEgress1-Id'),
+        cdk.Fn.importValue('PrivateSubnetWithEgress2-Id')
+      ],
+      privateSubnetNames: ['Private1', 'Private2'],
+      publicSubnetIds: [
+        cdk.Fn.importValue('PublicSubnet1-Id'),
+        cdk.Fn.importValue('PublicSubnet2-Id')
+      ],
+      publicSubnetNames: ['Public1', 'Public2'],
+      isolatedSubnetIds: [
+        cdk.Fn.importValue('PrivateSubnet1-Id'),
+        cdk.Fn.importValue('PrivateSubnet2-Id')
+      ],
+      isolatedSubnetNames: ['Isolated1', 'Isolated2']
+    });
+
+    const securityGroupResolvers = ec2.SecurityGroup.fromSecurityGroupId(
+        this,
+        'ImportedSecurityGroupResolvers',
+        cdk.Fn.importValue('SecurityGroupResolversId'),
+        { allowAllOutbound: true }
+    );
+
+    const clusterRole = iam.Role.fromRoleArn(this, 'ImportedRole', cdk.Fn.importValue('ClusterRoleARN'));
 
     // Create ORG Lambda
     const createOrgLambda = new nodejs.NodejsFunction(this, "create-organization",{
       runtime: lambda.Runtime.NODEJS_20_X,
       entry: 'lambda/organization/newOrganization.ts',
+      functionName:'Create-Organization',
       timeout:cdk.Duration.seconds(5),
       handler: 'handler',
+      role:clusterRole,
+      securityGroups:[securityGroupResolvers],
+      vpcSubnets: {
+        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS
+      },
+      vpc,
       environment: {
         ORG_TABLE: orgTable.tableName,
         USER_TABLE: userTable.tableName,
         BUCKET_NAME: ImageBucketName,
         IMAGE_DOMAIN: ImageDomain,
-        STRIPE_ARN: stripeData.secretArn
+        STRIPE_ARN: stripeData.secretArn,
+        CLUSTER_SECRET_ARN: clusterSecret.secretArn,
+        CLUSTER_ARN: clusterArn,
+        DB_NAME: DATABASE_NAME
     },
       bundling: {
-        externalModules: ['aws-sdk'],
-        nodeModules: ['stripe'],
+        nodeModules: ['stripe', 'aws-sdk']
       },
     })
     userTable.grantReadWriteData(createOrgLambda);
@@ -49,19 +92,21 @@ export class OrgApiStack extends cdk.NestedStack {
     stripeData.grantRead(createOrgLambda);
     createOrgLambda.addToRolePolicy(
       new iam.PolicyStatement({
-        actions: [    
+        actions: [
           "s3:GetObject",
           "s3:PutObject",
-          "s3:GetObjectVersion"
+          "s3:GetObjectVersion",
         ],
         resources: [`${ImageBucketARN}/*`],
       })
     );
+    clusterSecret.grantRead(createOrgLambda);
 
     // Get Org Lambda
     const getOrgLambda = new nodejs.NodejsFunction(this, "get-organization",{
       runtime: lambda.Runtime.NODEJS_20_X,
       entry: 'lambda/organization/getOrg.ts',
+      functionName:'Get-Organization',
       timeout:cdk.Duration.seconds(5),
       handler: 'handler',
       environment: {
@@ -88,14 +133,14 @@ export class OrgApiStack extends cdk.NestedStack {
       runtime: lambda.Runtime.NODEJS_20_X,
       entry: 'lambda/organization/getBilling.ts',
       handler: 'handler',
+      functionName:'Get-Organization-Billing',
       environment: {
         ORG_TABLE: orgTable.tableName,
         USER_TABLE: userTable.tableName,
         STRIPE_ARN: stripeData.secretArn
       },
       bundling: {
-        externalModules: ['aws-sdk'],
-        nodeModules: ['stripe']
+        nodeModules: ['stripe', 'aws-sdk']
       },
     })
     orgTable.grantReadData(getBillingLambda);
@@ -106,6 +151,7 @@ export class OrgApiStack extends cdk.NestedStack {
     const addPaymentLambda = new nodejs.NodejsFunction(this, "organization-addPayment",{
       runtime: lambda.Runtime.NODEJS_20_X,
       entry: 'lambda/organization/addPayment.ts',
+      functionName:'Add-Organization-Payment',
       handler: 'handler',
       environment: {
         ORG_TABLE: orgTable.tableName,
@@ -126,6 +172,7 @@ export class OrgApiStack extends cdk.NestedStack {
       runtime: lambda.Runtime.NODEJS_20_X,
       entry: 'lambda/organization/setDefaultPayment.ts',
       handler: 'handler',
+      functionName:'Set-Organization-Default-Payment',
       environment: {
         ORG_TABLE: orgTable.tableName,
         USER_TABLE: userTable.tableName,
@@ -146,6 +193,7 @@ export class OrgApiStack extends cdk.NestedStack {
       runtime: lambda.Runtime.NODEJS_20_X,
       entry: 'lambda/organization/removePayment.ts',
       handler: 'handler',
+      functionName:'Remove-Organization-Payment',
       environment: {
         ORG_TABLE: orgTable.tableName,
         USER_TABLE: userTable.tableName,
@@ -156,19 +204,106 @@ export class OrgApiStack extends cdk.NestedStack {
         nodeModules: ['stripe']
       },
     })
-    orgTable.grantReadData(removePaymentLambda);
+    orgTable.grantReadWriteData(removePaymentLambda);
     userTable.grantReadData(removePaymentLambda);
     stripeData.grantRead(removePaymentLambda);
 
-    const orgApi = props.api.root.addResource('org'); 
-    
+    // Update Organization Lambda
+    const updateOrgDetailsLambda = new nodejs.NodejsFunction(this, "organization-update-details",{
+      runtime: lambda.Runtime.NODEJS_20_X,
+      entry: 'lambda/organization/update/data.ts',
+      handler: 'handler',
+      functionName:'Update-Organization-Details',
+      environment: {
+        ORG_TABLE: orgTable.tableName,
+        USER_TABLE: userTable.tableName,
+        STRIPE_ARN: stripeData.secretArn,
+      },
+      bundling: {
+        externalModules: ['aws-sdk'],
+        nodeModules: ['stripe']
+      },
+    })
+    orgTable.grantReadWriteData(updateOrgDetailsLambda);
+    userTable.grantReadData(updateOrgDetailsLambda);
+    stripeData.grantRead(updateOrgDetailsLambda);
+
+    // Update Organization Lambda
+    const updateOrgStatusLambda = new nodejs.NodejsFunction(this, "organization-update-status",{
+      runtime: lambda.Runtime.NODEJS_20_X,
+      entry: 'lambda/organization/update/status.ts',
+      handler: 'handler',
+      functionName:'Update-Organization-Status',
+      vpc,
+      securityGroups: [securityGroupResolvers],
+      vpcSubnets: {
+        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS
+      },
+      role:clusterRole,
+      environment: {
+        ORG_TABLE: orgTable.tableName,
+        USER_TABLE: userTable.tableName,
+        STRIPE_ARN: stripeData.secretArn,
+        CLUSTER_SECRET_ARN: clusterSecret.secretArn,
+        CLUSTER_ARN: clusterArn,
+        DB_NAME: DATABASE_NAME
+      },
+      bundling: {
+        nodeModules: ['stripe', 'aws-sdk']
+      },
+    })
+    orgTable.grantReadWriteData(updateOrgStatusLambda);
+    userTable.grantReadData(updateOrgStatusLambda);
+    stripeData.grantRead(updateOrgStatusLambda);
+    clusterSecret.grantRead(updateOrgStatusLambda);
+
+    // Update Organization Lambda
+    const updateOrgImageLambda = new nodejs.NodejsFunction(this, "organization-update-images",{
+      runtime: lambda.Runtime.NODEJS_20_X,
+      entry: 'lambda/organization/update/images.ts',
+      handler: 'handler',
+      functionName:'Update-Organization-Image',
+      environment: {
+        ORG_TABLE: orgTable.tableName,
+        USER_TABLE: userTable.tableName,
+        BUCKET_NAME: ImageBucketName,
+        CLOUDFRONT_DISTRIBUTION_ID:ImageCloudfrontId
+      },
+      bundling: {
+        externalModules: ['aws-sdk'],
+      },
+    })
+    userTable.grantReadWriteData(updateOrgImageLambda);
+    orgTable.grantReadWriteData(updateOrgImageLambda);
+    updateOrgImageLambda.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:GetObjectVersion",
+          "cloudfront:CreateInvalidation"
+        ],
+        resources: [
+          `${ImageBucketARN}/*`,
+          `arn:aws:cloudfront::${this.account}:distribution/${ImageCloudfrontId}`
+        ],
+      })
+    );
+
+    const orgApi = props.api.root.addResource('org');
+    const updateOrgApi = orgApi.addResource('update');
+
     // Sub Paths
-    const createOrg = orgApi.addResource('create'); 
-    const getOrg = orgApi.addResource('details'); 
-    const getBilling = orgApi.addResource('billing'); 
-    const addPayment = orgApi.addResource('addPayment'); 
-    const setDefaultPayment = orgApi.addResource('setDefaultPayment'); 
-    const removePayment = orgApi.addResource('removePayment'); 
+    const createOrg = orgApi.addResource('create');
+    const getOrg = orgApi.addResource('details');
+    const getBilling = orgApi.addResource('billing');
+    const addPayment = orgApi.addResource('addPayment');
+    const setDefaultPayment = orgApi.addResource('setDefaultPayment');
+    const removePayment = orgApi.addResource('removePayment');
+
+    const updateOrg = updateOrgApi.addResource('details');
+    const updateImage = updateOrgApi.addResource('image');
+    const updateStatus = updateOrgApi.addResource('status');
 
     // API-Gateway lambda Integration
     const createOrgMethod = new apigateway.LambdaIntegration(createOrgLambda);
@@ -177,7 +312,9 @@ export class OrgApiStack extends cdk.NestedStack {
     const addPaymentMethod = new apigateway.LambdaIntegration(addPaymentLambda);
     const setDefaultPaymentMethod = new apigateway.LambdaIntegration(setDefaultPaymentLambda);
     const removePaymentMethod = new apigateway.LambdaIntegration(removePaymentLambda);
-
+    const updateImageMethod = new apigateway.LambdaIntegration(updateOrgImageLambda);
+    const updateDetailsMethod = new apigateway.LambdaIntegration(updateOrgDetailsLambda);
+    const updateStatusMethod = new apigateway.LambdaIntegration(updateOrgStatusLambda);
     // API-Gateway Path Integration
     createOrg.addMethod('POST', createOrgMethod, {
       authorizer: props.authorizer,
@@ -203,6 +340,17 @@ export class OrgApiStack extends cdk.NestedStack {
       authorizer: props.authorizer,
       authorizationType: apigateway.AuthorizationType.COGNITO,
     });
-
+    updateImage.addMethod('PUT', updateImageMethod, {
+      authorizer: props.authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO,
+    });
+    updateOrg.addMethod('PUT', updateDetailsMethod, {
+      authorizer: props.authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO,
+    });
+    updateStatus.addMethod('PUT', updateStatusMethod, {
+      authorizer: props.authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO,
+    });
   }
 }

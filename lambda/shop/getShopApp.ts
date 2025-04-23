@@ -10,13 +10,12 @@ export const handler = async (event: APIGatewayProxyEvent) => {
 
     const shopTable = process.env.SHOP_TABLE;
     const orgTable = process.env.ORG_TABLE;
-    const likesTable = process.env.LIKES_TABLE;
 
     const { shop_id } = event.queryStringParameters || {};
     const userSub = event.requestContext.authorizer?.claims?.sub;
 
     switch (true) {
-        case (!shopTable || !orgTable || !likesTable):
+        case (!shopTable || !orgTable):
             return { statusCode: 500, body: JSON.stringify({ error: "Missing env values" }) };
         case !userSub:
             return { statusCode: 404, body: JSON.stringify({ error: "Missing userSub" }) };
