@@ -22,6 +22,7 @@ export class UsersApiStack extends cdk.NestedStack {
       runtime: lambda.Runtime.NODEJS_20_X,
       entry: 'lambda/organization/getAccount.ts',
       handler: 'handler',
+      functionName:'Business-Get-Account',
       environment: {
         ORG_TABLE: orgTable.tableName,
         USER_TABLE: userTable.tableName,
@@ -38,6 +39,7 @@ export class UsersApiStack extends cdk.NestedStack {
       runtime: lambda.Runtime.NODEJS_20_X,
       entry: 'lambda/organization/update/account.ts',
       handler: 'handler',
+      functionName:'Business-Update-Account',
       environment: {
         ORG_TABLE: orgTable.tableName,
         USER_TABLE: userTable.tableName,

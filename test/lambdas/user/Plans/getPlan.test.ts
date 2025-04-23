@@ -30,7 +30,6 @@ describe('getPlan Lambda Handler', () => {
       ...originalEnv,
       PLANS_TABLE: 'test-plans-table',
       ORG_TABLE: 'test-org-table',
-      LIKES_TABLE: 'test-likes-table'
     };
   });
 

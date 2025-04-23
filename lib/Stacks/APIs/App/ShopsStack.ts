@@ -8,6 +8,8 @@ import * as kms from "aws-cdk-lib/aws-kms";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { DATABASE_NAME } from "../../../../global/constants";
+import {getAuroraAccess} from "../../util/aurora-access";
+
 interface UsersApiStackProps extends cdk.NestedStackProps {
     appRoot:  cdk.aws_apigateway.Resource
     authorizer: cdk.aws_apigateway.CognitoUserPoolsAuthorizer;
@@ -17,66 +19,18 @@ export class ShopApiStack extends cdk.NestedStack {
     constructor(scope: Construct, id: string, props: UsersApiStackProps) {
         super(scope, id, props);
 
-        const vpc = ec2.Vpc.fromVpcAttributes(this, "ImportedVPC", {
-            vpcId: cdk.Fn.importValue("ClusterVPC-Id"),
-            availabilityZones: cdk.Fn.getAzs(),
-            vpcCidrBlock: "10.0.0.0/24",
-            privateSubnetIds: [
-                cdk.Fn.importValue("PrivateSubnetWithEgress1-Id"),
-                cdk.Fn.importValue("PrivateSubnetWithEgress2-Id"),
-            ],
-            privateSubnetNames: ["Private1", "Private2"],
-            publicSubnetIds: [
-                cdk.Fn.importValue("PublicSubnet1-Id"),
-                cdk.Fn.importValue("PublicSubnet2-Id"),
-            ],
-            publicSubnetNames: ["Public1", "Public2"],
-            isolatedSubnetIds: [
-                cdk.Fn.importValue("PrivateSubnet1-Id"),
-                cdk.Fn.importValue("PrivateSubnet2-Id"),
-            ],
-            isolatedSubnetNames: ["Isolated1", "Isolated2"],
-        });
-
-        const clusterSecret = cdk.aws_secretsmanager.Secret.fromSecretCompleteArn(
-            this,
-            "auroraSecret",
-            cdk.Fn.importValue("AuroraSecretARN")
-        );
-
-        const clusterRole = iam.Role.fromRoleArn(
-            this,
-            "ImportedRole",
-            cdk.Fn.importValue("ClusterRoleARN"),
-        );
-
-        const securityGroupResolvers = ec2.SecurityGroup.fromSecurityGroupId(
-            this,
-            "ImportedSecurityGroupResolvers",
-            cdk.Fn.importValue("SecurityGroupResolversId"),
-            { allowAllOutbound: true }
-        );
+        // Get infrastructure resources using the helper function
+        const { vpc, clusterSecret, clusterArn, clusterRole, securityGroupResolvers } = getAuroraAccess(this, id);
 
         //Get imported values
-        const shopTable = dynamodb.Table.fromTableArn(
-            this,
-            "ImportedShopTableARN",
+        const shopTable = dynamodb.Table.fromTableArn(this, "ImportedShopTableARN",
             cdk.Fn.importValue("ShopTableARN")
         );
-        const orgTable = dynamodb.Table.fromTableArn(
-            this,
-            "ImportedOrganizationTableARN",
+        const orgTable = dynamodb.Table.fromTableArn(this, "ImportedOrganizationTableARN",
             cdk.Fn.importValue("OrganizationTableARN")
         );
-        const userTable = dynamodb.Table.fromTableArn(
-            this,
-            "ImportedUserTable",
+        const userTable = dynamodb.Table.fromTableArn(this, "ImportedUserTable",
             cdk.Fn.importValue("UserTableARN")
-        );
-        const likesTable = dynamodb.Table.fromTableArn(
-            this,
-            "ImportedLikesTableARN",
-            cdk.Fn.importValue("LikesTableARN")
         );
 
         // Get Shop API
@@ -84,10 +38,10 @@ export class ShopApiStack extends cdk.NestedStack {
             runtime: lambda.Runtime.NODEJS_20_X,
             entry: "lambda/shop/getShopApp.ts",
             handler: "handler",
+            functionName:'Fetch-Shop',
             environment: {
                 SHOP_TABLE: shopTable.tableName,
                 ORG_TABLE: orgTable.tableName,
-                LIKES_TABLE: likesTable.tableName,
             },
             bundling: {
                 externalModules: ["aws-sdk"],
@@ -96,7 +50,6 @@ export class ShopApiStack extends cdk.NestedStack {
 
         shopTable.grantReadData(getShopLambda);
         orgTable.grantReadData(getShopLambda);
-        likesTable.grantReadData(getShopLambda);
 
         // Radius Shops API
         const radiusShopsLambda = new nodejs.NodejsFunction(
@@ -106,6 +59,7 @@ export class ShopApiStack extends cdk.NestedStack {
                 runtime: lambda.Runtime.NODEJS_20_X,
                 entry: "lambda/shop/getRadiusShops.ts",
                 handler: "handler",
+                functionName:'Fetch-Radius-Shops',
                 vpc,
                 role: clusterRole,
                 securityGroups: [securityGroupResolvers],
@@ -115,11 +69,9 @@ export class ShopApiStack extends cdk.NestedStack {
                 environment: {
                     SHOP_TABLE: shopTable.tableName,
                     ORG_TABLE: orgTable.tableName,
-                    LIKES_TABLE: likesTable.tableName,
                     DB_NAME: DATABASE_NAME,
-                    CLUSTER_ARN: cdk.Fn.importValue("ClusterARN"),
-                    SECRET_ARN: cdk.Fn.importValue("AuroraSecretARN"),
-                    GET_SHOP_LAMBDA_NAME: getShopLambda.functionName,
+                    CLUSTER_ARN: clusterArn,
+                    SECRET_ARN: clusterSecret.secretArn,
                 },
                 bundling: {
                     externalModules: ["aws-sdk"],
@@ -129,16 +81,13 @@ export class ShopApiStack extends cdk.NestedStack {
 
         shopTable.grantReadData(radiusShopsLambda);
         orgTable.grantReadData(radiusShopsLambda);
-        likesTable.grantReadData(radiusShopsLambda);
 
         // Discover Shops API
-        const discoverShopsLambda = new nodejs.NodejsFunction(
-            this,
-            "discoverShopsLambda",
-            {
+        const discoverShopsLambda = new nodejs.NodejsFunction(this, "discoverShopsLambda", {
                 runtime: lambda.Runtime.NODEJS_20_X,
                 entry: "lambda/shop/getDiscoverShops.ts",
                 handler: "handler",
+                functionName:'Fetch-Discover-Page',
                 vpc,
                 role: clusterRole,
                 securityGroups: [securityGroupResolvers],
@@ -148,7 +97,6 @@ export class ShopApiStack extends cdk.NestedStack {
                 environment: {
                     SHOP_TABLE: shopTable.tableName,
                     ORG_TABLE: orgTable.tableName,
-                    LIKES_TABLE: likesTable.tableName,
                     DB_NAME: DATABASE_NAME,
                     CLUSTER_ARN: cdk.Fn.importValue("ClusterARN"),
                     SECRET_ARN: cdk.Fn.importValue("AuroraSecretARN"),
@@ -161,36 +109,29 @@ export class ShopApiStack extends cdk.NestedStack {
 
         shopTable.grantReadData(discoverShopsLambda);
         orgTable.grantReadData(discoverShopsLambda);
-        likesTable.grantReadData(discoverShopsLambda);
 
         const searchShops = new nodejs.NodejsFunction( this, "searchOrganinations",
             {
                 runtime: lambda.Runtime.NODEJS_20_X,
                 entry: "lambda/organization/search.ts",
                 handler: "handler",
-                vpc,
-                role: clusterRole,
-                securityGroups: [securityGroupResolvers],
-                vpcSubnets: {
-                    subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
-                },
+                functionName:'Search-Organizations',
                 environment: {
                     ORG_TABLE: orgTable.tableName,
-                    DB_NAME: DATABASE_NAME,
-                    CLUSTER_ARN: cdk.Fn.importValue("ClusterARN"),
-                    SECRET_ARN: cdk.Fn.importValue("AuroraSecretARN"),
                 },
                 bundling: {
                     externalModules: ["aws-sdk"],
                 },
             }
         );
+        orgTable.grantReadData(searchShops);
 
         const nearestShopLambda = new nodejs.NodejsFunction( this, "nearestOrganization",
             {
                 runtime: lambda.Runtime.NODEJS_20_X,
                 entry: "lambda/shop/nearestShop.ts",
                 handler: "handler",
+                functionName:'Fetch-Nearest-Shops',
                 vpc,
                 role: clusterRole,
                 securityGroups: [securityGroupResolvers],

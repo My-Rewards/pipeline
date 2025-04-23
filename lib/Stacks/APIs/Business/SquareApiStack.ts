@@ -83,6 +83,7 @@ export class SquareApiStack extends cdk.NestedStack {
       runtime: lambda.Runtime.NODEJS_20_X,
       entry: 'lambda/organization/square/unlink.ts',
       handler: 'handler',
+      functionName:'Unlink-Square-Account',
       vpc,
       role:clusterRole,
       securityGroups:[securityGroupResolvers],
@@ -108,6 +109,7 @@ export class SquareApiStack extends cdk.NestedStack {
       runtime: lambda.Runtime.NODEJS_20_X,
       entry: 'lambda/square/listShops.ts',
       handler: 'handler',
+      functionName:'List-Square-Shops',
       environment: {
         USER_TABLE: userTable.tableName,
         SQUARE_ARN:secretData.secretArn,

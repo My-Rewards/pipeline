@@ -31,17 +31,13 @@ export class ShopApiStack extends cdk.NestedStack {
       "ImportedBizzUsersTable",
       cdk.Fn.importValue("BizzUserTableARN")
     );
-    const likesTable = dynamodb.Table.fromTableArn(
-      this,
-      "ImportedLikesTableARN",
-      cdk.Fn.importValue("LikesTableARN")
-    );
 
     //Create shop API
-    const createShopLambda = new nodejs.NodejsFunction(this, "my-handler", {
+    const createShopLambda = new nodejs.NodejsFunction(this, "Create-Shop", {
       runtime: lambda.Runtime.NODEJS_20_X,
       entry: "lambda/shop/newShop.ts",
       handler: "handler",
+      functionName:'Create-Shop',
       environment: {
         SHOP_TABLE: shopTable.tableName,
         USER_TABLE: userTable.tableName,

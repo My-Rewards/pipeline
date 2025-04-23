@@ -100,6 +100,31 @@ export const handler: Handler = async () => {
             CREATE INDEX IF NOT EXISTS idx_shops_organization ON Shops(organization_id);
         `);
 
+        await userClient.query(`
+            CREATE TABLE IF NOT EXISTS OrgLikes (
+                user_id VARCHAR(50) NOT NULL,
+                organization_id VARCHAR(50) NOT NULL,
+                liked_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        
+                PRIMARY KEY (user_id, organization_id),
+                FOREIGN KEY (organization_id) REFERENCES Organizations(id) ON DELETE CASCADE
+            );
+            
+            CREATE INDEX IF NOT EXISTS idx_orglikes_user ON OrgLikes(user_id);
+            CREATE INDEX IF NOT EXISTS idx_orglikes_org ON OrgLikes(organization_id);
+        `);
+
+        await userClient.query(`
+            CREATE TABLE IF NOT EXISTS Plans (
+                id VARCHAR(50) PRIMARY KEY,
+                user_id VARCHAR(50) NOT NULL,
+                organization_id VARCHAR(50) NOT NULL,
+                created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+            
+                FOREIGN KEY (organization_id) REFERENCES Organizations(id) ON DELETE CASCADE
+            );
+        `);
+
         console.log('all tables and extensions created successfully!');
         await userClient.end();
 

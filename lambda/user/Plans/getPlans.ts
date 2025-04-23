@@ -1,27 +1,11 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import {
-    DynamoDBDocumentClient,
-    QueryCommand,
-    GetCommand,
-    QueryCommandInput
-} from "@aws-sdk/lib-dynamodb";
+import {APIGatewayProxyEvent, APIGatewayProxyResult} from "aws-lambda";
+import {DynamoDBClient} from "@aws-sdk/client-dynamodb";
+import {DynamoDBDocumentClient, GetCommand} from "@aws-sdk/lib-dynamodb";
+import {ExecuteStatementCommand, Field, RDSDataClient} from "@aws-sdk/client-rds-data";
 
 const dynamoClient = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
-
-interface Plan {
-    userId: string;
-    type: string;
-    org_id:string;
-    visits: number;
-    visits_total:number;
-    points_total:number;
-    start_date:string;
-    points: number;
-    active: boolean;
-    id: string;
-}
+const rdsClient = new RDSDataClient({});
 
 interface GroupedPlan {
     reward_plan:
@@ -37,6 +21,7 @@ interface GroupedPlan {
     banner: string|undefined,
     logo: string|undefined,
     org_id: string|undefined,
+    shop_id: string|undefined,
     name: string|undefined,
     id: string|undefined,
     activePlan:boolean|undefined,
@@ -44,137 +29,39 @@ interface GroupedPlan {
     favorite:boolean|undefined;
 }
 
+const plansTable = process.env.PLANS_TABLE;
+const orgTable = process.env.ORG_TABLE;
+const secretArn = process.env.SECRET_ARN;
+const resourceArn = process.env.CLUSTER_ARN;
+const database = process.env.DB_NAME;
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const plansTable = process.env.PLANS_TABLE;
-    const orgTable = process.env.ORG_TABLE;
 
     const userSub = event.requestContext.authorizer?.claims?.sub;
+    const { lat, lon } = event.queryStringParameters || {};
 
-    const limit = event.queryStringParameters?.limit ? parseInt(event.queryStringParameters.limit) : 20;
-    const lastEvaluatedKey = event.queryStringParameters?.nextToken
-        ? JSON.parse(decodeURIComponent(event.queryStringParameters.nextToken))
-        : undefined;
-
-    switch(true) {
-        case (!plansTable || !orgTable):
-            return { statusCode: 500, body: JSON.stringify({ error: "Missing table environment variables" }) };
-        case (!userSub):
-            return { statusCode: 400, body: JSON.stringify({ error: "User ID is required" }) };
-    }
+    const page = parseInt(event.queryStringParameters?.page || "1", 10);
+    const limit = parseInt(event.queryStringParameters?.limit || "20", 10);
+    const offset = (page - 1) * limit;
 
     try {
-        const queryParams = new QueryCommand({
-            TableName: plansTable,
-            KeyConditionExpression: "user_id = :userId",
-            ExpressionAttributeValues: {
-                ":userId": userSub
-            },
-            Limit: limit,
-        });
+        const latitude = parseFloat(lat || '39');
+        const longitude = parseFloat(lon || '-98');
 
+        validateEnv()
 
-        const plansResult = await dynamoDb.send(queryParams);
+        const records = await auroraCall(latitude, longitude, userSub, limit, offset);
 
-        if (!plansResult.Items || plansResult.Items.length === 0) {
-            return {
-                statusCode: 200,
-                body: JSON.stringify({
-                    message: "No plans found for this user",
-                    plans: [],
-                    count: 0
-                })
-            };
-        }
-
-        const plansMap: Record<string, GroupedPlan> = {};
-
-        plansResult.Items.forEach((item) => {
-            const plan = item as Plan;
-
-            if (!plansMap[plan.org_id]) {
-                plansMap[plan.org_id] = {
-                    org_id: undefined,
-                    visits: undefined,
-                    points: undefined,
-                    id: undefined,
-                    reward_plan: {
-                        rewards_loyalty: undefined,
-                        rewards_milestone: undefined
-                    }
-                } as GroupedPlan;
-            }
-
-            plansMap[plan.org_id].org_id = plan.org_id;
-            plansMap[plan.org_id].visits = plan.visits;
-            plansMap[plan.org_id].points = plan.points;
-            plansMap[plan.org_id].id = plan.id;
-
-
-        });
-
-        const enhancedPlans = await Promise.all(
-            Object.values(plansMap).map(async (planGroup) => {
-                const getOrg = new GetCommand({
-                    TableName: orgTable,
-                    Key: { id: planGroup.org_id },
-                    ProjectionExpression: "id, #org_name, images, rm_active, rl_active, rewards_loyalty, rewards_milestone, active",
-                    ExpressionAttributeNames: {
-                        "#org_name": "name"
-                    }
-                });
-
-                const orgResult = await dynamoDb.send(getOrg);
-                const org = orgResult.Item;
-
-                if (org) {
-                    planGroup.name = org.name;
-                    planGroup.id = org.id;
-                    planGroup.banner = org.images.banner.url;
-                    planGroup.logo = org.images.logo.url;
-
-                    planGroup.rl_active = org.rl_active || false;
-                    planGroup.rm_active = org.rm_active || false;
-
-                   planGroup.activePlan = planGroup.activePlan || false;
-                    planGroup.active = org.active;
-
-                    planGroup.reward_plan={
-                        rewards_milestone: org.rewards_milestone,
-                        rewards_loyalty:org.rewards_loyalty
-                    }
-
-                    planGroup.redeemableRewards=[]
-                    planGroup.favorite=false;
-
-                } else {
-                    planGroup.name = "Error";
-                    planGroup.id = planGroup.org_id;
-                    planGroup.logo = undefined;
-                    planGroup.banner = undefined;
-                    planGroup.rl_active = false;
-                    planGroup.rm_active = false;
-                    planGroup.redeemableRewards=[]
-                    planGroup.favorite=false;
-                    planGroup.reward_plan={
-                        rewards_milestone:undefined,
-                        rewards_loyalty:undefined
-                    }
-
-                }
-
-                return planGroup;
-            })
-        );
+        const enhancedPlans = await enrichList(records, userSub);
 
         const response = {
             plans: enhancedPlans,
             count: enhancedPlans.length,
             pagination: {
-                hasMore: !!plansResult.LastEvaluatedKey,
-                nextToken: plansResult.LastEvaluatedKey
-                    ? encodeURIComponent(JSON.stringify(plansResult.LastEvaluatedKey))
-                    : null
+                currentPage: page,
+                limit,
+                hasMore: enhancedPlans.length === limit,
+                nextPage: enhancedPlans.length === limit ? page + 1 : null
             }
         };
 
@@ -193,3 +80,105 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         };
     }
 };
+
+function validateEnv() {
+    if (!plansTable || !orgTable || !secretArn || !resourceArn || !database) {
+        throw new Error("Missing env values");
+    }
+}
+
+async function auroraCall(lat: number, lng: number, userSub:string, limit: number, offset: number) {
+    const auroraResult = await rdsClient.send(
+        new ExecuteStatementCommand({
+            secretArn: secretArn,
+            resourceArn: resourceArn,
+            database: database,
+            sql: `
+                    SELECT 
+                      p.id,
+                      p.organization_id,
+                      s.id AS shop_id,
+                      CASE 
+                        WHEN l.user_id IS NOT NULL THEN TRUE ELSE FALSE 
+                      END AS favorite
+                    FROM plans p
+                      JOIN organizations o
+                        ON o.id = p.organization_id
+                       AND o.active = TRUE
+                      JOIN LATERAL (
+                        SELECT s.id, s.location
+                        FROM shops s
+                        WHERE s.organization_id = p.organization_id AND s.active = TRUE
+                        ORDER BY ST_Distance(s.location, ST_MakePoint(:lon, :lat)::geography)
+                        LIMIT 1
+                      ) s ON true
+                      LEFT JOIN orgLikes l ON l.organization_id = p.organization_id AND l.user_id = :userId
+                        WHERE p.user_id = :userId
+                    LIMIT :limit OFFSET :offset;
+                `,
+            parameters: [
+                { name: "lat", value: { doubleValue: lat } },
+                { name: "lon", value: { doubleValue: lng } },
+                { name: "userId", value: { stringValue: userSub } },
+                { name: "limit", value: { longValue: limit } },
+                { name: "offset", value: { longValue: offset } },
+            ],
+        })
+    );
+
+    return auroraResult.records ?? [];
+}
+
+async function enrichList(records:Field[][], userSub:string): Promise<GroupedPlan[]> {
+
+    return  await Promise.all(
+        records.map(async (row) => {
+            const planId = row[0].stringValue;
+            const orgId = row[1].stringValue;
+            const shopId = row[2].stringValue;
+            const favorite = row[3].booleanValue!;
+
+            const [planRes, orgRes] = await Promise.all([
+                dynamoDb.send(new GetCommand({
+                    TableName: plansTable,
+                    Key: {
+                        user_id: userSub,
+                        org_id: orgId
+                    }
+                })),
+                dynamoDb.send(new GetCommand({
+                    TableName: orgTable,
+                    Key: {id: orgId},
+                    ProjectionExpression: "id, #name, images, rm_active, rl_active, rewards_loyalty, rewards_milestone",
+                    ExpressionAttributeNames: {"#name": "name"}
+                })),
+            ]);
+
+            const plan = planRes.Item;
+            const org = orgRes.Item;
+
+            return {
+                id: planId,
+                org_id: orgId,
+                shop_id: shopId,
+                plan,
+                org,
+                banner: org?.images?.banner?.url,
+                logo: org?.images?.logo?.url,
+                name: org?.name,
+                rl_active: org?.rl_active ?? false,
+                rm_active: org?.rm_active ?? false,
+                active: org?.active ?? false,
+                reward_plan: {
+                    rewards_loyalty: org?.rewards_loyalty,
+                    rewards_milestone: org?.rewards_milestone
+                },
+                visits: plan?.visits ?? 0,
+                points: plan?.points ?? 0,
+                activePlan: plan?.active ?? false,
+                redeemableRewards: [],
+                favorite
+            };
+        })
+    )
+}
