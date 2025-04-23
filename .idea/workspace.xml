@@ -18,37 +18,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c38fec59-b241-48cf-a190-0dfc032fdfce" name="Local Files" comment="updated git ignore + location in shops (aurora) cant be null">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/clover.xml" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/clover.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/coverage-final.json" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/coverage-final.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/cloudWatch/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/cloudWatch/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/cloudWatch/squareTokenUpdater.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/cloudWatch/squareTokenUpdater.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/constants/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/constants/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/constants/square.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/constants/square.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/constants/validOrganization.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/constants/validOrganization.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/likes/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/likes/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/likes/setLike.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/likes/setLike.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/getAccount.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/getAccount.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/getBilling.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/getBilling.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/getOrg.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/getOrg.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/newOrganization.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/newOrganization.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/square/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/square/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/square/link.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/square/link.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/update/account.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/update/account.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/update/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/update/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/shop/getShopApp.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/shop/getShopApp.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/shop/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/shop/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/shop/newShop.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/shop/newShop.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/user/Plans/getPlan.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/user/Plans/getPlan.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/user/Plans/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/user/Plans/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/user/createUser.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/user/createUser.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/user/createUserBusiness.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/user/createUserBusiness.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/user/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/user/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov.info" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov.info" afterDir="false" />
-    </list>
+    <list default="true" id="c38fec59-b241-48cf-a190-0dfc032fdfce" name="Local Files" comment="updated git ignore + location in shops (aurora) cant be null" />
     <list id="79a675d0-e669-4fab-ac29-b64f9bdb9a1c" name="Unversioned Files" comment="Unversioned Files" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -150,7 +120,7 @@
     "Node.js.business-website-stack.ts.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "#73 on Brian",
+    "git-widget-placeholder": "Brian",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "/Users/brian/myRewards/pipeline",
     "node.js.detected.package.eslint": "true",
@@ -178,6 +148,13 @@
     </key>
   </component>
   <component name="RunManager" selected="Jest.squareTokenUpdater Lambda">
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <module name="pipeline" />
+      <option name="filePath" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration default="true" type="Python.FlaskServer">
       <module name="pipeline" />
       <option name="ENV_FILES" value="" />
@@ -299,13 +276,6 @@
         <test-name value="should process organizations with expiring tokens" />
       </test-names>
       <method v="2" />
-    </configuration>
-    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
-      <module name="pipeline" />
-      <option name="filePath" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
     </configuration>
     <configuration default="true" type="PythonConfigurationType" factoryName="Python">
       <module name="pipeline" />
