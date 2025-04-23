@@ -25,9 +25,9 @@ export const handler = async (
   }
 
   try {
-    const { shop_id, lat, lon } = event.queryStringParameters || {};
+    const { shop_name, lat, lon } = event.queryStringParameters || {};
 
-    if (!shop_id) {
+    if (!shop_name) {
       return {
         statusCode: 400,
         body: JSON.stringify({ error: "Shop ID is required" }),
@@ -52,19 +52,22 @@ export const handler = async (
         resourceArn: resourceArn,
         database: database,
         sql: `
-                    SELECT 
-                    s.id, 
-                    s.organization_id, 
-                    ST_Distance(s.location, ST_MakePoint(:lon, :lat)::geography) AS distance
-                    FROM shops s
-                    JOIN organizations o ON o.id = s.organization_id
-                    WHERE s.active = TRUE AND o.active = TRUE
-                    ORDER BY s.location <-> ST_MakePoint(:lon, :lat)::geography
-                    LIMIT 1
+            SELECT 
+            o.id AS organization_id,
+            s.id AS shop_id, 
+            ST_Distance(s.location, ST_MakePoint(:lon, :lat)::geography) AS distance
+            FROM organizations o
+            JOIN shops s ON s.organization_id = o.id
+            WHERE s.active = TRUE 
+            AND o.active = TRUE
+            AND o.search_name ILIKE :shop_name  -- ILIKE for case-insensitive matching
+            ORDER BY s.location <-> ST_MakePoint(:lon, :lat)::geography
+            LIMIT 1
                 `,
         parameters: [
           { name: "lat", value: { doubleValue: latitude } },
           { name: "lon", value: { doubleValue: longitude } },
+          {name: "shop_name", value: { stringValue: shop_name }},
         ],
       })
     );
@@ -78,7 +81,8 @@ export const handler = async (
     }
 
     const shopRecord = records[0];
-    const org_id = shopRecord[1].stringValue;
+    const org_id = shopRecord[0].stringValue;
+    const shop_id = shopRecord[1].stringValue;
     const distance = shopRecord[2].doubleValue;
 
     const shopRes = await docClient.send(
