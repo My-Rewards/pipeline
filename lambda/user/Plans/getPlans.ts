@@ -55,7 +55,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const enhancedPlans = await enrichList(records, userSub);
 
         const response = {
-            plans: enhancedPlans,
+            value: enhancedPlans,
             count: enhancedPlans.length,
             pagination: {
                 currentPage: page,

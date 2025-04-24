@@ -4,20 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c5f43aa4-9a17-40ee-b0b0-c7c60dd8eee7" name="Changes" comment="git commit">
-      <change afterPath="$PROJECT_DIR$/lambda/user/Plans/getLikedPlans.ts" afterDir="false" />
+    <list default="true" id="c5f43aa4-9a17-40ee-b0b0-c7c60dd8eee7" name="Changes" comment="modulated setup for having lambda be able to modify, implemented shops page">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/lambda/shop/getShopApp.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/lambda/shop/getShopApp.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/organization/like.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/like.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/organization/search.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/search.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/shop/getDiscoverShops.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/shop/getDiscoverShops.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/shop/getRadiusShops.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/shop/getRadiusShops.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/shop/getShopApp.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/shop/getShopApp.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/user/Plans/getPlans.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/user/Plans/getPlans.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/visit/getVisit.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/visit/getVisit.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/Stacks/APIs/App/PlansApiStack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/APIs/App/PlansApiStack.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/Stacks/APIs/App/ShopsStack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/APIs/App/ShopsStack.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/Stacks/APIs/App/UserApiStack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/APIs/App/UserApiStack.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -27,9 +15,9 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 8
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 8
+}</component>
   <component name="ProjectId" id="2w9zFkC2WmTi96Q6BixanZSzGzM" />
   <component name="ProjectLevelVcsManager">
     <ConfirmationsSetting value="2" id="Add" />
@@ -39,20 +27,20 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "Brian",
-    "junie.onboarding.icon.badge.shown": "true",
-    "node.js.detected.package.eslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "ts.external.directory.path": "/Users/brian/myRewards/pipeline/node_modules/typescript/lib",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;Brian&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;/Users/brian/myRewards/pipeline/node_modules/typescript/lib&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -78,7 +66,15 @@
       <updated>1745468476595</updated>
       <workItem from="1745468477943" duration="6930000" />
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="modulated setup for having lambda be able to modify, implemented shops page">
+      <option name="closed" value="true" />
+      <created>1745520186059</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1745520186059</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -93,6 +89,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="git commit" />
-    <option name="LAST_COMMIT_MESSAGE" value="git commit" />
+    <MESSAGE value="modulated setup for having lambda be able to modify, implemented shops page" />
+    <option name="LAST_COMMIT_MESSAGE" value="modulated setup for having lambda be able to modify, implemented shops page" />
   </component>
 </project>
