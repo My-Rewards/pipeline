@@ -94,28 +94,28 @@ async function auroraCall(lat: number, lng: number, userSub:string, limit: numbe
             resourceArn: resourceArn,
             database: database,
             sql: `
-                    SELECT 
-                      p.id,
-                      p.organization_id,
-                      s.id AS shop_id,
-                      CASE 
-                        WHEN l.user_id IS NOT NULL THEN TRUE ELSE FALSE 
-                      END AS favorite
-                    FROM plans p
-                      JOIN organizations o
-                        ON o.id = p.organization_id
-                       AND o.active = TRUE
-                      JOIN LATERAL (
-                        SELECT s.id, s.location
-                        FROM shops s
-                        WHERE s.organization_id = p.organization_id AND s.active = TRUE
-                        ORDER BY ST_Distance(s.location, ST_MakePoint(:lon, :lat)::geography)
-                        LIMIT 1
-                      ) s ON true
-                      LEFT JOIN orgLikes l ON l.organization_id = p.organization_id AND l.user_id = :userId
-                        WHERE p.user_id = :userId
-                    LIMIT :limit OFFSET :offset;
-                `,
+                SELECT 
+                  p.id,
+                  p.organization_id,
+                  s.id AS shop_id,
+                  TRUE AS favorite  -- Always true, since we only include liked orgs now
+                FROM plans p
+                JOIN organizations o
+                  ON o.id = p.organization_id
+                  AND o.active = TRUE
+                JOIN LATERAL (
+                  SELECT s.id, s.location
+                  FROM shops s
+                  WHERE s.organization_id = p.organization_id AND s.active = TRUE
+                  ORDER BY ST_Distance(s.location, ST_MakePoint(:lon, :lat)::geography)
+                  LIMIT 1
+                ) s ON true
+                -- INNER JOIN ensures we only keep liked orgs
+                INNER JOIN orgLikes l 
+                  ON l.organization_id = p.organization_id AND l.user_id = :userId
+                WHERE p.user_id = :userId
+                LIMIT :limit OFFSET :offset;
+             `,
             parameters: [
                 { name: "lat", value: { doubleValue: lat } },
                 { name: "lon", value: { doubleValue: lng } },

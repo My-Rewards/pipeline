@@ -41,6 +41,12 @@ export const handler = async (event: APIGatewayProxyEvent) => {
       body: JSON.stringify({
         message: "Shops found",
         value: enrichedShops.filter(Boolean),
+        pagination: {
+          currentPage: page,
+          limit,
+          hasMore: enrichedShops.length === limit,
+          nextPage: enrichedShops.length === limit ? page + 1 : null
+        }
       }),
       headers: {
         "Content-Type": "application/json",
@@ -104,10 +110,6 @@ async function auroraCall(latitude: number, longitude: number, limit: number, of
       })
   );
 
-  if (auroraRawData.records?.length === 0) {
-    throw new Error("No shops found");
-  }
-
   return auroraRawData.records || [];
 
 }
@@ -159,7 +161,7 @@ async function enrichList(records:Field[][]){
 
           return {
             shop_id: shop_id,
-            organization_id: org_id,
+            org_id: org_id,
             preview: org.images?.preview?.url || "",
             name: org.name,
             distance: miles,

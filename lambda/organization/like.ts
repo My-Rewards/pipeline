@@ -9,7 +9,7 @@ import {
 
 const rds = new RDSDataClient({});
 
-const secretArn = process.env.SECRET_ARN;
+const secretArn = process.env.CLUSTER_SECRET_ARN;
 const resourceArn = process.env.CLUSTER_ARN;
 const database = process.env.DB_NAME;
 

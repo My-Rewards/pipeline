@@ -55,7 +55,6 @@ export class PlansApiStack extends cdk.NestedStack {
             environment: {
                 PLANS_TABLE: plansTable.tableName,
                 ORG_TABLE: orgTable.tableName,
-                SHOP_TABLE: shopTable.tableName,
                 DB_NAME: DATABASE_NAME,
                 CLUSTER_ARN: clusterArn,
                 SECRET_ARN: clusterSecret.secretArn,
@@ -68,17 +67,49 @@ export class PlansApiStack extends cdk.NestedStack {
         plansTable.grantReadData(fetchPlansLambda);
         shopTable.grantReadData(fetchPlansLambda);
 
-        const planApi = props.appRoot.addResource('plans');
-        const fetchPlanApi = planApi.addResource('plan');
+        const fetchLikedPlansLambda = new nodejs.NodejsFunction(this, "fetchLikedAppPlans",{
+            runtime: lambda.Runtime.NODEJS_20_X,
+            entry: 'lambda/user/Plans/getLikedPlans.ts',
+            functionName:'Fetch-Liked-User-Plans',
+            handler: 'handler',
+            vpc,
+            role: clusterRole,
+            securityGroups: [securityGroupResolvers],
+            vpcSubnets: {
+                subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS
+            },
+            environment: {
+                PLANS_TABLE: plansTable.tableName,
+                ORG_TABLE: orgTable.tableName,
+                DB_NAME: DATABASE_NAME,
+                CLUSTER_ARN: clusterArn,
+                SECRET_ARN: clusterSecret.secretArn,
+            },
+            bundling: {
+                externalModules: ['aws-sdk'],
+            },
+        })
+        orgTable.grantReadData(fetchLikedPlansLambda);
+        plansTable.grantReadData(fetchLikedPlansLambda);
+        shopTable.grantReadData(fetchLikedPlansLambda);
+
+        const plansApi = props.appRoot.addResource('plans');
+        const fetchPlanApi = plansApi.addResource('plan');
+        const fetchLikedPlansApi = plansApi.addResource('favorite');
 
         const fetchPlan = new apigateway.LambdaIntegration(fetchPlanLambda);
         const fetchPlans = new apigateway.LambdaIntegration(fetchPlansLambda);
+        const fetchLikedPlans = new apigateway.LambdaIntegration(fetchLikedPlansLambda);
 
         fetchPlanApi.addMethod('GET', fetchPlan, {
             authorizer: props.authorizer,
             authorizationType: apigateway.AuthorizationType.COGNITO,
         });
-        planApi.addMethod('GET', fetchPlans, {
+        plansApi.addMethod('GET', fetchPlans, {
+            authorizer: props.authorizer,
+            authorizationType: apigateway.AuthorizationType.COGNITO,
+        });
+        fetchLikedPlansApi.addMethod('GET', fetchLikedPlans, {
             authorizer: props.authorizer,
             authorizationType: apigateway.AuthorizationType.COGNITO,
         });
