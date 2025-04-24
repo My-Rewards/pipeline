@@ -86,7 +86,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
 
           return {
             shop_id: shop_id,
-            organization_id: org_id,
+            org_id: org_id,
             preview: org.images?.banner?.url || "",
             latitude: shop.latitude,
             longitude: shop.longitude,

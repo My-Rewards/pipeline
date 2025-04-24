@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="c5f43aa4-9a17-40ee-b0b0-c7c60dd8eee7" name="Changes" comment="git commit">
+      <change afterPath="$PROJECT_DIR$/lambda/user/Plans/getLikedPlans.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/lambda/shop/getShopApp.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/lambda/shop/getShopApp.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lambda/organization/like.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/like.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lambda/organization/search.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/search.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lambda/shop/getDiscoverShops.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/shop/getDiscoverShops.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lambda/shop/getRadiusShops.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/shop/getRadiusShops.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lambda/shop/getShopApp.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/shop/getShopApp.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lambda/user/Plans/getPlans.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/user/Plans/getPlans.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lambda/visit/getVisit.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/visit/getVisit.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/Stacks/APIs/App/PlansApiStack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/APIs/App/PlansApiStack.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/Stacks/APIs/App/ShopsStack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/APIs/App/ShopsStack.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/Stacks/APIs/App/UserApiStack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/APIs/App/UserApiStack.ts" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 8
+}]]></component>
+  <component name="ProjectId" id="2w9zFkC2WmTi96Q6BixanZSzGzM" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+    <ConfirmationsSetting value="2" id="Remove" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "Brian",
+    "junie.onboarding.icon.badge.shown": "true",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "ts.external.directory.path": "/Users/brian/myRewards/pipeline/node_modules/typescript/lib",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-fbdcb00ec9e3-intellij.indexing.shared.core-IU-251.23774.435" />
+        <option value="bundled-js-predefined-d6986cc7102b-f27c65a3e318-JavaScript-IU-251.23774.435" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task id="LOCAL-00001" summary="git commit">
+      <option name="closed" value="true" />
+      <created>1745430758218</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1745430758218</updated>
+    </task>
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="c5f43aa4-9a17-40ee-b0b0-c7c60dd8eee7" name="Changes" comment="git commit" />
+      <created>1745468476595</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1745468476595</updated>
+      <workItem from="1745468477943" duration="6930000" />
+    </task>
+    <option name="localTasksCounter" value="2" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+    <option name="exactExcludedFiles">
+      <list>
+        <option value="$PROJECT_DIR$/test/pipeline.test.d.ts" />
+        <option value="$PROJECT_DIR$/bin/pipeline.js" />
+        <option value="$PROJECT_DIR$/bin/pipeline.d.ts" />
+      </list>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="git commit" />
+    <option name="LAST_COMMIT_MESSAGE" value="git commit" />
+  </component>
+</project>

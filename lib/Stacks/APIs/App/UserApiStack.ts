@@ -69,6 +69,11 @@ export class UsersApiStack extends cdk.NestedStack {
     usersTable.grantReadWriteData(updateCustomerAccountLambda);
     usersTable.grantReadWriteData(deleteCustomerAccountLambda);
 
+    deleteCustomerAccountLambda.addToRolePolicy(new iam.PolicyStatement({
+      actions: ['cognito-idp:AdminDeleteUser'],
+      resources: [userPool.userPoolArn],
+    }));
+
     //Delete Customer Account
     const setOrgLike = new nodejs.NodejsFunction(this, "Set-Customer-Like",{
       runtime: lambda.Runtime.NODEJS_20_X,
@@ -82,7 +87,6 @@ export class UsersApiStack extends cdk.NestedStack {
         subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS
       },
       environment: {
-        ORG_TABLE: orgTable.tableName,
         CLUSTER_SECRET_ARN: clusterSecret.secretArn,
         CLUSTER_ARN: clusterArn,
         DB_NAME: DATABASE_NAME
@@ -91,12 +95,6 @@ export class UsersApiStack extends cdk.NestedStack {
         externalModules: ['aws-sdk'],
       },
     });
-    orgTable.grantReadWriteData(setOrgLike);
-
-    deleteCustomerAccountLambda.addToRolePolicy(new iam.PolicyStatement({
-      actions: ['cognito-idp:AdminDeleteUser'],
-      resources: [userPool.userPoolArn],
-    }));
 
 
     // API Gateway integration
@@ -104,7 +102,7 @@ export class UsersApiStack extends cdk.NestedStack {
     const usersApi = customer.addResource('user'); 
     const userDelete = usersApi.addResource('delete');
     const userUpdate = usersApi.addResource('update');
-    const orgLike = usersApi.addResource('like');
+    const orgLike = customer.addResource('like');
 
     const getCustomerUserIntegration = new apigateway.LambdaIntegration(getCustomerAccountLambda);
     const updateCustomerUserIntegration = new apigateway.LambdaIntegration(updateCustomerAccountLambda);

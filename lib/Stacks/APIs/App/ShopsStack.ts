@@ -22,7 +22,6 @@ export class ShopApiStack extends cdk.NestedStack {
         // Get infrastructure resources using the helper function
         const { vpc, clusterSecret, clusterArn, clusterRole, securityGroupResolvers } = getAuroraAccess(this, id);
 
-        //Get imported values
         const shopTable = dynamodb.Table.fromTableArn(this, "ImportedShopTableARN",
             cdk.Fn.importValue("ShopTableARN")
         );
@@ -39,9 +38,18 @@ export class ShopApiStack extends cdk.NestedStack {
             entry: "lambda/shop/getShopApp.ts",
             handler: "handler",
             functionName:'Fetch-Shop',
+            vpc,
+            role: clusterRole,
+            securityGroups: [securityGroupResolvers],
+            vpcSubnets: {
+                subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+            },
             environment: {
                 SHOP_TABLE: shopTable.tableName,
                 ORG_TABLE: orgTable.tableName,
+                DB_NAME: DATABASE_NAME,
+                CLUSTER_ARN: clusterArn,
+                SECRET_ARN: clusterSecret.secretArn,
             },
             bundling: {
                 externalModules: ["aws-sdk"],
@@ -116,8 +124,17 @@ export class ShopApiStack extends cdk.NestedStack {
                 entry: "lambda/organization/search.ts",
                 handler: "handler",
                 functionName:'Search-Organizations',
+                vpc,
+                role: clusterRole,
+                securityGroups: [securityGroupResolvers],
+                vpcSubnets: {
+                    subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+                },
                 environment: {
                     ORG_TABLE: orgTable.tableName,
+                    DB_NAME: DATABASE_NAME,
+                    CLUSTER_ARN: clusterArn,
+                    SECRET_ARN: clusterSecret.secretArn
                 },
                 bundling: {
                     externalModules: ["aws-sdk"],
@@ -142,8 +159,8 @@ export class ShopApiStack extends cdk.NestedStack {
                     ORG_TABLE: orgTable.tableName,
                     SHOP_TABLE: shopTable.tableName,
                     DB_NAME: DATABASE_NAME,
-                    CLUSTER_ARN: cdk.Fn.importValue("ClusterARN"),
-                    SECRET_ARN: cdk.Fn.importValue("AuroraSecretARN")
+                    CLUSTER_ARN: clusterArn,
+                    SECRET_ARN: clusterSecret.secretArn
                 },
                 bundling: {
                     externalModules: ["aws-sdk"],
