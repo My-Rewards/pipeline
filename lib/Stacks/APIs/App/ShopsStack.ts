@@ -152,7 +152,6 @@ export class ShopApiStack extends cdk.NestedStack {
                     DB_NAME: DATABASE_NAME,
                     CLUSTER_ARN: cdk.Fn.importValue("ClusterARN"),
                     SECRET_ARN: cdk.Fn.importValue("AuroraSecretARN"),
-                    GET_SHOP_LAMBDA_NAME: getShopLambda.functionName,
                 },
                 bundling: {
                     externalModules: ["aws-sdk"],
@@ -200,6 +199,7 @@ export class ShopApiStack extends cdk.NestedStack {
                 },
                 environment: {
                     ORG_TABLE: orgTable.tableName,
+                    SHOP_TABLE: shopTable.tableName,
                     DB_NAME: DATABASE_NAME,
                     CLUSTER_ARN: cdk.Fn.importValue("ClusterARN"),
                     SECRET_ARN: cdk.Fn.importValue("AuroraSecretARN")
