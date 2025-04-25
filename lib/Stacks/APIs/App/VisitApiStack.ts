@@ -24,6 +24,7 @@ export class VisitsApiStack extends cdk.NestedStack {
     const getVisitLambda = new nodejs.NodejsFunction(this, "get-visit-handler",{
       runtime: lambda.Runtime.NODEJS_20_X,
       entry: 'lambda/visit/getVisit.ts',
+      functionName:'Get-Visit',
       handler: 'handler',
       environment: {
         VISITS_TABLE: visitsTable.tableName,
@@ -37,6 +38,7 @@ export class VisitsApiStack extends cdk.NestedStack {
       runtime: lambda.Runtime.NODEJS_20_X,
       entry: 'lambda/visit/recordVisit.ts',
       handler: 'handler',
+      functionName:'Record-Visit',
       environment: {
         VISITS_TABLE: visitsTable.tableName,
         SHOPS_TABLE: shopsTable.tableName,

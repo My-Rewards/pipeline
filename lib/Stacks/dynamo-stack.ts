@@ -107,31 +107,30 @@ export class DynamoStack extends cdk.Stack {
       deletionProtection:isProd
     });
 
-    // Likes Table
-    const likesTable = new aws_dynamodb.Table(this, 'Likes-Table', {
-      tableName: `Likes-${props.stageName}`,
-      partitionKey: { name: 'user_id', type: aws_dynamodb.AttributeType.STRING },
-      sortKey: { name: 'shop_id', type: aws_dynamodb.AttributeType.STRING },
-      billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
-      removalPolicy:cdk.RemovalPolicy.RETAIN,
-      deletionProtection: isProd
-    });
-    likesTable.addGlobalSecondaryIndex({
-      indexName: 'ShopLikes',
-      partitionKey: { name: 'shop_id', type: aws_dynamodb.AttributeType.STRING },
-      sortKey: { name: 'user_id', type: aws_dynamodb.AttributeType.STRING },
-    });
-
     // Rewards Table
     const rewardsTable = new aws_dynamodb.Table(this, 'Rewards-Table', {
       tableName: `Rewards-${props.stageName}`,
       partitionKey: { name: 'id', type: aws_dynamodb.AttributeType.STRING },
       billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
-      removalPolicy:cdk.RemovalPolicy.RETAIN,
-      pointInTimeRecoverySpecification: {
-        pointInTimeRecoveryEnabled: true
-      },
-      deletionProtection:isProd
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+      deletionProtection: isProd
+    });
+    rewardsTable.addGlobalSecondaryIndex({
+      indexName: "PlanIndex",
+      partitionKey: { name: "plan_id", type: aws_dynamodb.AttributeType.STRING },
+      sortKey: { name: "redeemed_on", type: aws_dynamodb.AttributeType.STRING },
+      projectionType: aws_dynamodb.ProjectionType.ALL,
+    });
+    rewardsTable.addGlobalSecondaryIndex({
+      indexName: "UserIndex",
+      partitionKey: { name: "user_id", type: aws_dynamodb.AttributeType.STRING },
+      sortKey: { name: "redeemed_on", type: aws_dynamodb.AttributeType.STRING },
+      projectionType: aws_dynamodb.ProjectionType.ALL,
+    });
+    rewardsTable.addGlobalSecondaryIndex({
+      indexName: "RewardPlanIndex",
+      partitionKey: { name: "reward_id", type: aws_dynamodb.AttributeType.STRING },
+      sortKey: { name: "plan_id", type: aws_dynamodb.AttributeType.STRING },
     });
 
     new cdk.CfnOutput(this, 'OrganizationTableARN', {
@@ -168,12 +167,6 @@ export class DynamoStack extends cdk.Stack {
       value: visitTable.tableArn,
       description: 'The Visit Table ARN',
       exportName: 'VisitTableARN',
-    });
-
-    new cdk.CfnOutput(this, 'LikesTableARN', {
-      value: likesTable.tableArn,
-      description: 'The Likes Table ARN',
-      exportName: 'LikesTableARN',
     });
 
     new cdk.CfnOutput(this, 'RewardsTableARN', {

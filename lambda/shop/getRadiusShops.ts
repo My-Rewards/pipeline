@@ -1,27 +1,20 @@
-import { ApiGateway } from "aws-cdk-lib/aws-events-targets";
-import {
-  RDSDataClient,
-  ExecuteStatementCommand,
-} from "@aws-sdk/client-rds-data";
-import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { APIGatewayProxyEvent } from "aws-lambda";
+import {ExecuteStatementCommand, RDSDataClient,} from "@aws-sdk/client-rds-data";
+import {DynamoDBDocumentClient, GetCommand} from "@aws-sdk/lib-dynamodb";
+import {DynamoDBClient} from "@aws-sdk/client-dynamodb";
+import {APIGatewayProxyEvent} from "aws-lambda";
 
-const rdsClient = new RDSDataClient({region: "us-east-1"});
+const rdsClient = new RDSDataClient({});
 const docClient = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 
-export const handler = async (event: APIGatewayProxyEvent) => {
-  const shopTable = process.env.SHOP_TABLE;
-  const orgTable = process.env.ORG_TABLE;
-  const likesTable = process.env.LIKES_TABLE;
-  const userSub = event.requestContext.authorizer?.claims?.sub;
+const shopTable = process.env.SHOP_TABLE;
+const orgTable = process.env.ORG_TABLE;
+const secretArn = process.env.SECRET_ARN;
+const resourceArn = process.env.CLUSTER_ARN;
+const database = process.env.DB_NAME;
 
-  if (!shopTable || !orgTable || !likesTable) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: "Missing env values" }),
-    };
-  }
+export const handler = async (event: APIGatewayProxyEvent) => {
+
+  const userSub = event.requestContext.authorizer?.claims?.sub;
 
   if (!userSub) {
     return {
@@ -35,6 +28,8 @@ export const handler = async (event: APIGatewayProxyEvent) => {
     const latitude = parseFloat(query.lat || "");
     const longitude = parseFloat(query.lon || "");
 
+    validateEnv();
+
     if (isNaN(latitude) || isNaN(longitude)) {
       return {
         statusCode: 400,
@@ -42,51 +37,20 @@ export const handler = async (event: APIGatewayProxyEvent) => {
       };
     }
 
-    const auroraResult = await rdsClient.send(
-      new ExecuteStatementCommand({
-        secretArn: process.env.SECRET_ARN,
-        resourceArn: process.env.CLUSTER_ARN,
-        database: process.env.DB_NAME,
-        sql: `
-          SELECT 
-            s.id, 
-            s.organization_id, 
-            ST_Distance(s.location, ST_MakePoint(:lon, :lat)::geography) AS distance
-          FROM shops s
-          JOIN organizations o ON o.id = s.organization_id
-          WHERE s.active = TRUE 
-            AND o.active = TRUE
-            AND ST_Distance(s.location, ST_MakePoint(:lon, :lat)::geography) <= 80467
-          ORDER BY distance;
-        `,
-        parameters: [
-          { name: "lat", value: { doubleValue: latitude } },
-          { name: "lon", value: { doubleValue: longitude } },
-        ],
-      })
-    );
-
-    const records = auroraResult.records || [];
-    if (records.length === 0) {
-      return {
-        statusCode: 200,
-        body: JSON.stringify({ message: "No shops found", value: [] }),
-      };
-    }
-
-    const shopDetails = records.map((row) => ({
-      shop_id: row[0].stringValue,
-      org_id: row[1].stringValue,
-      distance: row[2].doubleValue,
-    }));
+    const records = await auroraCall(latitude, longitude);
 
     const allShops = await Promise.all(
-      shopDetails.map(async (shopDetails) => {
+        records.map(async (row) => {
+
+        const shop_id= row[0].stringValue;
+        const org_id= row[1].stringValue;
+        const distance= row[2].doubleValue;
+
         try {
           const shopRes = await docClient.send(
             new GetCommand({
               TableName: shopTable,
-              Key: { id: shopDetails.shop_id },
+              Key: { id: shop_id },
               ProjectionExpression: "#loc, shop_hours, longitude, latitude",
               ExpressionAttributeNames: {
                 "#loc": "location",
@@ -101,7 +65,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
           const orgRes = await docClient.send(
             new GetCommand({
               TableName: orgTable,
-              Key: { id: shopDetails.org_id },
+              Key: { id: org_id },
               ProjectionExpression: "#nam, images",
               ExpressionAttributeNames: {
                 "#nam": "name",
@@ -114,18 +78,15 @@ export const handler = async (event: APIGatewayProxyEvent) => {
           }
 
           let miles = null;
-          console.log(org.name + " meters from user: " + shopDetails.distance);
-          if (shopDetails.distance) {
-            miles = shopDetails.distance * 0.00062137;
-            console.log(org.name + " miles from user not rounded: " + miles);
+          if (distance) {
+            miles = distance * 0.00062137;
             miles = miles.toFixed(1);
           }
           const favorite = false;
 
           return {
-            id: shopDetails.shop_id,
-            shop_id: shopDetails.shop_id,
-            organization_id: shopDetails.org_id,
+            shop_id: shop_id,
+            org_id: org_id,
             preview: org.images?.banner?.url || "",
             latitude: shop.latitude,
             longitude: shop.longitude,
@@ -137,17 +98,13 @@ export const handler = async (event: APIGatewayProxyEvent) => {
           };
         } catch (error) {
           console.log(
-            `Failed to fetch shop/org/like for shop_id: ${shopDetails.shop_id}`,
+            `Failed to fetch shop/org/like for shop_id: ${shop_id}`,
             error
           );
           return null;
         }
       })
     );
-
-    console.log("Aurora Result:", auroraResult);
-    console.log("Shop Details:", shopDetails);
-    console.log("All Shops:", allShops);
 
     return {
       statusCode: 200,
@@ -167,3 +124,37 @@ export const handler = async (event: APIGatewayProxyEvent) => {
     };
   }
 };
+
+function validateEnv() {
+  if (!shopTable || !orgTable || !secretArn || !resourceArn || !database) {
+    throw new Error("Missing env values");
+  }
+}
+
+async function auroraCall(latitude: number, longitude: number) {
+  const auroraResult = await rdsClient.send(
+      new ExecuteStatementCommand({
+        secretArn: secretArn,
+        resourceArn: resourceArn,
+        database: database,
+        sql: `
+          SELECT 
+            s.id, 
+            s.organization_id, 
+            ST_Distance(s.location, ST_MakePoint(:lon, :lat)::geography) AS distance
+          FROM shops s
+          JOIN organizations o ON o.id = s.organization_id
+          WHERE s.active = TRUE 
+            AND o.active = TRUE
+            AND ST_Distance(s.location, ST_MakePoint(:lon, :lat)::geography) <= 80467
+          ORDER BY distance;
+        `,
+        parameters: [
+          { name: "lat", value: { doubleValue: latitude } },
+          { name: "lon", value: { doubleValue: longitude } },
+        ],
+      })
+  );
+
+  return auroraResult.records || []
+}

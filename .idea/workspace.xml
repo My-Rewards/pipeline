@@ -1,124 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="AIAssistantCustomInstructionsStorage">
-    <option name="instructions">
-      <map>
-        <entry key="AIAssistant.VCS.GenerateCommitMessage">
-          <value>
-            <AIAssistantStoredInstruction>
-              <option name="actionId" value="AIAssistant.VCS.GenerateCommitMessage" />
-              <option name="content" value="Can you list major updates in this commit, be sure each item in the list is no more than 1 word for every 5 lines of code regarding that topic, unless it deals with security or infastructure" />
-            </AIAssistantStoredInstruction>
-          </value>
-        </entry>
-      </map>
-    </option>
-  </component>
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c38fec59-b241-48cf-a190-0dfc032fdfce" name="Local Files" comment="updated dynamo values">
+    <list default="true" id="c5f43aa4-9a17-40ee-b0b0-c7c60dd8eee7" name="Changes" comment="modulated setup for having lambda be able to modify, implemented shops page">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/clover.xml" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/clover.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/coverage-final.json" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/coverage-final.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/cloudWatch/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/cloudWatch/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/cloudWatch/squareTokenUpdater.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/cloudWatch/squareTokenUpdater.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/constants/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/constants/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/constants/square.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/constants/square.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/constants/validOrganization.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/constants/validOrganization.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/likes/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/likes/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/likes/setLike.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/likes/setLike.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/getAccount.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/getAccount.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/getBilling.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/getBilling.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/getOrg.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/getOrg.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/newOrganization.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/newOrganization.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/square/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/square/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/square/link.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/square/link.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/update/account.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/update/account.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/update/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/update/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/shop/getShopApp.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/shop/getShopApp.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/shop/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/shop/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/shop/newShop.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/shop/newShop.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/user/Plans/getPlan.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/user/Plans/getPlan.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/user/Plans/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/user/Plans/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/user/createUser.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/user/createUser.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/user/createUserBusiness.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/user/createUserBusiness.ts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/user/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/user/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/coverage/lcov.info" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov.info" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/organization/getBilling.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/getBilling.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/organization/getOrg.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/getOrg.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/shop/getShopApp.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/shop/getShopApp.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/user/Plans/getPlans.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/user/Plans/getPlans.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/visit/getVisit.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/visit/getVisit.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/visit/recordVisit.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/visit/recordVisit.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/Stacks/APIs/App/VisitApiStack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/APIs/App/VisitApiStack.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/Stacks/apiGateway-stack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/apiGateway-stack.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/lambdas/organization/getBilling.test.ts" beforeDir="false" afterPath="$PROJECT_DIR$/test/lambdas/organization/getBilling.test.ts" afterDir="false" />
     </list>
-    <list id="79a675d0-e669-4fab-ac29-b64f9bdb9a1c" name="Unversioned Files" comment="Unversioned Files" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="FileTemplateManagerImpl">
-    <option name="RECENT_TEMPLATES">
-      <list>
-        <option value="TypeScript File" />
-        <option value="Dockerfile" />
-      </list>
-    </option>
-  </component>
   <component name="Git.Settings">
-    <option name="RECENT_BRANCH_BY_REPOSITORY">
-      <map>
-        <entry key="$PROJECT_DIR$" value="main" />
-      </map>
-    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
-    <option name="SIGN_OFF_COMMIT" value="true" />
-    <option name="UPDATE_TYPE" value="REBASE" />
-  </component>
-  <component name="GitHubPullRequestSearchHistory">{
-  &quot;lastFilter&quot;: {
-    &quot;state&quot;: &quot;OPEN&quot;,
-    &quot;assignee&quot;: &quot;BrianBFarias&quot;
-  }
-}</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/My-Rewards/pipeline.git&quot;,
-    &quot;accountId&quot;: &quot;7f46a21d-1860-4381-ba4e-9659a1b5727c&quot;
-  },
-  &quot;recentNewPullRequestHead&quot;: {
-    &quot;server&quot;: {
-      &quot;useHttp&quot;: false,
-      &quot;host&quot;: &quot;github.com&quot;,
-      &quot;port&quot;: null,
-      &quot;suffix&quot;: null
-    },
-    &quot;owner&quot;: &quot;My-Rewards&quot;,
-    &quot;repository&quot;: &quot;pipeline&quot;
-  }
-}</component>
-  <component name="HighlightingSettingsPerFile">
-    <setting file="file://$PROJECT_DIR$/test/lambdas/constant/validOrganization.test.ts" root0="FORCE_HIGHLIGHTING" />
-  </component>
-  <component name="KubernetesApiPersistence">{}</component>
-  <component name="KubernetesApiProvider">{
-  &quot;isMigrated&quot;: true
-}</component>
-  <component name="PackageJsonUpdateNotifier">
-    <dismissed value="$PROJECT_DIR$/package.json" />
   </component>
   <component name="ProjectColorInfo">{
-    &quot;customColor&quot;: &quot;&quot;,
-    &quot;associatedIndex&quot;: 1
-    }</component>
-  <component name="ProjectId" id="2sPvgavNmeopLW2vRn1RTGmS1MA" />
+  &quot;associatedIndex&quot;: 8
+}</component>
+  <component name="ProjectId" id="2w9zFkC2WmTi96Q6BixanZSzGzM" />
   <component name="ProjectLevelVcsManager">
     <ConfirmationsSetting value="2" id="Add" />
     <ConfirmationsSetting value="2" id="Remove" />
@@ -129,453 +29,67 @@
   </component>
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
-    &quot;Jest.Helper Functions.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.Lambda Handler - Merging shop/org/likes.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.Shop Creation Lambda Handler.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.Square Integration Lambda.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.Square Token Refresh Lambda.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.createOrganization Lambda Handler.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.createOrganization Lambda Handler.should fail when Aurora DB update fails with zero records updated.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.createOrganization Lambda Handler.should handle Aurora connection failure.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.createOrganization Lambda Handler.should handle Aurora query failure.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.createOrganization Lambda Handler.should handle Stripe failure.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.createOrganization Lambda Handler.should handle unexpected errors gracefully.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.createOrganization Lambda Handler.should successfully create an organization.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.createUser Lambda Function.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.createUser Lambda.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.createUserBusiness.test.ts.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.getBilling Lambda Handler.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.getBilling Lambda Handler.should return inactive billing data when user has no active subscriptions.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.getBilling Lambda.executor&quot;: &quot;Debug&quot;,
-    &quot;Jest.getOrg Lambda.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.getOrg Lambda.should return 200 and organization details with active subscription.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.getOrg Lambda.should return 404 when Stripe secret retrieval fails.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.getOrg.test.ts.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.getPlan Lambda Handler.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.squareTokenUpdater Lambda.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.squareTokenUpdater Lambda.should handle missing KMS_KEY_ID.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.squareTokenUpdater Lambda.should process organizations with expiring tokens.executor&quot;: &quot;Run&quot;,
-    &quot;Jest.validOrganization Functions.executor&quot;: &quot;Run&quot;,
-    &quot;Node.js.business-website-stack.ts.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;Brian&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/brian/myRewards/pipeline&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs.jest.jest_package&quot;: &quot;/Users/brian/myRewards/pipeline/node_modules/jest&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
     &quot;ts.external.directory.path&quot;: &quot;/Users/brian/myRewards/pipeline/node_modules/typescript/lib&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
-  },
-  &quot;keyToStringList&quot;: {
-    &quot;DatabaseDriversLRU&quot;: [
-      &quot;mysql_aurora&quot;,
-      &quot;postgresql&quot;
-    ]
   }
 }</component>
-  <component name="RecentsManager">
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/lambda" />
-      <recent name="$PROJECT_DIR$/lambda/user/Plans" />
-      <recent name="$PROJECT_DIR$/lambda/user/Plans/Aurora" />
-      <recent name="$PROJECT_DIR$/test/lambdas/shop" />
-    </key>
-  </component>
-  <component name="RunManager" selected="Jest.squareTokenUpdater Lambda">
-    <configuration default="true" type="Python.FlaskServer">
-      <module name="pipeline" />
-      <option name="ENV_FILES" value="" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="launchJavascriptDebuger" value="false" />
-      <method v="2" />
-    </configuration>
-    <configuration default="true" type="docs" factoryName="Docutils task">
-      <module name="pipeline" />
-      <option name="ENV_FILES" value="" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="docutils_input_file" value="" />
-      <option name="docutils_output_file" value="" />
-      <option name="docutils_params" value="" />
-      <option name="docutils_task" value="" />
-      <option name="docutils_open_in_browser" value="false" />
-      <method v="2" />
-    </configuration>
-    <configuration default="true" type="docs" factoryName="Sphinx task">
-      <module name="pipeline" />
-      <option name="ENV_FILES" value="" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="docutils_input_file" value="" />
-      <option name="docutils_output_file" value="" />
-      <option name="docutils_params" value="" />
-      <option name="docutils_task" value="" />
-      <option name="docutils_open_in_browser" value="false" />
-      <method v="2" />
-    </configuration>
-    <configuration name="Square Token Refresh Lambda" type="JavaScriptTestRunnerJest" temporary="true" nameIsGenerated="true">
-      <config-file value="$PROJECT_DIR$/jest.config.ts" />
-      <node-interpreter value="project" />
-      <jest-package value="$PROJECT_DIR$/node_modules/jest" />
-      <working-dir value="$PROJECT_DIR$" />
-      <envs />
-      <scope-kind value="SUITE" />
-      <test-file value="$PROJECT_DIR$/test/lambdas/cloudWatch/squareTokenUpdater.test.ts" />
-      <test-names>
-        <test-name value="Square Token Refresh Lambda" />
-      </test-names>
-      <method v="2" />
-    </configuration>
-    <configuration default="true" type="JavaScriptTestRunnerJest">
-      <config-file value="$PROJECT_DIR$/jest.config.ts" />
-      <node-interpreter value="project" />
-      <envs />
-      <scope-kind value="ALL" />
-      <method v="2" />
-    </configuration>
-    <configuration name="createUser Lambda" type="JavaScriptTestRunnerJest" temporary="true" nameIsGenerated="true">
-      <config-file value="$PROJECT_DIR$/jest.config.ts" />
-      <node-interpreter value="project" />
-      <jest-package value="$PROJECT_DIR$/node_modules/jest" />
-      <working-dir value="$PROJECT_DIR$" />
-      <envs />
-      <scope-kind value="SUITE" />
-      <test-file value="$PROJECT_DIR$/test/lambdas/user/createUser.test.ts" />
-      <test-names>
-        <test-name value="createUser Lambda" />
-      </test-names>
-      <method v="2" />
-    </configuration>
-    <configuration name="squareTokenUpdater Lambda" type="JavaScriptTestRunnerJest" temporary="true" nameIsGenerated="true">
-      <config-file value="$PROJECT_DIR$/jest.config.ts" />
-      <node-interpreter value="project" />
-      <jest-package value="$PROJECT_DIR$/node_modules/jest" />
-      <working-dir value="$PROJECT_DIR$" />
-      <envs />
-      <scope-kind value="SUITE" />
-      <test-file value="$PROJECT_DIR$/test/lambdas/cloudWatch/squareTokenUpdater.test.ts" />
-      <test-names>
-        <test-name value="squareTokenUpdater Lambda" />
-      </test-names>
-      <method v="2" />
-    </configuration>
-    <configuration name="squareTokenUpdater Lambda.should handle missing KMS_KEY_ID" type="JavaScriptTestRunnerJest" temporary="true" nameIsGenerated="true">
-      <config-file value="$PROJECT_DIR$/jest.config.ts" />
-      <node-interpreter value="project" />
-      <jest-package value="$PROJECT_DIR$/node_modules/jest" />
-      <working-dir value="$PROJECT_DIR$" />
-      <envs />
-      <scope-kind value="TEST" />
-      <test-file value="$PROJECT_DIR$/test/lambdas/cloudWatch/squareTokenUpdater.test.ts" />
-      <test-names>
-        <test-name value="squareTokenUpdater Lambda" />
-        <test-name value="should handle missing KMS_KEY_ID" />
-      </test-names>
-      <method v="2" />
-    </configuration>
-    <configuration name="squareTokenUpdater Lambda.should process organizations with expiring tokens" type="JavaScriptTestRunnerJest" temporary="true" nameIsGenerated="true">
-      <config-file value="$PROJECT_DIR$/jest.config.ts" />
-      <node-interpreter value="project" />
-      <jest-package value="$PROJECT_DIR$/node_modules/jest" />
-      <working-dir value="$PROJECT_DIR$" />
-      <envs />
-      <scope-kind value="TEST" />
-      <test-file value="$PROJECT_DIR$/test/lambdas/cloudWatch/squareTokenUpdater.test.ts" />
-      <test-names>
-        <test-name value="squareTokenUpdater Lambda" />
-        <test-name value="should process organizations with expiring tokens" />
-      </test-names>
-      <method v="2" />
-    </configuration>
-    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
-      <module name="pipeline" />
-      <option name="filePath" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration default="true" type="PythonConfigurationType" factoryName="Python">
-      <module name="pipeline" />
-      <option name="ENV_FILES" value="" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration default="true" type="Tox" factoryName="Tox">
-      <module name="pipeline" />
-      <option name="ENV_FILES" value="" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <method v="2" />
-    </configuration>
-    <recent_temporary>
-      <list>
-        <item itemvalue="Jest.squareTokenUpdater Lambda" />
-        <item itemvalue="Jest.squareTokenUpdater Lambda.should handle missing KMS_KEY_ID" />
-        <item itemvalue="Jest.squareTokenUpdater Lambda.should process organizations with expiring tokens" />
-        <item itemvalue="Jest.Square Token Refresh Lambda" />
-        <item itemvalue="Jest.createUser Lambda" />
-      </list>
-    </recent_temporary>
-  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-9823dce3aa75-a94e463ab2e7-intellij.indexing.shared.core-IU-243.26053.27" />
-        <option value="bundled-js-predefined-d6986cc7102b-1632447f56bf-JavaScript-IU-243.26053.27" />
+        <option value="bundled-jdk-9823dce3aa75-fbdcb00ec9e3-intellij.indexing.shared.core-IU-251.23774.435" />
+        <option value="bundled-js-predefined-d6986cc7102b-f27c65a3e318-JavaScript-IU-251.23774.435" />
       </set>
     </attachedChunks>
   </component>
-  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
-    <task active="true" id="Default" summary="Default task">
-      <changelist id="c38fec59-b241-48cf-a190-0dfc032fdfce" name="Local Files" comment="" />
-      <created>1738370138276</created>
-      <option name="number" value="Default" />
-      <option name="presentableId" value="Default" />
-      <updated>1738370138276</updated>
-      <workItem from="1738370139768" duration="10896000" />
-      <workItem from="1738629148426" duration="58000" />
-      <workItem from="1738694962107" duration="2569000" />
-      <workItem from="1738698143599" duration="15009000" />
-      <workItem from="1742169581051" duration="10265000" />
-      <workItem from="1742351800759" duration="83000" />
-      <workItem from="1742351897516" duration="601000" />
-      <workItem from="1742509726423" duration="174000" />
-      <workItem from="1744254840120" duration="142000" />
-      <workItem from="1744255577851" duration="393000" />
-      <workItem from="1744256004925" duration="1912000" />
-      <workItem from="1744258083420" duration="27413000" />
-      <workItem from="1744383059534" duration="20003000" />
-      <workItem from="1744470251865" duration="621000" />
-      <workItem from="1744470935824" duration="5585000" />
-      <workItem from="1744556274845" duration="16186000" />
-      <workItem from="1744584626583" duration="25636000" />
-      <workItem from="1744697668313" duration="3460000" />
-      <workItem from="1744753432470" duration="38000" />
-      <workItem from="1744753512391" duration="22112000" />
-      <workItem from="1744897824417" duration="1111000" />
-      <workItem from="1744899004187" duration="12711000" />
-      <workItem from="1745033923342" duration="9414000" />
-      <workItem from="1745104702288" duration="40000" />
-      <workItem from="1745114341135" duration="2846000" />
-      <workItem from="1745169222832" duration="100000" />
-      <workItem from="1745169346642" duration="405000" />
-      <workItem from="1745170119233" duration="7675000" />
-      <workItem from="1745191403403" duration="12371000" />
-    </task>
-    <task id="LOCAL-00001" summary="billing page testing and subscription creation update">
+    <task id="LOCAL-00001" summary="git commit">
       <option name="closed" value="true" />
-      <created>1742184649334</created>
+      <created>1745430758218</created>
       <option name="number" value="00001" />
       <option name="presentableId" value="LOCAL-00001" />
       <option name="project" value="LOCAL" />
-      <updated>1742184649334</updated>
+      <updated>1745430758218</updated>
     </task>
-    <task id="LOCAL-00002" summary="billing page testing and subscription creation update">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="c5f43aa4-9a17-40ee-b0b0-c7c60dd8eee7" name="Changes" comment="git commit" />
+      <created>1745468476595</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1745468476595</updated>
+      <workItem from="1745468477943" duration="6930000" />
+    </task>
+    <task id="LOCAL-00002" summary="modulated setup for having lambda be able to modify, implemented shops page">
       <option name="closed" value="true" />
-      <created>1742184670726</created>
+      <created>1745520186059</created>
       <option name="number" value="00002" />
       <option name="presentableId" value="LOCAL-00002" />
       <option name="project" value="LOCAL" />
-      <updated>1742184670726</updated>
+      <updated>1745520186059</updated>
     </task>
-    <task id="LOCAL-00003" summary="create subsciption on addPayment">
-      <option name="closed" value="true" />
-      <created>1742344260298</created>
-      <option name="number" value="00003" />
-      <option name="presentableId" value="LOCAL-00003" />
-      <option name="project" value="LOCAL" />
-      <updated>1742344260298</updated>
-    </task>
-    <task id="LOCAL-00004" summary="- **Refactor:** Refactored mocking strategy for tests, including AWS SDK clients and external libraries like `Stripe`, `square`, and `crypto`.&#10;- **Tests:** Expanded test coverage in `newOrganization` and `squareTokenUpdater` lambdas for error handling and validations.&#10;- **Interfaces:** Adjusted interfaces in `lambda/Interfaces.ts` to better structure reward systems and shop details.&#10;- **Path Updates:** Updated import paths across files for better aliasing using TypeScript configuration.&#10;- **Concurrency:** Enhanced `squareTokenUpdater` for concurrent token refresh and validation.">
-      <option name="closed" value="true" />
-      <created>1744302268569</created>
-      <option name="number" value="00004" />
-      <option name="presentableId" value="LOCAL-00004" />
-      <option name="project" value="LOCAL" />
-      <updated>1744302268569</updated>
-    </task>
-    <task id="LOCAL-00005" summary="- **Refactor:** Refactored mocking strategy for tests, including AWS SDK clients and external libraries like `Stripe`, `square`, and `crypto`.&#10;- **Tests:** Expanded test coverage in `newOrganization` and `squareTokenUpdater` lambdas for error handling and validations.&#10;- **Interfaces:** Adjusted interfaces in `lambda/Interfaces.ts` to better structure reward systems and shop details.&#10;- **Path Updates:** Updated import paths across files for better aliasing using TypeScript configuration.&#10;- **Concurrency:** Enhanced `squareTokenUpdater` for concurrent token refresh and validation.">
-      <option name="closed" value="true" />
-      <created>1744322988137</created>
-      <option name="number" value="00005" />
-      <option name="presentableId" value="LOCAL-00005" />
-      <option name="project" value="LOCAL" />
-      <updated>1744322988137</updated>
-    </task>
-    <task id="LOCAL-00006" summary="&quot;Add SquareAPI stack with Lambdas and API Gateway integration  &#10;- Includes connect, disconnect, and list shops endpoints  &#10;- Configures DynamoDB access, KMS encryption, and Cognito authentication  &#10;- Generated code coverage report for SquareApiStack integration&quot;">
-      <option name="closed" value="true" />
-      <created>1744647364175</created>
-      <option name="number" value="00006" />
-      <option name="presentableId" value="LOCAL-00006" />
-      <option name="project" value="LOCAL" />
-      <updated>1744647364175</updated>
-    </task>
-    <task id="LOCAL-00007" summary="&quot;Add SquareAPI stack with Lambdas and API Gateway integration  &#10;- Includes connect, disconnect, and list shops endpoints  &#10;- Configures DynamoDB access, KMS encryption, and Cognito authentication  &#10;- Generated code coverage report for SquareApiStack integration&quot;">
-      <option name="closed" value="true" />
-      <created>1744724085856</created>
-      <option name="number" value="00007" />
-      <option name="presentableId" value="LOCAL-00007" />
-      <option name="project" value="LOCAL" />
-      <updated>1744724085856</updated>
-    </task>
-    <task id="LOCAL-00008" summary="remade dynamo-stack.ts">
-      <option name="closed" value="true" />
-      <created>1744771021696</created>
-      <option name="number" value="00008" />
-      <option name="presentableId" value="LOCAL-00008" />
-      <option name="project" value="LOCAL" />
-      <updated>1744771021696</updated>
-    </task>
-    <task id="LOCAL-00009" summary="remade dynamo-stack.ts">
-      <option name="closed" value="true" />
-      <created>1744774892926</created>
-      <option name="number" value="00009" />
-      <option name="presentableId" value="LOCAL-00009" />
-      <option name="project" value="LOCAL" />
-      <updated>1744774892926</updated>
-    </task>
-    <task id="LOCAL-00010" summary="remade dynamo-stack.ts">
-      <option name="closed" value="true" />
-      <created>1744774969940</created>
-      <option name="number" value="00010" />
-      <option name="presentableId" value="LOCAL-00010" />
-      <option name="project" value="LOCAL" />
-      <updated>1744774969940</updated>
-    </task>
-    <task id="LOCAL-00011" summary="remade dynamo-stack.ts">
-      <option name="closed" value="true" />
-      <created>1745076358479</created>
-      <option name="number" value="00011" />
-      <option name="presentableId" value="LOCAL-00011" />
-      <option name="project" value="LOCAL" />
-      <updated>1745076358479</updated>
-    </task>
-    <task id="LOCAL-00012" summary="minor fixes to fix build">
-      <option name="closed" value="true" />
-      <created>1745118457503</created>
-      <option name="number" value="00012" />
-      <option name="presentableId" value="LOCAL-00012" />
-      <option name="project" value="LOCAL" />
-      <updated>1745118457503</updated>
-    </task>
-    <task id="LOCAL-00013" summary="minor fixes to fix build">
-      <option name="closed" value="true" />
-      <created>1745118853823</created>
-      <option name="number" value="00013" />
-      <option name="presentableId" value="LOCAL-00013" />
-      <option name="project" value="LOCAL" />
-      <updated>1745118853823</updated>
-    </task>
-    <task id="LOCAL-00014" summary="minor fixes to fix build">
-      <option name="closed" value="true" />
-      <created>1745120539370</created>
-      <option name="number" value="00014" />
-      <option name="presentableId" value="LOCAL-00014" />
-      <option name="project" value="LOCAL" />
-      <updated>1745120539370</updated>
-    </task>
-    <task id="LOCAL-00015" summary="updated dynamo values">
-      <option name="closed" value="true" />
-      <created>1745179479845</created>
-      <option name="number" value="00015" />
-      <option name="presentableId" value="LOCAL-00015" />
-      <option name="project" value="LOCAL" />
-      <updated>1745179479845</updated>
-    </task>
-    <option name="localTasksCounter" value="16" />
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
-  </component>
-  <component name="Vcs.Log.Tabs.Properties">
-    <option name="TAB_STATES">
-      <map>
-        <entry key="MAIN">
-          <value>
-            <State />
-          </value>
-        </entry>
-      </map>
+    <option name="exactExcludedFiles">
+      <list>
+        <option value="$PROJECT_DIR$/test/pipeline.test.d.ts" />
+        <option value="$PROJECT_DIR$/bin/pipeline.js" />
+        <option value="$PROJECT_DIR$/bin/pipeline.d.ts" />
+      </list>
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="billing page testing and subscription creation update" />
-    <MESSAGE value="create subsciption on addPayment" />
-    <MESSAGE value="- **Refactor:** Refactored mocking strategy for tests, including AWS SDK clients and external libraries like `Stripe`, `square`, and `crypto`.&#10;- **Tests:** Expanded test coverage in `newOrganization` and `squareTokenUpdater` lambdas for error handling and validations.&#10;- **Interfaces:** Adjusted interfaces in `lambda/Interfaces.ts` to better structure reward systems and shop details.&#10;- **Path Updates:** Updated import paths across files for better aliasing using TypeScript configuration.&#10;- **Concurrency:** Enhanced `squareTokenUpdater` for concurrent token refresh and validation." />
-    <MESSAGE value="&quot;Add SquareAPI stack with Lambdas and API Gateway integration  &#10;- Includes connect, disconnect, and list shops endpoints  &#10;- Configures DynamoDB access, KMS encryption, and Cognito authentication  &#10;- Generated code coverage report for SquareApiStack integration&quot;" />
-    <MESSAGE value="Local Files" />
-    <MESSAGE value="Unversioned Files" />
-    <MESSAGE value="remade dynamo-stack.ts" />
-    <MESSAGE value="minor fixes to fix build" />
-    <MESSAGE value="updated dynamo values" />
-    <option name="LAST_COMMIT_MESSAGE" value="updated dynamo values" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="javascript">
-          <url>file://$PROJECT_DIR$/test/lambdas/organization/getBilling.test.ts</url>
-          <line>366</line>
-          <option name="timeStamp" value="20" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="javascript">
-          <url>file://$PROJECT_DIR$/lib/Stacks/userPool-stack.ts</url>
-          <line>249</line>
-          <option name="timeStamp" value="29" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
-  </component>
-  <component name="XSLT-Support.FileAssociations.UIState">
-    <expand />
-    <select />
+    <MESSAGE value="git commit" />
+    <MESSAGE value="modulated setup for having lambda be able to modify, implemented shops page" />
+    <option name="LAST_COMMIT_MESSAGE" value="modulated setup for having lambda be able to modify, implemented shops page" />
   </component>
 </project>

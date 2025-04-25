@@ -161,11 +161,13 @@ export class AuroraStack extends cdk.Stack {
             clusterIdentifier: `${props.stageName}-aurora-cluster`,
         });
 
-        const setupDatabaseFunction = new nodejs.NodejsFunction(this, 'SetupDatabaseFunction', {
+        const setupDatabaseFunction = new nodejs.NodejsFunction(this, 'Setup-Aurora-DB', {
             entry: 'lambda/Aurora/instantiate.ts',
             handler: 'handler',
             runtime: lambda.Runtime.NODEJS_20_X,
             timeout: Duration.minutes(5),
+            functionName:'Setup-Aurora-DB',
+            description:'Setup Aurora DB with Tables',
             environment: {
                 SECRET_ARN: AuroraSecretCredentials.secretArn,
                 DATABASE_NAME: DATABASE_NAME,
@@ -179,7 +181,15 @@ export class AuroraStack extends cdk.Stack {
         });
         AuroraSecretCredentials.grantRead(setupDatabaseFunction);
 
-        const invokeSetupLambda = new cr.AwsCustomResource(this, 'InvokeSetupLambda', {
+        const lambdaTrigger = new cr.AwsCustomResource(this, 'Setup-Aurora-DB-Trigger', {
+            policy: cr.AwsCustomResourcePolicy.fromStatements([
+                new iam.PolicyStatement({
+                    actions: ['lambda:InvokeFunction'],
+                    effect: iam.Effect.ALLOW,
+                    resources: [setupDatabaseFunction.functionArn],
+                }),
+            ]),
+            timeout: Duration.minutes(2),
             onCreate: {
                 service: 'Lambda',
                 action: 'invoke',
@@ -187,27 +197,20 @@ export class AuroraStack extends cdk.Stack {
                     FunctionName: setupDatabaseFunction.functionName,
                     InvocationType: 'Event',
                 },
-                physicalResourceId: cr.PhysicalResourceId.of('ClusterSetupTrigger'),
+                physicalResourceId: cr.PhysicalResourceId.of(Date.now().toString()),
             },
             onUpdate: {
                 service: 'Lambda',
                 action: 'invoke',
                 parameters: {
                     FunctionName: setupDatabaseFunction.functionName,
-                    InvocationType: 'Event',
+                    InvocationType: 'Event'
                 },
-                physicalResourceId: cr.PhysicalResourceId.of('ClusterSetupTrigger'),
-            },
-            policy: cr.AwsCustomResourcePolicy.fromStatements([
-                new iam.PolicyStatement({
-                    actions: ['lambda:InvokeFunction'],
-                    resources: [setupDatabaseFunction.functionArn]
-                })
-            ])
-
+                physicalResourceId: cr.PhysicalResourceId.of(Date.now().toString())
+            }
         });
 
-        invokeSetupLambda.node.addDependency(cluster);
+        lambdaTrigger.node.addDependency(cluster);
 
         new cdk.CfnOutput(this, 'ClusterARN', {
             value: cluster.clusterArn,

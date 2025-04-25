@@ -11,7 +11,6 @@ describe("Lambda Handler - Merging shop/org/likes", () => {
   beforeEach(() => {
     process.env.SHOP_TABLE = "TestShopTable";
     process.env.ORG_TABLE = "TestOrgTable";
-    process.env.LIKES_TABLE = "TestLikesTable";
   });
 
   afterEach(() => {

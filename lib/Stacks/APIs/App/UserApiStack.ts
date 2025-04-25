@@ -5,8 +5,11 @@ import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as nodejs from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as iam from 'aws-cdk-lib/aws-iam';
-import { UP_CUSTOMER_ID } from '../../../../global/constants';
+import {DATABASE_NAME, UP_CUSTOMER_ID} from '../../../../global/constants';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import {getAuroraAccess} from "../../util/aurora-access";
+
 interface UsersApiStackProps extends cdk.NestedStackProps {
   api: apigateway.RestApi;
   authorizer: cdk.aws_apigateway.CognitoUserPoolsAuthorizer;
@@ -15,6 +18,9 @@ interface UsersApiStackProps extends cdk.NestedStackProps {
 export class UsersApiStack extends cdk.NestedStack {
   constructor(scope: Construct, id: string, props: UsersApiStackProps) {
     super(scope, id, props);
+
+    // Get infrastructure resources using the helper function
+    const { vpc, clusterSecret, clusterArn, clusterRole, securityGroupResolvers } = getAuroraAccess(this, id);
 
     const usersTable = dynamodb.Table.fromTableArn(this, 'ImportedUsersTable', cdk.Fn.importValue('UserTableARN'));
     const orgTable = dynamodb.Table.fromTableArn(this, 'ImportedOrganizationTableARN', cdk.Fn.importValue('OrganizationTableARN'));
@@ -44,6 +50,7 @@ export class UsersApiStack extends cdk.NestedStack {
         externalModules: ['aws-sdk'],
       },
     });
+
     //Delete Customer Account
     const deleteCustomerAccountLambda = new nodejs.NodejsFunction(this, "Delete-Customer-User",{
       runtime: lambda.Runtime.NODEJS_20_X,
@@ -57,7 +64,7 @@ export class UsersApiStack extends cdk.NestedStack {
         externalModules: ['aws-sdk'],
       },
     });
-    
+
     usersTable.grantReadData(getCustomerAccountLambda);
     usersTable.grantReadWriteData(updateCustomerAccountLambda);
     usersTable.grantReadWriteData(deleteCustomerAccountLambda);
@@ -67,16 +74,40 @@ export class UsersApiStack extends cdk.NestedStack {
       resources: [userPool.userPoolArn],
     }));
 
+    //Delete Customer Account
+    const setOrgLike = new nodejs.NodejsFunction(this, "Set-Customer-Like",{
+      runtime: lambda.Runtime.NODEJS_20_X,
+      entry: 'lambda/organization/like.ts',
+      handler: 'handler',
+      functionName:'User-Org-Like',
+      vpc,
+      role: clusterRole,
+      securityGroups: [securityGroupResolvers],
+      vpcSubnets: {
+        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS
+      },
+      environment: {
+        CLUSTER_SECRET_ARN: clusterSecret.secretArn,
+        CLUSTER_ARN: clusterArn,
+        DB_NAME: DATABASE_NAME
+      },
+      bundling: {
+        externalModules: ['aws-sdk'],
+      },
+    });
+
 
     // API Gateway integration
     const customer = props.api.root.addResource('customer'); 
     const usersApi = customer.addResource('user'); 
     const userDelete = usersApi.addResource('delete');
     const userUpdate = usersApi.addResource('update');
+    const orgLike = customer.addResource('like');
 
     const getCustomerUserIntegration = new apigateway.LambdaIntegration(getCustomerAccountLambda);
     const updateCustomerUserIntegration = new apigateway.LambdaIntegration(updateCustomerAccountLambda);
     const deleteCustomerUserIntegration = new apigateway.LambdaIntegration(deleteCustomerAccountLambda);
+    const orgLikeIntegration = new apigateway.LambdaIntegration(setOrgLike);
 
     usersApi.addMethod('GET', getCustomerUserIntegration, {
       authorizer: props.authorizer,
@@ -89,6 +120,11 @@ export class UsersApiStack extends cdk.NestedStack {
     });
 
     userUpdate.addMethod('PUT', updateCustomerUserIntegration, {
+      authorizer: props.authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO,
+    });
+
+    orgLike.addMethod('PUT', orgLikeIntegration, {
       authorizer: props.authorizer,
       authorizationType: apigateway.AuthorizationType.COGNITO,
     });

@@ -64,6 +64,7 @@ export class OrgApiStack extends cdk.NestedStack {
     const createOrgLambda = new nodejs.NodejsFunction(this, "create-organization",{
       runtime: lambda.Runtime.NODEJS_20_X,
       entry: 'lambda/organization/newOrganization.ts',
+      functionName:'Create-Organization',
       timeout:cdk.Duration.seconds(5),
       handler: 'handler',
       role:clusterRole,
@@ -105,6 +106,7 @@ export class OrgApiStack extends cdk.NestedStack {
     const getOrgLambda = new nodejs.NodejsFunction(this, "get-organization",{
       runtime: lambda.Runtime.NODEJS_20_X,
       entry: 'lambda/organization/getOrg.ts',
+      functionName:'Get-Organization',
       timeout:cdk.Duration.seconds(5),
       handler: 'handler',
       environment: {
@@ -131,6 +133,7 @@ export class OrgApiStack extends cdk.NestedStack {
       runtime: lambda.Runtime.NODEJS_20_X,
       entry: 'lambda/organization/getBilling.ts',
       handler: 'handler',
+      functionName:'Get-Organization-Billing',
       environment: {
         ORG_TABLE: orgTable.tableName,
         USER_TABLE: userTable.tableName,
@@ -148,6 +151,7 @@ export class OrgApiStack extends cdk.NestedStack {
     const addPaymentLambda = new nodejs.NodejsFunction(this, "organization-addPayment",{
       runtime: lambda.Runtime.NODEJS_20_X,
       entry: 'lambda/organization/addPayment.ts',
+      functionName:'Add-Organization-Payment',
       handler: 'handler',
       environment: {
         ORG_TABLE: orgTable.tableName,
@@ -168,6 +172,7 @@ export class OrgApiStack extends cdk.NestedStack {
       runtime: lambda.Runtime.NODEJS_20_X,
       entry: 'lambda/organization/setDefaultPayment.ts',
       handler: 'handler',
+      functionName:'Set-Organization-Default-Payment',
       environment: {
         ORG_TABLE: orgTable.tableName,
         USER_TABLE: userTable.tableName,
@@ -188,6 +193,7 @@ export class OrgApiStack extends cdk.NestedStack {
       runtime: lambda.Runtime.NODEJS_20_X,
       entry: 'lambda/organization/removePayment.ts',
       handler: 'handler',
+      functionName:'Remove-Organization-Payment',
       environment: {
         ORG_TABLE: orgTable.tableName,
         USER_TABLE: userTable.tableName,
@@ -207,6 +213,7 @@ export class OrgApiStack extends cdk.NestedStack {
       runtime: lambda.Runtime.NODEJS_20_X,
       entry: 'lambda/organization/update/data.ts',
       handler: 'handler',
+      functionName:'Update-Organization-Details',
       environment: {
         ORG_TABLE: orgTable.tableName,
         USER_TABLE: userTable.tableName,
@@ -226,6 +233,7 @@ export class OrgApiStack extends cdk.NestedStack {
       runtime: lambda.Runtime.NODEJS_20_X,
       entry: 'lambda/organization/update/status.ts',
       handler: 'handler',
+      functionName:'Update-Organization-Status',
       vpc,
       securityGroups: [securityGroupResolvers],
       vpcSubnets: {
@@ -254,6 +262,7 @@ export class OrgApiStack extends cdk.NestedStack {
       runtime: lambda.Runtime.NODEJS_20_X,
       entry: 'lambda/organization/update/images.ts',
       handler: 'handler',
+      functionName:'Update-Organization-Image',
       environment: {
         ORG_TABLE: orgTable.tableName,
         USER_TABLE: userTable.tableName,

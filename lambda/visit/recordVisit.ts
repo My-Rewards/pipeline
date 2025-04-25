@@ -5,15 +5,22 @@ import {APIGatewayProxyEvent, APIGatewayProxyResult} from 'aws-lambda';
 import {DecryptCommand, KMSClient} from '@aws-sdk/client-kms';
 import {randomUUID} from "crypto";
 import {OrganizationProps, PlanProps, ShopProps, VisitProps} from '../Interfaces';
+import {ExecuteStatementCommand, RDSDataClient } from '@aws-sdk/client-rds-data';
 
 const client = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(client);
 const kmsClient = new KMSClient({});
+const rdsClient  = new RDSDataClient({});
+
 const shopsTable = process.env.SHOPS_TABLE;
 const organizationsTable = process.env.ORGANIZATIONS_TABLE;
 const plansTable = process.env.PLANS_TABLE;
 const visitsTable = process.env.VISITS_TABLE;
 const appEnv = process.env.APP_ENV;
+const secretArn = process.env.SECRET_ARN;
+const resourceArn = process.env.CLUSTER_ARN;
+const database = process.env.DB_NAME;
+
 const scanWindow = 3; // Amount of time user has to scan order after they pay (minutes)
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
@@ -32,6 +39,10 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
         const shop = await getShop(shop_id);
         const organization = await getOrg(shop.org_id);
+        if(!organization.access_token) throw new Error(
+            `Missing access token for organization ${shop.org_id}`
+        )
+
         const decryptedSquareToken = await decryptKMS(organization.access_token);
         const orgSquareClient = await getOrgSquareClient(decryptedSquareToken);
         const mostRecentOrder = await getMostRecentOrder(shop, timestamp, orgSquareClient);
@@ -61,7 +72,10 @@ function validateEnvVariables(): void {
         !process.env.PLANS_TABLE || 
         !process.env.VISITS_TABLE ||
         !process.env.KMS_KEY_ID ||
-        !process.env.APP_ENV) {
+        !process.env.APP_ENV ||
+        !process.env.DB_NAME ||
+        !process.env.CLUSTER_ARN ||
+        !process.env.SECRET_ARN) {
         throw new Error("Missing required environment variables");
     }
 }
@@ -115,9 +129,9 @@ async function getOrg(organization_id: string): Promise<OrganizationProps> {
     }
 }
 
-async function decryptKMS(encryptedToken:string|null) {
+async function decryptKMS(encryptedToken:string) {
     try {
-        const encryptedBuffer = Buffer.from(encryptedToken!, "hex");
+        const encryptedBuffer = Buffer.from(encryptedToken, "hex");
 
         const command = new DecryptCommand({
             CiphertextBlob: encryptedBuffer,
@@ -214,29 +228,44 @@ async function recordVisit(visitData: VisitProps) {
     }
 }
 
-async function createNewPlan(user_id: string, org_id: string) {
-    // Create new loyalty plan
-    const newPlanId = randomUUID();
-    const newPlan: PlanProps = {
-        user_id: user_id,
-        org_id: org_id,
-        id: newPlanId,
-        start_date: new Date().toISOString(),
-        visits: 0,
-        visits_total: 0,
-        points: 0,
-        points_total: 0,
-    }
+export async function createNewPlan(user_id: string, org_id: string): Promise<string> {
+    const planId    = randomUUID();
+    const startDate = new Date().toISOString();
 
-    const newLoyaltyPlan = {
-        TableName: plansTable,
-        Item: newPlan
+    const newPlan: PlanProps = {
+        id:           planId,
+        user_id,
+        org_id,
+        start_date:   startDate,
+        visits:       0,
+        visits_total: 0,
+        points:       0,
+        points_total: 0,
     };
-    try {
-        await dynamoDb.send(new PutCommand(newLoyaltyPlan));
-    } catch (error) {
-        throw new Error(`Failed to create new plan for user ${user_id} at org ${org_id} with error: ${error}`)
-    }
+
+    const result = await rdsClient.send(new ExecuteStatementCommand({
+        resourceArn: resourceArn,
+        secretArn:   secretArn,
+        database:    database,
+        sql: `
+          INSERT INTO Plans (id, user_id, organization_id)
+          VALUES (:planId, :userId, :orgId);
+        `,
+        parameters: [
+            { name: "planId",   value: { stringValue: planId   } },
+            { name: "userId",   value: { stringValue: user_id } },
+            { name: "orgId",    value: { stringValue: org_id  } },
+        ]
+    }));
+
+    if(result.numberOfRecordsUpdated !== 1) throw new Error()
+
+    await dynamoDb.send(new PutCommand({
+        TableName: process.env.PLANS_TABLE!,
+        Item:      newPlan
+    }));
+
+    return planId;
 }
 
 async function updatePlan(user_id: string, org_id: string, amount_spent: bigint | null | undefined, rm_active: boolean, rl_active: boolean) {
