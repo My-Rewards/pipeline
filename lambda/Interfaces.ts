@@ -129,3 +129,24 @@ export interface VisitProps {
     rl_active: bool, // if org loyalty rewards were active at time of visit
     rm_active: bool // if org milestone rewards were active at time of visit
 }
+
+export interface GroupedPlan {
+    reward_plan:
+        {
+            rewards_loyalty: any|undefined,
+            rewards_milestone: any|undefined,
+        },
+    visits: number|undefined,
+    points: number|undefined,
+    activeRewards: boolean,
+    rl_active:boolean|undefined,
+    rm_active:boolean|undefined,
+    banner: string|undefined,
+    logo: string|undefined,
+    org_id: string|undefined,
+    shop_id: string|undefined,
+    name: string|undefined,
+    id: string|undefined,
+    active:boolean|undefined
+    favorite:boolean|undefined;
+}

@@ -1,36 +1,16 @@
 import {APIGatewayProxyEvent, APIGatewayProxyResult} from "aws-lambda";
 import {DynamoDBClient} from "@aws-sdk/client-dynamodb";
-import {DynamoDBDocumentClient, GetCommand} from "@aws-sdk/lib-dynamodb";
+import {DynamoDBDocumentClient, GetCommand, QueryCommand} from "@aws-sdk/lib-dynamodb";
 import {ExecuteStatementCommand, Field, RDSDataClient} from "@aws-sdk/client-rds-data";
+import {GroupedPlan} from "../../Interfaces";
 
 const dynamoClient = new DynamoDBClient({});
-const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
+const client = DynamoDBDocumentClient.from(dynamoClient);
 const rdsClient = new RDSDataClient({});
-
-interface GroupedPlan {
-    reward_plan:
-        {
-            rewards_loyalty: any|undefined,
-            rewards_milestone: any|undefined,
-        },
-    visits: number|undefined,
-    points: number|undefined,
-    redeemableRewards: string[]|undefined,
-    rl_active:boolean|undefined,
-    rm_active:boolean|undefined,
-    banner: string|undefined,
-    logo: string|undefined,
-    org_id: string|undefined,
-    shop_id: string|undefined,
-    name: string|undefined,
-    id: string|undefined,
-    activePlan:boolean|undefined,
-    active:boolean|undefined
-    favorite:boolean|undefined;
-}
 
 const plansTable = process.env.PLANS_TABLE;
 const orgTable = process.env.ORG_TABLE;
+const rewardsTable = process.env.REWARDS_TABLE;
 const secretArn = process.env.SECRET_ARN;
 const resourceArn = process.env.CLUSTER_ARN;
 const database = process.env.DB_NAME;
@@ -82,7 +62,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 };
 
 function validateEnv() {
-    if (!plansTable || !orgTable || !secretArn || !resourceArn || !database) {
+    if (!plansTable || !orgTable || !secretArn || !resourceArn || !database || !rewardsTable) {
         throw new Error("Missing env values");
     }
 }
@@ -129,36 +109,36 @@ async function auroraCall(lat: number, lng: number, userSub:string, limit: numbe
     return auroraResult.records ?? [];
 }
 
-async function enrichList(records:Field[][], userSub:string): Promise<GroupedPlan[]> {
-
-    return  await Promise.all(
+async function enrichList(records: Field[][], userSub: string): Promise<(GroupedPlan|undefined)[]> {
+    return await Promise.all(
         records.map(async (row) => {
-            console.log("Aurora response:", row)
+            console.log("Aurora response:", row);
             const planId = row[0].stringValue;
             const orgId = row[1].stringValue;
             const shopId = row[2].stringValue;
             const favorite = row[3].booleanValue!;
 
-            console.log("SHOP ID:", shopId)
+            if (!planId) return undefined;
 
             const [planRes, orgRes] = await Promise.all([
-                dynamoDb.send(new GetCommand({
+                client.send(new GetCommand({
                     TableName: plansTable,
                     Key: {
                         user_id: userSub,
-                        org_id: orgId
+                        org_id: orgId,
                     }
                 })),
-                dynamoDb.send(new GetCommand({
+                client.send(new GetCommand({
                     TableName: orgTable,
-                    Key: {id: orgId},
-                    ProjectionExpression: "id, #name, images, rm_active, rl_active, rewards_loyalty, rewards_milestone",
-                    ExpressionAttributeNames: {"#name": "name"}
+                    Key: { id: orgId },
+                    ProjectionExpression: "id, #name, images, rm_active, rl_active, rewards_loyalty, rewards_milestone, active",
+                    ExpressionAttributeNames: { "#name": "name" }
                 })),
             ]);
 
             const plan = planRes.Item;
             const org = orgRes.Item;
+            const activeRewards = await activeReward(planId, org?.rl_active, org?.rm_active);
 
             return {
                 id: planId,
@@ -174,14 +154,42 @@ async function enrichList(records:Field[][], userSub:string): Promise<GroupedPla
                 active: org?.active ?? false,
                 reward_plan: {
                     rewards_loyalty: org?.rewards_loyalty,
-                    rewards_milestone: org?.rewards_milestone
+                    rewards_milestone: org?.rewards_milestone,
                 },
                 visits: plan?.visits ?? 0,
                 points: plan?.points ?? 0,
-                activePlan: plan?.active ?? false,
-                redeemableRewards: [],
-                favorite
-            };
+                activeRewards,
+                favorite,
+            } as GroupedPlan;
         })
-    )
+    );
+}
+
+async function activeReward(plan_id:string, rl_active:boolean, rm_active:boolean) {
+    let filterExpression = "";
+    const expressionAttributeValues: Record<string, any> = {
+        ":planId": plan_id,
+        ":isActive": 1,
+    };
+
+    if (rl_active && !rm_active) {
+        filterExpression += " AND category = :loyalty";
+        expressionAttributeValues[":loyalty"] = 'loyalty';
+    } else if (rm_active && !rl_active) {
+        filterExpression += " AND category = :milestone";
+        expressionAttributeValues[":milestone"] = 'milestone';
+    }
+
+    const rewardsParams = new QueryCommand({
+        TableName: rewardsTable,
+        IndexName: "activeRewardsIndex",
+        KeyConditionExpression: "plan_id = :planId AND active = :isActive",
+        FilterExpression: filterExpression,
+        ExpressionAttributeValues: expressionAttributeValues,
+        Limit:1
+    });
+
+    const result = await client.send(rewardsParams);
+
+    return (result?.Items && result.Items.length > 0) || false;
 }
