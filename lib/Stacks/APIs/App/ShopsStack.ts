@@ -168,7 +168,34 @@ export class ShopApiStack extends cdk.NestedStack {
             }
         );
         orgTable.grantReadData(searchShops);
+        shopTable.grantReadData(nearestShopLambda);
 
+        const pinShopLambda = new nodejs.NodejsFunction( this, "pinnedShop",
+            {
+                runtime: lambda.Runtime.NODEJS_20_X,
+                entry: "lambda/shop/getPinShop.ts",
+                handler: "handler",
+                functionName:'Fetch-Pinned-Shop',
+                vpc,
+                role: clusterRole,
+                securityGroups: [securityGroupResolvers],
+                vpcSubnets: {
+                    subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+                },
+                environment: {
+                    ORG_TABLE: orgTable.tableName,
+                    SHOP_TABLE: shopTable.tableName,
+                    DB_NAME: DATABASE_NAME,
+                    CLUSTER_ARN: clusterArn,
+                    SECRET_ARN: clusterSecret.secretArn
+                },
+                bundling: {
+                    externalModules: ["aws-sdk"],
+                },
+            }
+        );
+        orgTable.grantReadData(pinShopLambda);
+        shopTable.grantReadData(pinShopLambda);
         // API Gateway integration
 
         const shopApi = props.appRoot.addResource("shops");
@@ -176,11 +203,13 @@ export class ShopApiStack extends cdk.NestedStack {
 
         const getShopApi = shopApi.addResource("shop");
         const discoverShopApi = shopApi.addResource("discover");
+        const pinShopApi = shopApi.addResource("pinned");
         const searchShopApi = shopApi.addResource("search");
         const filterByRadius = filterByShops.addResource("radius");
         const nearestShopApi = shopApi.addResource("nearest");
 
         const getShop = new apigateway.LambdaIntegration(getShopLambda);
+        const pinShop = new apigateway.LambdaIntegration(pinShopLambda);
         const discoverIntegration = new apigateway.LambdaIntegration(discoverShopsLambda);
         const searchIntegration = new apigateway.LambdaIntegration(searchShops);
         const radiusIntegration = new apigateway.LambdaIntegration(radiusShopsLambda);
@@ -191,6 +220,10 @@ export class ShopApiStack extends cdk.NestedStack {
             authorizationType: apigateway.AuthorizationType.COGNITO,
         });
         getShopApi.addMethod("GET", getShop, {
+            authorizer: props.authorizer,
+            authorizationType: apigateway.AuthorizationType.COGNITO,
+        });
+        pinShopApi.addMethod("GET", pinShop, {
             authorizer: props.authorizer,
             authorizationType: apigateway.AuthorizationType.COGNITO,
         });

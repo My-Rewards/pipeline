@@ -1,13 +1,7 @@
 import {ExecuteStatementCommand, RDSDataClient,} from "@aws-sdk/client-rds-data";
-import {DynamoDBDocumentClient, GetCommand} from "@aws-sdk/lib-dynamodb";
-import {DynamoDBClient} from "@aws-sdk/client-dynamodb";
 import {APIGatewayProxyEvent} from "aws-lambda";
 
 const rdsClient = new RDSDataClient({});
-const docClient = DynamoDBDocumentClient.from(new DynamoDBClient({}));
-
-const shopTable = process.env.SHOP_TABLE;
-const orgTable = process.env.ORG_TABLE;
 const secretArn = process.env.SECRET_ARN;
 const resourceArn = process.env.CLUSTER_ARN;
 const database = process.env.DB_NAME;
@@ -38,79 +32,21 @@ export const handler = async (event: APIGatewayProxyEvent) => {
     }
 
     const records = await auroraCall(latitude, longitude);
-
-    const allShops = await Promise.all(
-        records.map(async (row) => {
-
-        const shop_id= row[0].stringValue;
-        const org_id= row[1].stringValue;
-        const distance= row[2].doubleValue;
-
-        try {
-          const shopRes = await docClient.send(
-            new GetCommand({
-              TableName: shopTable,
-              Key: { id: shop_id },
-              ProjectionExpression: "#loc, shop_hours, longitude, latitude",
-              ExpressionAttributeNames: {
-                "#loc": "location",
-              },
-            })
-          );
-          const shop = shopRes.Item;
-
-          if (!shop) {
-            return null;
-          }
-          const orgRes = await docClient.send(
-            new GetCommand({
-              TableName: orgTable,
-              Key: { id: org_id },
-              ProjectionExpression: "#nam, images",
-              ExpressionAttributeNames: {
-                "#nam": "name",
-              },
-            })
-          );
-          const org = orgRes.Item;
-          if (!org) {
-            return null;
-          }
-
-          let miles = null;
-          if (distance) {
-            miles = distance * 0.00062137;
-            miles = miles.toFixed(1);
-          }
-          const favorite = false;
-
-          return {
-            shop_id: shop_id,
-            org_id: org_id,
-            preview: org.images?.banner?.url || "",
-            latitude: shop.latitude,
-            longitude: shop.longitude,
-            name: org.name,
-            distance: miles,
-            favorite,
-            location: shop.location,
-            shop_hours: shop.shop_hours,
-          };
-        } catch (error) {
-          console.log(
-            `Failed to fetch shop/org/like for shop_id: ${shop_id}`,
-            error
-          );
-          return null;
-        }
-      })
-    );
+    const shops = records.map((row) => {
+      const shop = {
+        id: row[0].stringValue,
+        longitude: row[1].doubleValue,
+        latitude: row[2].doubleValue,
+        distance: row[3].doubleValue
+      }
+      return shop;
+    });
 
     return {
       statusCode: 200,
       body: JSON.stringify({
         message: "Shops found",
-        value: allShops.filter(Boolean),
+        value: shops,
       }),
       headers: {
         "Content-Type": "application/json",
@@ -126,7 +62,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
 };
 
 function validateEnv() {
-  if (!shopTable || !orgTable || !secretArn || !resourceArn || !database) {
+  if (!secretArn || !resourceArn || !database) {
     throw new Error("Missing env values");
   }
 }
@@ -139,15 +75,15 @@ async function auroraCall(latitude: number, longitude: number) {
         database: database,
         sql: `
           SELECT 
-            s.id, 
-            s.organization_id, 
-            ST_Distance(s.location, ST_MakePoint(:lon, :lat)::geography) AS distance
+          s.id,
+          ST_X(s.location) AS longitude,
+          ST_Y(s.location) AS latitude
+          ST_Distance(s.location, ST_MakePoint(:lon, :lat)::geography) AS distance
           FROM shops s
           JOIN organizations o ON o.id = s.organization_id
           WHERE s.active = TRUE 
-            AND o.active = TRUE
-            AND ST_Distance(s.location, ST_MakePoint(:lon, :lat)::geography) <= 321869
-          ORDER BY distance;
+          AND o.active = TRUE
+          AND ST_Distance(s.location, ST_MakePoint(:lon, :lat)::geography) <= 80467
         `,
         parameters: [
           { name: "lat", value: { doubleValue: latitude } },

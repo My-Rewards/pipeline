@@ -20,7 +20,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
     const latitude = parseFloat(query.lat || "");
     const longitude = parseFloat(query.lon || "");
     const page = parseInt(query.page || "1");
-    const limit = parseInt(query.limit || "4");
+    const limit = 10;
     const offset = (page - 1) * limit;
 
     validateEnv();
