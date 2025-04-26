@@ -73,15 +73,15 @@ async function auroraCall(latitude: number, longitude: number) {
         resourceArn: resourceArn,
         database: database,
         sql: `
-          SELECT 
-          s.id,
-          ST_X(s.location) AS longitude,
-          ST_Y(s.location) AS latitude
-          FROM shops s
-          JOIN organizations o ON o.id = s.organization_id
-          WHERE s.active = TRUE 
-          AND o.active = TRUE
-          AND ST_Distance(s.location, ST_MakePoint(:lon, :lat)::geography) <= 80467
+        SELECT 
+        s.id,
+        ST_X(s.location::geometry) AS longitude,
+        ST_Y(s.location::geometry) AS latitude
+        FROM shops s
+        JOIN organizations o ON o.id = s.organization_id
+        WHERE s.active = TRUE 
+        AND o.active = TRUE
+        AND ST_Distance(s.location, ST_MakePoint(:lon, :lat)::geography) <= 80467
         `,
         parameters: [
           { name: "lat", value: { doubleValue: latitude } },
