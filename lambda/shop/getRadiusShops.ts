@@ -37,7 +37,6 @@ export const handler = async (event: APIGatewayProxyEvent) => {
         id: row[0].stringValue,
         longitude: row[1].doubleValue,
         latitude: row[2].doubleValue,
-        distance: row[3].doubleValue
       }
       return shop;
     });
@@ -78,7 +77,6 @@ async function auroraCall(latitude: number, longitude: number) {
           s.id,
           ST_X(s.location) AS longitude,
           ST_Y(s.location) AS latitude
-          ST_Distance(s.location, ST_MakePoint(:lon, :lat)::geography) AS distance
           FROM shops s
           JOIN organizations o ON o.id = s.organization_id
           WHERE s.active = TRUE 
