@@ -73,7 +73,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
 
     const activePlan = !!(planResult.Item);
 
-    const redeemableRewards:reward[] = planResult.Item ? await getActiveRewards(planResult.Item.plan_id, org.rl_active, org.rm_active) : [];
+    const redeemableRewards:reward[] = planResult.Item ? await getActiveRewards(planResult.Item.id, org.rl_active, org.rm_active) : [];
 
     const shopPlan:ShopPlan = {
       reward_plan: {
@@ -122,26 +122,27 @@ function validateIds(userSub:string|undefined, org_id:string | undefined) {
 }
 
 async function getActiveRewards(plan_id:string, rl_active:boolean, rm_active:boolean) {
-  let filterExpression = "";
   const expressionAttributeValues: Record<string, any> = {
     ":planId": plan_id,
     ":isActive": 1,
   };
 
+  let filterExpression: string | undefined = undefined;
+
   if (rl_active && !rm_active) {
-    filterExpression += " AND category = :loyalty";
-    expressionAttributeValues[":loyalty"] = { S: "loyalty" };
+    filterExpression = "category = :loyalty";
+    expressionAttributeValues[":loyalty"] = 'loyalty';
   } else if (rm_active && !rl_active) {
-    filterExpression += " AND category = :milestone";
-    expressionAttributeValues[":milestone"] = { S: "milestone" };
+    filterExpression = "category = :milestone";
+    expressionAttributeValues[":milestone"] = 'milestone';
   }
 
   const rewardsParams = new QueryCommand({
     TableName: rewardsTable,
     IndexName: "activeRewardsIndex",
     KeyConditionExpression: "plan_id = :planId AND active = :isActive",
-    FilterExpression: filterExpression,
     ExpressionAttributeValues: expressionAttributeValues,
+    ...(filterExpression ? { FilterExpression: filterExpression } : {}),
   });
 
   const result = await client.send(rewardsParams);

@@ -166,19 +166,19 @@ async function enrichList(records: Field[][], userSub: string): Promise<(Grouped
         })
     );
 }
-
-async function activeReward(plan_id:string, rl_active:boolean, rm_active:boolean) {
-    let filterExpression = "";
+async function activeReward(plan_id: string, rl_active: boolean, rm_active: boolean) {
     const expressionAttributeValues: Record<string, any> = {
         ":planId": plan_id,
         ":isActive": 1,
     };
 
+    let filterExpression: string | undefined = undefined;
+
     if (rl_active && !rm_active) {
-        filterExpression += " AND category = :loyalty";
+        filterExpression = "category = :loyalty";
         expressionAttributeValues[":loyalty"] = 'loyalty';
     } else if (rm_active && !rl_active) {
-        filterExpression += " AND category = :milestone";
+        filterExpression = "category = :milestone";
         expressionAttributeValues[":milestone"] = 'milestone';
     }
 
@@ -186,9 +186,9 @@ async function activeReward(plan_id:string, rl_active:boolean, rm_active:boolean
         TableName: rewardsTable,
         IndexName: "activeRewardsIndex",
         KeyConditionExpression: "plan_id = :planId AND active = :isActive",
-        FilterExpression: filterExpression,
         ExpressionAttributeValues: expressionAttributeValues,
-        Limit:1
+        ...(filterExpression ? { FilterExpression: filterExpression } : {}),
+        Limit: 1
     });
 
     const result = await client.send(rewardsParams);

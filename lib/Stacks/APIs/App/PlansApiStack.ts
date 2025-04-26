@@ -39,6 +39,7 @@ export class PlansApiStack extends cdk.NestedStack {
             bundling: {
                 externalModules: ['aws-sdk'],
             },
+            description: 'Fetch user plans Lambda (v1.0.2)'
         })
         orgTable.grantReadData(fetchPlanLambda);
         plansTable.grantReadData(fetchPlanLambda);
@@ -46,7 +47,7 @@ export class PlansApiStack extends cdk.NestedStack {
         fetchPlanLambda.addToRolePolicy(
             new iam.PolicyStatement({
                 actions: ["dynamodb:Query"],
-                resources: [`${rewardsTable.tableArn}/index/PlanIndex `]
+                resources: [`${rewardsTable.tableArn}/index/*`]
             })
         );
 
@@ -72,15 +73,19 @@ export class PlansApiStack extends cdk.NestedStack {
             bundling: {
                 externalModules: ['aws-sdk'],
             },
+            description: 'Fetch user plans Lambda (v1.0.0)'
         })
         orgTable.grantReadData(fetchPlansLambda);
         plansTable.grantReadData(fetchPlansLambda);
         shopTable.grantReadData(fetchPlansLambda);
         rewardsTable.grantReadData(fetchPlansLambda);
-        fetchPlansLambda.addToRolePolicy(
+        fetchPlanLambda.addToRolePolicy(
             new iam.PolicyStatement({
                 actions: ["dynamodb:Query"],
-                resources: [`${rewardsTable.tableArn}/index/PlanIndex `]
+                resources: [
+                    rewardsTable.tableArn,
+                    `${rewardsTable.tableArn}/index/*`,
+                ],
             })
         );
 
@@ -106,6 +111,7 @@ export class PlansApiStack extends cdk.NestedStack {
             bundling: {
                 externalModules: ['aws-sdk'],
             },
+            description: 'Fetch user plans Lambda (v1.0.0)'
         })
         orgTable.grantReadData(fetchLikedPlansLambda);
         plansTable.grantReadData(fetchLikedPlansLambda);
@@ -114,7 +120,7 @@ export class PlansApiStack extends cdk.NestedStack {
         fetchLikedPlansLambda.addToRolePolicy(
             new iam.PolicyStatement({
                 actions: ["dynamodb:Query"],
-                resources: [`${rewardsTable.tableArn}/index/PlanIndex `]
+                resources: [`${rewardsTable.tableArn}/index/*`]
             })
         );
 
