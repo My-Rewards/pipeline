@@ -126,6 +126,8 @@ export class AuroraStack extends cdk.Stack {
                     "logs:PutLogEvents",
                     'lambda:InvokeFunction',
                     'secretsmanager:GetSecretValue',
+                    'dynamodb:Query',
+                    'dynamodb:GetItem',
                     'kms:*',
                     'Aurora-db:connect',
                     'rds-data:ExecuteStatement'

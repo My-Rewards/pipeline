@@ -7,6 +7,7 @@ import * as nodejs from 'aws-cdk-lib/aws-lambda-nodejs'
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import {DATABASE_NAME} from "../../../../global/constants";
 import {getAuroraAccess} from "../../util/aurora-access";
+import * as iam from 'aws-cdk-lib/aws-iam';
 
 interface UserPlansStackProps extends cdk.NestedStackProps {
     appRoot:  cdk.aws_apigateway.Resource
@@ -22,7 +23,7 @@ export class PlansApiStack extends cdk.NestedStack {
 
         const orgTable = dynamodb.Table.fromTableArn(this, 'ImportedOrganizationTableARN', cdk.Fn.importValue('OrganizationTableARN'));
         const plansTable = dynamodb.Table.fromTableArn(this, 'ImportedPlanTableARN', cdk.Fn.importValue('PlanTableARN'));
-        const userTable = dynamodb.Table.fromTableArn(this, 'ImportedBizzUsersTable', cdk.Fn.importValue('BizzUserTableARN'));
+        const rewardsTable = dynamodb.Table.fromTableArn(this, 'ImportedBizzRewardsTable', cdk.Fn.importValue('RewardsTableARN'));
         const shopTable = dynamodb.Table.fromTableArn(this, 'ImportedShopsTableARN', cdk.Fn.importValue('ShopTableARN'));
 
         const fetchPlanLambda = new nodejs.NodejsFunction(this, "fetchAppPlan",{
@@ -32,6 +33,7 @@ export class PlansApiStack extends cdk.NestedStack {
             handler: 'handler',
             environment: {
                 PLANS_TABLE: plansTable.tableName,
+                REWARDS_TABLE: rewardsTable.tableName,
                 ORG_TABLE: orgTable.tableName
             },
             bundling: {
@@ -40,6 +42,13 @@ export class PlansApiStack extends cdk.NestedStack {
         })
         orgTable.grantReadData(fetchPlanLambda);
         plansTable.grantReadData(fetchPlanLambda);
+        rewardsTable.grantReadData(fetchPlanLambda);
+        fetchPlanLambda.addToRolePolicy(
+            new iam.PolicyStatement({
+                actions: ["dynamodb:Query"],
+                resources: [`${rewardsTable.tableArn}/index/PlanIndex `]
+            })
+        );
 
         const fetchPlansLambda = new nodejs.NodejsFunction(this, "fetchAppPlans",{
             runtime: lambda.Runtime.NODEJS_20_X,
@@ -55,6 +64,7 @@ export class PlansApiStack extends cdk.NestedStack {
             environment: {
                 PLANS_TABLE: plansTable.tableName,
                 ORG_TABLE: orgTable.tableName,
+                REWARDS_TABLE: rewardsTable.tableName,
                 DB_NAME: DATABASE_NAME,
                 CLUSTER_ARN: clusterArn,
                 SECRET_ARN: clusterSecret.secretArn,
@@ -66,6 +76,13 @@ export class PlansApiStack extends cdk.NestedStack {
         orgTable.grantReadData(fetchPlansLambda);
         plansTable.grantReadData(fetchPlansLambda);
         shopTable.grantReadData(fetchPlansLambda);
+        rewardsTable.grantReadData(fetchPlansLambda);
+        fetchPlansLambda.addToRolePolicy(
+            new iam.PolicyStatement({
+                actions: ["dynamodb:Query"],
+                resources: [`${rewardsTable.tableArn}/index/PlanIndex `]
+            })
+        );
 
         const fetchLikedPlansLambda = new nodejs.NodejsFunction(this, "fetchLikedAppPlans",{
             runtime: lambda.Runtime.NODEJS_20_X,
@@ -81,6 +98,7 @@ export class PlansApiStack extends cdk.NestedStack {
             environment: {
                 PLANS_TABLE: plansTable.tableName,
                 ORG_TABLE: orgTable.tableName,
+                REWARDS_TABLE: rewardsTable.tableName,
                 DB_NAME: DATABASE_NAME,
                 CLUSTER_ARN: clusterArn,
                 SECRET_ARN: clusterSecret.secretArn,
@@ -92,6 +110,13 @@ export class PlansApiStack extends cdk.NestedStack {
         orgTable.grantReadData(fetchLikedPlansLambda);
         plansTable.grantReadData(fetchLikedPlansLambda);
         shopTable.grantReadData(fetchLikedPlansLambda);
+        rewardsTable.grantReadData(fetchLikedPlansLambda);
+        fetchLikedPlansLambda.addToRolePolicy(
+            new iam.PolicyStatement({
+                actions: ["dynamodb:Query"],
+                resources: [`${rewardsTable.tableArn}/index/PlanIndex `]
+            })
+        );
 
         const plansApi = props.appRoot.addResource('plans');
         const fetchPlanApi = plansApi.addResource('plan');

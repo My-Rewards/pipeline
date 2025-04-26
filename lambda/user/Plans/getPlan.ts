@@ -1,10 +1,15 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, GetCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { PlanProps, RLProps, RMProps } from "../../Interfaces";
 
 const client = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(client);
+
+interface reward{
+  reward_id:string;
+  id:string
+}
 
 interface ShopPlan {
   reward_plan: {
@@ -13,33 +18,29 @@ interface ShopPlan {
   };
   visits: number;
   points: number;
-  redeemableRewards: string[];
+  name:string;
+  redeemableRewards: reward[];
   rl_active: boolean;
   rm_active: boolean;
   firstPlan: boolean;
-  activePlan: boolean;
+  organization_id:string;
   id: string;
-  favorite: boolean;
   active: boolean;
 }
 
+const plansTable = process.env.PLANS_TABLE;
+const rewardsTable = process.env.REWARDS_TABLE;
+const orgTable = process.env.ORG_TABLE;
+
 export const handler = async (event: APIGatewayProxyEvent) => {
-    const plansTable = process.env.PLANS_TABLE;
-    const orgTable = process.env.ORG_TABLE;
 
     const { org_id } = event.queryStringParameters || {};
     const userSub = event.requestContext.authorizer?.claims?.sub;
 
-    switch (true) {
-      case (!plansTable || !orgTable):
-        return { statusCode: 500, body: JSON.stringify({ error: "Missing env values" }) };
-      case !userSub:
-        return { statusCode: 404, body: JSON.stringify({ error: "Missing userSub" }) };
-      case !org_id:
-        return { statusCode: 404, body: JSON.stringify({ error: "Missing [org_id] parameter" }) };
-    }
-
   try {
+
+    validateEnv();
+    validateIds(userSub, org_id);
 
     const orgParams = new GetCommand({
       TableName: orgTable,
@@ -70,25 +71,23 @@ export const handler = async (event: APIGatewayProxyEvent) => {
 
     const planResult = await dynamoDb.send(planParam);
 
-    let activePlan = false;
+    const activePlan = !!(planResult.Item);
 
-    if(planResult.Item){
-      activePlan=true;
-    }
+    const redeemableRewards:reward[] = planResult.Item ? await getActiveRewards(planResult.Item.plan_id, org.rl_active, org.rm_active) : [];
 
-    const shopPlan = {
+    const shopPlan:ShopPlan = {
       reward_plan: {
         rewards_loyalty: org.rl_active ? org.rewards_loyalty : undefined,
         rewards_milestone: org.rm_active ? org.rewards_milestone : undefined
       },
       visits: planResult.Item?.visits || 0,
       points: planResult.Item?.points || 0,
-      redeemableRewards: [],
+      redeemableRewards,
       rl_active: org.rl_active || false,
       rm_active: org.rm_active || false,
       firstPlan: false,
-      id:planResult.Item?.id,
-      active:activePlan,
+      id: planResult.Item?.id,
+      active: activePlan,
       organization_id: org.id,
       name: org.name
     };
@@ -106,3 +105,46 @@ export const handler = async (event: APIGatewayProxyEvent) => {
     };
   }
 };
+
+function validateEnv() {
+  if (!plansTable || !rewardsTable || !orgTable) {
+    throw new Error("Missing ENV variable");
+  }
+}
+
+function validateIds(userSub:string|undefined, org_id:string | undefined) {
+  switch (true) {
+    case !userSub:
+      throw new Error("Missing userSub");
+      case !org_id:
+        throw new Error("Missing [org_id] parameter");
+  }
+}
+
+async function getActiveRewards(plan_id:string, rl_active:boolean, rm_active:boolean) {
+  let filterExpression = "";
+  const expressionAttributeValues: Record<string, any> = {
+    ":planId": plan_id,
+    ":isActive": 1,
+  };
+
+  if (rl_active && !rm_active) {
+    filterExpression += " AND category = :loyalty";
+    expressionAttributeValues[":loyalty"] = { S: "loyalty" };
+  } else if (rm_active && !rl_active) {
+    filterExpression += " AND category = :milestone";
+    expressionAttributeValues[":milestone"] = { S: "milestone" };
+  }
+
+  const rewardsParams = new QueryCommand({
+    TableName: rewardsTable,
+    IndexName: "activeRewardsIndex",
+    KeyConditionExpression: "plan_id = :planId AND active = :isActive",
+    FilterExpression: filterExpression,
+    ExpressionAttributeValues: expressionAttributeValues,
+  });
+
+  const result = await client.send(rewardsParams);
+
+  return (result?.Items?.map(item => ({id:item.id, reward_id:item.reward_id})) as reward[]) || []
+}
