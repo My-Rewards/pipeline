@@ -118,7 +118,13 @@ export class DynamoStack extends cdk.Stack {
     rewardsTable.addGlobalSecondaryIndex({
       indexName: "PlanIndex",
       partitionKey: { name: "plan_id", type: aws_dynamodb.AttributeType.STRING },
-      sortKey: { name: "redeemed_on", type: aws_dynamodb.AttributeType.STRING },
+      sortKey: { name: "updated_on", type: aws_dynamodb.AttributeType.STRING },
+      projectionType: aws_dynamodb.ProjectionType.ALL,
+    });
+    rewardsTable.addGlobalSecondaryIndex({
+      indexName: "activeRewardsIndex",
+      partitionKey: { name: "plan_id", type: aws_dynamodb.AttributeType.STRING },
+      sortKey: { name: "active", type: aws_dynamodb.AttributeType.NUMBER },
       projectionType: aws_dynamodb.ProjectionType.ALL,
     });
     rewardsTable.addGlobalSecondaryIndex({
