@@ -84,6 +84,7 @@ export class ShopApiStack extends cdk.NestedStack {
                 bundling: {
                     externalModules: ["aws-sdk"],
                 },
+                description: 'Fetch radius shops Lambda (v1.0.0)'
             }
         );
 
@@ -192,6 +193,7 @@ export class ShopApiStack extends cdk.NestedStack {
                 bundling: {
                     externalModules: ["aws-sdk"],
                 },
+                description: 'Fetch pinned shops Lambda (v1.0.0)'
             }
         );
         orgTable.grantReadData(pinShopLambda);
