@@ -1,5 +1,8 @@
-import {ExecuteStatementCommand, RDSDataClient,} from "@aws-sdk/client-rds-data";
-import {APIGatewayProxyEvent} from "aws-lambda";
+import {
+  ExecuteStatementCommand,
+  RDSDataClient,
+} from "@aws-sdk/client-rds-data";
+import { APIGatewayProxyEvent } from "aws-lambda";
 
 const rdsClient = new RDSDataClient({});
 const secretArn = process.env.SECRET_ARN;
@@ -7,7 +10,6 @@ const resourceArn = process.env.CLUSTER_ARN;
 const database = process.env.DB_NAME;
 
 export const handler = async (event: APIGatewayProxyEvent) => {
-
   const userSub = event.requestContext.authorizer?.claims?.sub;
 
   if (!userSub) {
@@ -37,7 +39,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
         id: row[0].stringValue,
         longitude: row[1].doubleValue,
         latitude: row[2].doubleValue,
-      }
+      };
       return shop;
     });
 
@@ -68,11 +70,11 @@ function validateEnv() {
 
 async function auroraCall(latitude: number, longitude: number) {
   const auroraResult = await rdsClient.send(
-      new ExecuteStatementCommand({
-        secretArn: secretArn,
-        resourceArn: resourceArn,
-        database: database,
-        sql: `
+    new ExecuteStatementCommand({
+      secretArn: secretArn,
+      resourceArn: resourceArn,
+      database: database,
+      sql: `
         SELECT 
         s.id,
         ST_X(s.location::geometry) AS longitude,
@@ -83,12 +85,12 @@ async function auroraCall(latitude: number, longitude: number) {
         AND o.active = TRUE
         AND ST_Distance(s.location, ST_MakePoint(:lon, :lat)::geography) <= 80467
         `,
-        parameters: [
-          { name: "lat", value: { doubleValue: latitude } },
-          { name: "lon", value: { doubleValue: longitude } },
-        ],
-      })
+      parameters: [
+        { name: "lat", value: { doubleValue: latitude } },
+        { name: "lon", value: { doubleValue: longitude } },
+      ],
+    })
   );
 
-  return auroraResult.records || []
+  return auroraResult.records || [];
 }

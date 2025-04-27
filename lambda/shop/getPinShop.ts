@@ -1,9 +1,13 @@
-import {APIGatewayProxyEvent} from "aws-lambda";
-import {ExecuteStatementCommand, Field, RDSDataClient,} from "@aws-sdk/client-rds-data";
-import {DynamoDBDocumentClient, GetCommand} from "@aws-sdk/lib-dynamodb";
-import {DynamoDBClient} from "@aws-sdk/client-dynamodb";
+import { APIGatewayProxyEvent } from "aws-lambda";
+import {
+  ExecuteStatementCommand,
+  Field,
+  RDSDataClient,
+} from "@aws-sdk/client-rds-data";
+import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 
-const rdsClient = new RDSDataClient({region: "us-east-1"});
+const rdsClient = new RDSDataClient({ region: "us-east-1" });
 const docClient = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 
 const shopTable = process.env.SHOP_TABLE;
@@ -39,20 +43,24 @@ export const handler = async (event: APIGatewayProxyEvent) => {
 
     const records = await auroraCall(latitude, longitude, userSub, shop_id);
 
+    if (!records || records.length === 0) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ error: "Shop not found" }),
+      };
+    }
+
     const finalShop = await enrichSingle(records[0]);
 
     return {
       statusCode: 200,
-      body: JSON.stringify({
-       finalShop
-      }),
+      body: JSON.stringify(finalShop),
       headers: {
         "Content-Type": "application/json",
       },
     };
-
   } catch (err) {
-    console.error("Error in discoverShops Lambda:", err);
+    console.error("Error in Pinned Lambda:", err);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: "Internal server error" }),
@@ -66,104 +74,103 @@ function validateEnv() {
   }
 }
 
-async function auroraCall(latitude: number, longitude: number, userSub: string, shop_id: string) {
-
-  const auroraRawData = await rdsClient.send(
+async function auroraCall(
+  latitude: number,
+  longitude: number,
+  userSub: string,
+  shop_id: string
+) {
+  try {
+    const auroraRawData = await rdsClient.send(
       new ExecuteStatementCommand({
         secretArn: secretArn,
         resourceArn: resourceArn,
         database: database,
         sql: `
-          SELECT
+            SELECT
             s.id,
             s.organization_id,
-            ST_Distance( s.location, ST_MakePoint(:lon, :lat)::geography) AS distance,
+            ST_Distance(s.location, ST_MakePoint(:lon, :lat)::geography) AS distance,
             CASE
-              WHEN l.user_id IS NOT NULL THEN TRUE
-              ELSE FALSE
-            END             
-            AS favorite
-          FROM shops s
-            JOIN organizations o
-              ON o.id = s.organization_id
-             AND o.active = TRUE
-            LEFT JOIN OrgLikes l
-              ON l.organization_id = s.organization_id
-             AND l.user_id = :userId
-          WHERE
+            WHEN l.user_id IS NOT NULL THEN TRUE
+            ELSE FALSE
+            END AS favorite
+            FROM shops s
+            JOIN organizations o ON o.id = s.organization_id
+            LEFT JOIN OrgLikes l ON l.organization_id = s.organization_id AND l.user_id = :userId
+            WHERE
             s.id = :shop_id
-            s.active = TRUE
-            AND o.active = TRUE
-          ORDER BY
-            s.location <-> ST_MakePoint(:lon, :lat)::geography
-        `,
+            AND s.active = TRUE
+            AND o.active = TRUE;
+          `,
         parameters: [
-          {name: "lat", value: {doubleValue: latitude}},
-          {name: "lon", value: {doubleValue: longitude}},
-          {name: "userId", value: {stringValue: userSub}},
-          {name: "shop_id", value: {stringValue: shop_id}},
+          { name: "lat", value: { doubleValue: latitude } },
+          { name: "lon", value: { doubleValue: longitude } },
+          { name: "userId", value: { stringValue: userSub } },
+          { name: "shop_id", value: { stringValue: shop_id } },
         ],
       })
-  );
-
-  return auroraRawData.records || [];
-
+    );
+    return auroraRawData.records || [];
+  } catch (error) {
+    console.error("Error executing SQL statement:", error);
+  }
+  return null;
 }
 
 async function enrichSingle(record: Field[]) {
-    const shop_id = record[0].stringValue;
-    const org_id = record[1].stringValue;
-    const distance = record[2].doubleValue;
-    const favorite = record[3].booleanValue;
-  
-    try {
-      const shopRes = await docClient.send(
-        new GetCommand({
-          TableName: shopTable,
-          Key: { id: shop_id },
-          ProjectionExpression: "#loc, shop_hours",
-          ExpressionAttributeNames: {
-            "#loc": "location",
-          },
-        })
-      );
-  
-      const shop = shopRes.Item;
-      if (!shop) return null;
-  
-      const orgRes = await docClient.send(
-        new GetCommand({
-          TableName: orgTable,
-          Key: { id: org_id },
-          ProjectionExpression: "#nam, images",
-          ExpressionAttributeNames: {
-            "#nam": "name",
-          },
-        })
-      );
-  
-      const org = orgRes.Item;
-      if (!org) return null;
-  
-      let miles = null;
-      if (distance) {
-        miles = distance * 0.00062137;
-        miles = miles.toFixed(1);
-      }
-  
-      return {
-        shop_id: shop_id,
-        org_id: org_id,
-        preview: org.images?.preview?.url || "",
-        name: org.name,
-        distance: miles,
-        favorite: favorite,
-        location: shop.location,
-        shop_hours: shop.shop_hours,
-      };
-    } catch (err) {
-      console.error(`Failed to fetch shop/org/like for shop_id: ${shop_id}`, err);
-      return null;
+  const shop_id = record[0].stringValue;
+  const org_id = record[1].stringValue;
+  const distance = record[2].doubleValue;
+  const favorite = record[3].booleanValue;
+
+  try {
+    const shopRes = await docClient.send(
+      new GetCommand({
+        TableName: shopTable,
+        Key: { id: shop_id },
+        ProjectionExpression: "#loc, shop_hours",
+        ExpressionAttributeNames: {
+          "#loc": "location",
+        },
+      })
+    );
+
+    const shop = shopRes.Item;
+    if (!shop) return null;
+
+    const orgRes = await docClient.send(
+      new GetCommand({
+        TableName: orgTable,
+        Key: { id: org_id },
+        ProjectionExpression: "#nam, images",
+        ExpressionAttributeNames: {
+          "#nam": "name",
+        },
+      })
+    );
+
+    const org = orgRes.Item;
+    if (!org) return null;
+
+    let miles = null;
+    if (distance) {
+      miles = distance * 0.00062137;
+      miles = miles.toFixed(1);
     }
+
+    return {
+      shop_id: shop_id,
+      org_id: org_id,
+      preview: org.images?.preview?.url || "",
+      name: org.name,
+      distance: miles,
+      favorite: favorite,
+      location: shop.location,
+      shop_hours: shop.shop_hours,
+    };
+  } catch (err) {
+    console.error(`Failed to fetch shop/org/like for shop_id: ${shop_id}`, err);
+    return null;
   }
-  
+}
