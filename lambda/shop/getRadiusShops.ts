@@ -83,7 +83,7 @@ async function auroraCall(latitude: number, longitude: number) {
         JOIN organizations o ON o.id = s.organization_id
         WHERE s.active = TRUE 
         AND o.active = TRUE
-        AND ST_Distance(s.location, ST_MakePoint(:lon, :lat)::geography) <= 80467
+        AND ST_Distance(s.location, ST_MakePoint(:lon, :lat)::geography) <= 321869
         `,
       parameters: [
         { name: "lat", value: { doubleValue: latitude } },
