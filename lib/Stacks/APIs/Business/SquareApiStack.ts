@@ -112,9 +112,10 @@ export class SquareApiStack extends cdk.NestedStack {
       functionName:'List-Square-Shops',
       environment: {
         USER_TABLE: userTable.tableName,
-        SQUARE_ARN:secretData.secretArn,
+        ORG_TABLE: orgTable.tableName,
+        SQUARE_ARN: secretData.secretArn,
         KMS_KEY_ID: props.encryptionKey.keyId,
-        APP_ENV:props.stage
+        APP_ENV: props.stage
       },
       bundling: {
         externalModules: ['aws-sdk'],
@@ -122,15 +123,18 @@ export class SquareApiStack extends cdk.NestedStack {
       },
       timeout: cdk.Duration.seconds(10),
     })
+
     userTable.grantReadData(listSquareShops);
     userTable.grantWriteData(listSquareShops);
-    secretData.grantRead(listSquareShops)
+    orgTable.grantReadData(listSquareShops);
+    secretData.grantRead(listSquareShops);
     props.encryptionKey.grantDecrypt(listSquareShops);
 
-    const squareApi = props.api.root.addResource('square'); 
-    const connectApi = squareApi.addResource('connect'); 
-    const disconnectApi = squareApi.addResource('disconnect'); 
-    const listShops = squareApi.addResource('listShops'); 
+
+    const squareApi = props.api.root.addResource('square');
+    const connectApi = squareApi.addResource('connect');
+    const disconnectApi = squareApi.addResource('disconnect');
+    const listShops = squareApi.addResource('listShops');
 
     const setupLambdaIntegration = new apigateway.LambdaIntegration(setupSquareLambda);
     const disconnectLambdaIntegration = new apigateway.LambdaIntegration(removeSquareLambda);
