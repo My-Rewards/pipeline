@@ -10,7 +10,7 @@ export class KmsStack extends cdk.Stack {
         const encryptionKey = new kms.Key(this, "KMSEncryptionKey", {
             enableKeyRotation: true,
             description: "KMS Key for encrypting token data for database",
-            removalPolicy: cdk.RemovalPolicy.DESTROY,
+            removalPolicy: cdk.RemovalPolicy.RETAIN,
         });
 
         new cdk.CfnOutput(this, 'kmsARN', {

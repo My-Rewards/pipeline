@@ -12,8 +12,8 @@ export interface OrganizationProps {
     tags:Set<string>;
     owner_id:string;
     date_registered: string;
-    rewards_loyalty: unknown;
-    rewards_milestone: unknown;
+    rewards_loyalty: RLProps | undefined;
+    rewards_milestone: RMProps | undefined;
     name: string;
     search_name:string;
     description: string;
@@ -106,6 +106,7 @@ export interface ShopProps {
     logo:string;
     favorite:boolean;
     menu:string|undefined;
+    preview:string;
     phone_number:string;
     description:string;
     shop_hours: ShopHour[];
@@ -128,6 +129,16 @@ export interface VisitProps {
     total: bigint | null,
     rl_active: bool, // if org loyalty rewards were active at time of visit
     rm_active: bool // if org milestone rewards were active at time of visit
+}
+
+export interface RewardProps {
+    id: string,
+    reward_id: string,
+    org_id: string,
+    user_id: string,
+    active: 0|1,
+    category: 'loyalty' | 'milestone',
+    last_update: string,
 }
 
 export interface GroupedPlan {
