@@ -124,13 +124,31 @@ export class PlansApiStack extends cdk.NestedStack {
             })
         );
 
+        const redeemRewardLambda = new nodejs.NodejsFunction(this, "redeemReward",{
+            runtime: lambda.Runtime.NODEJS_20_X,
+            entry: 'lambda/user/Rewards/redeem.ts',
+            functionName:'Redeem-Reward',
+            handler: 'handler',
+            environment: {
+                REWARDS_TABLE: rewardsTable.tableName,
+            },
+            bundling: {
+                externalModules: ['aws-sdk'],
+            },
+            description: 'Fetch user plans Lambda (v1.0.2)'
+        })
+        rewardsTable.grantReadWriteData(redeemRewardLambda);
+
         const plansApi = props.appRoot.addResource('plans');
+        const rewards = props.appRoot.addResource('rewards');
         const fetchPlanApi = plansApi.addResource('plan');
         const fetchLikedPlansApi = plansApi.addResource('favorite');
+        const redeemRewardApi = rewards.addResource('redeem');
 
         const fetchPlan = new apigateway.LambdaIntegration(fetchPlanLambda);
         const fetchPlans = new apigateway.LambdaIntegration(fetchPlansLambda);
         const fetchLikedPlans = new apigateway.LambdaIntegration(fetchLikedPlansLambda);
+        const redeemRewardsPlan = new apigateway.LambdaIntegration(redeemRewardLambda);
 
         fetchPlanApi.addMethod('GET', fetchPlan, {
             authorizer: props.authorizer,
@@ -141,6 +159,10 @@ export class PlansApiStack extends cdk.NestedStack {
             authorizationType: apigateway.AuthorizationType.COGNITO,
         });
         fetchLikedPlansApi.addMethod('GET', fetchLikedPlans, {
+            authorizer: props.authorizer,
+            authorizationType: apigateway.AuthorizationType.COGNITO,
+        });
+        redeemRewardApi.addMethod('PUT', redeemRewardsPlan, {
             authorizer: props.authorizer,
             authorizationType: apigateway.AuthorizationType.COGNITO,
         });
