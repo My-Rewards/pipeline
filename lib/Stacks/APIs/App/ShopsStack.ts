@@ -119,6 +119,62 @@ export class ShopApiStack extends cdk.NestedStack {
         shopTable.grantReadData(discoverShopsLambda);
         orgTable.grantReadData(discoverShopsLambda);
 
+        // Discover Shops API
+        const popularShopsLambda = new nodejs.NodejsFunction(this, "popularShopsLambda", {
+            runtime: lambda.Runtime.NODEJS_20_X,
+            entry: "lambda/shop/getPopularShops.ts",
+            handler: "handler",
+            functionName:'Fetch-Popular-Shops',
+            vpc,
+            role: clusterRole,
+            securityGroups: [securityGroupResolvers],
+            vpcSubnets: {
+                subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+            },
+            environment: {
+                SHOP_TABLE: shopTable.tableName,
+                ORG_TABLE: orgTable.tableName,
+                DB_NAME: DATABASE_NAME,
+                CLUSTER_ARN: cdk.Fn.importValue("ClusterARN"),
+                SECRET_ARN: cdk.Fn.importValue("AuroraSecretARN"),
+            },
+            bundling: {
+                externalModules: ["aws-sdk"],
+            },
+        }
+    );
+
+        shopTable.grantReadData(popularShopsLambda);
+        orgTable.grantReadData(popularShopsLambda);
+
+                    // Discover Shops API
+        const favoriteShopsLambda = new nodejs.NodejsFunction(this, "favoriteShopsLambda", {
+            runtime: lambda.Runtime.NODEJS_20_X,
+            entry: "lambda/shop/getFavoriteShops.ts",
+            handler: "handler",
+            functionName:'Fetch-Favorite-Shops',
+            vpc,
+            role: clusterRole,
+            securityGroups: [securityGroupResolvers],
+            vpcSubnets: {
+                subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+            },
+            environment: {
+                SHOP_TABLE: shopTable.tableName,
+                ORG_TABLE: orgTable.tableName,
+                DB_NAME: DATABASE_NAME,
+                CLUSTER_ARN: cdk.Fn.importValue("ClusterARN"),
+                SECRET_ARN: cdk.Fn.importValue("AuroraSecretARN"),
+            },
+            bundling: {
+                externalModules: ["aws-sdk"],
+            },
+        }
+    );
+
+    shopTable.grantReadData(favoriteShopsLambda);
+    orgTable.grantReadData(favoriteShopsLambda);
+
         const searchShops = new nodejs.NodejsFunction( this, "searchOrganinations",
             {
                 runtime: lambda.Runtime.NODEJS_20_X,
@@ -209,15 +265,26 @@ export class ShopApiStack extends cdk.NestedStack {
         const searchShopApi = shopApi.addResource("search");
         const filterByRadius = filterByShops.addResource("radius");
         const nearestShopApi = shopApi.addResource("nearest");
-
+        const popularShopsApi = shopApi.addResource("popular");
+        const favoriteShopsApi = shopApi.addResource("favorite");
         const getShop = new apigateway.LambdaIntegration(getShopLambda);
         const pinShop = new apigateway.LambdaIntegration(pinShopLambda);
         const discoverIntegration = new apigateway.LambdaIntegration(discoverShopsLambda);
         const searchIntegration = new apigateway.LambdaIntegration(searchShops);
         const radiusIntegration = new apigateway.LambdaIntegration(radiusShopsLambda);
         const nearestShopIntegration = new apigateway.LambdaIntegration(nearestShopLambda);
+        const popularShopsIntegration = new apigateway.LambdaIntegration(popularShopsLambda);
+        const favoriteShopsIntegration = new apigateway.LambdaIntegration(favoriteShopsLambda);
 
         discoverShopApi.addMethod("GET", discoverIntegration, {
+            authorizer: props.authorizer,
+            authorizationType: apigateway.AuthorizationType.COGNITO,
+        });
+        popularShopsApi.addMethod("GET", popularShopsIntegration, {
+            authorizer: props.authorizer,
+            authorizationType: apigateway.AuthorizationType.COGNITO,
+        });
+        favoriteShopsApi.addMethod("GET", favoriteShopsIntegration, {
             authorizer: props.authorizer,
             authorizationType: apigateway.AuthorizationType.COGNITO,
         });
