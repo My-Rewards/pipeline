@@ -5,6 +5,7 @@ import { OrganizationProps } from "../Interfaces";
 import Stripe from "stripe";
 import { getStripeSecret } from "../constants/validOrganization";
 import { STRIPE_API_VERSION } from "../../global/constants";
+import {STATUS_CODE} from "../../global/statusCodes";
 
 const dynamoClient = new DynamoDBClient({region: "us-east-1"});
 const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
@@ -116,14 +117,14 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
         if(!organization?.linked){
             return { 
-                statusCode: 211, 
+                statusCode: STATUS_CODE.OrgNotLinked,
                 body: JSON.stringify({ info:'Organization not Linked' })
             };
         }
 
         if(!organization.stripe_id){
             return { 
-                statusCode: 220, 
+                statusCode: STATUS_CODE.Success,
                 body: JSON.stringify({ info:'Organization Payment not Setup' })
             };
         }

@@ -9,6 +9,7 @@ import { OrganizationProps } from "../Interfaces";
 import { getStripeSecret } from "../constants/validOrganization";
 import { STRIPE_API_VERSION } from "../../global/constants";
 import { RDSDataClient, ExecuteStatementCommand } from "@aws-sdk/client-rds-data";
+import {STATUS_CODE} from "../../global/statusCodes";
 
 const s3 = new S3Client({ region: "us-east-1" });
 const dynamoClient = new DynamoDBClient({});
@@ -17,6 +18,15 @@ const rdsClient = new RDSDataClient({ region: "us-east-1" });
 
 let cachedStripeKey: string | null;
 let stripe: Stripe| null;
+
+const orgTable = process.env.ORG_TABLE;
+const userTable = process.env.USER_TABLE;
+const bucketName = process.env.BUCKET_NAME;
+const imageDomain = process.env.IMAGE_DOMAIN;
+const stripeArn = process.env.STRIPE_ARN;
+const clusterSecretArn = process.env.CLUSTER_SECRET_ARN
+const clusterArn = process.env.CLUSTER_ARN
+const dbName = process.env.DB_NAME
 
 const getUserEmailFromDynamoDB = async (userId: string, userTable:string): Promise<string | null> => {
     try {
@@ -59,28 +69,19 @@ const getPresignedUrls = async (fileKeys: string[], bucketName:string, types:str
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     if (!event.body) {
         return {
-            statusCode: 400,
+            statusCode: STATUS_CODE.Error,
             body: JSON.stringify({ error: "Request body is required" }),
         };
     }
 
-    const orgTable = process.env.ORG_TABLE;
-    const userTable = process.env.USER_TABLE;
-    const bucketName = process.env.BUCKET_NAME;
-    const imageDomain = process.env.IMAGE_DOMAIN;
-    const stripeArn = process.env.STRIPE_ARN;
-    const clusterSecretArn = process.env.CLUSTER_SECRET_ARN
-    const clusterArn = process.env.CLUSTER_ARN
-    const dbName = process.env.DB_NAME
-
     switch(true){
-        case !orgTable || !userTable: return{statusCode:404, body:'Missing Table Info ENV'};
-        case !stripeArn: return{statusCode:404, body:'Missing Stripe ARN ENV'};
-        case !imageDomain: return{statusCode:404, body:'Missing Image Domain ENV'};
-        case !bucketName: return{statusCode:404, body:'Missing Image Bucket Name ENV'};
-        case !clusterSecretArn: return{statusCode:404, body:'Missing Aurora Secret ARN ENV'};
-        case !clusterArn: return{statusCode:404, body:'Missing Aurora ARN ENV'};
-        case !dbName: return{statusCode:404, body:'Missing DB Name ENV'};
+        case !orgTable || !userTable: return{statusCode:STATUS_CODE.Error, body:'Missing Table Info ENV'};
+        case !stripeArn: return{statusCode:STATUS_CODE.Error, body:'Missing Stripe ARN ENV'};
+        case !imageDomain: return{statusCode:STATUS_CODE.Error, body:'Missing Image Domain ENV'};
+        case !bucketName: return{statusCode:STATUS_CODE.Error, body:'Missing Image Bucket Name ENV'};
+        case !clusterSecretArn: return{statusCode:STATUS_CODE.Error, body:'Missing Aurora Secret ARN ENV'};
+        case !clusterArn: return{statusCode:STATUS_CODE.Error, body:'Missing Aurora ARN ENV'};
+        case !dbName: return{statusCode:STATUS_CODE.Error, body:'Missing DB Name ENV'};
     }
 
     try {
@@ -119,7 +120,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const userEmail = await getUserEmailFromDynamoDB(userSub, userTable);
 
         if (!userEmail) {
-            return { statusCode: 500, body: JSON.stringify({ error: "User email not found in database or User already linked to Organization" }) };
+            return { statusCode: STATUS_CODE.Error, body: JSON.stringify({ error: "User email not found in database or User already linked to Organization" }) };
         }
 
         const stripeCustomer = await stripe.customers.create({
@@ -130,7 +131,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         });
 
         if(!stripeCustomer){
-            return { statusCode: 500, body: JSON.stringify({ error: "Stripe Failed to create Customer" }) };
+            return { statusCode: STATUS_CODE.Error, body: JSON.stringify({ error: "Stripe Failed to create Customer" }) };
         }
 
         const fileKeys = [`${organization_id}/logo`, `${organization_id}/preview`, `${organization_id}/banner`];
@@ -210,7 +211,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
         if(auroraResult.numberOfRecordsUpdated == 0){
             return {
-                statusCode: 500,
+                statusCode: STATUS_CODE.Error,
                 body: JSON.stringify({
                     message: "Failed to Create Organization",
                     db:'Aurora'
@@ -223,7 +224,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
         if(!result){
             return {
-                statusCode: 500,
+                statusCode: STATUS_CODE.Error,
                 body: JSON.stringify({
                     message: "Failed to Create Organization",
                     db:'Dynamo'
@@ -232,7 +233,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         }
 
         return {
-            statusCode: 200,
+            statusCode: STATUS_CODE.Success,
             body: JSON.stringify({
                 message: "Success",
                 preSignedUrls,
@@ -240,7 +241,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         };
     } catch (error) {
         return {
-            statusCode: 500,
+            statusCode: STATUS_CODE.Error,
             body: JSON.stringify({ message: "Failed", error: error instanceof Error ? error.message : error }),
         };
     }

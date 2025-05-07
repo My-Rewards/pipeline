@@ -4,13 +4,57 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c5f43aa4-9a17-40ee-b0b0-c7c60dd8eee7" name="Changes" comment="fixed plans errors with rewards">
-      <change afterPath="$PROJECT_DIR$/lambda/user/Rewards/redeem.ts" afterDir="false" />
+    <list default="true" id="c5f43aa4-9a17-40ee-b0b0-c7c60dd8eee7" name="Changes" comment="inmplemented reward redeeming + updated fetch shop api">
+      <change afterPath="$PROJECT_DIR$/global/statusCodes.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lambda/shop/getShop.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lambda/user/onboard.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/clover.xml" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/clover.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/coverage-final.json" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/coverage-final.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/cloudWatch/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/cloudWatch/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/cloudWatch/squareTokenUpdater.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/cloudWatch/squareTokenUpdater.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/constants/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/constants/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/constants/square.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/constants/square.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/constants/validOrganization.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/constants/validOrganization.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/likes/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/likes/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/likes/setLike.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/likes/setLike.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/getAccount.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/getAccount.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/getBilling.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/getBilling.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/getOrg.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/getOrg.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/newOrganization.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/newOrganization.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/square/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/square/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/square/link.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/square/link.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/update/account.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/update/account.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/organization/update/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/organization/update/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/shop/getShopApp.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/shop/getShopApp.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/shop/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/shop/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/shop/newShop.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/shop/newShop.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/user/Plans/getPlan.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/user/Plans/getPlan.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/user/Plans/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/user/Plans/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/user/createUser.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/user/createUser.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/user/createUserBusiness.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/user/createUserBusiness.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/user/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/user/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov.info" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov.info" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lambda/Interfaces.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/Interfaces.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lambda/shop/getShopApp.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/shop/getShopApp.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/Stacks/APIs/App/PlansApiStack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/APIs/App/PlansApiStack.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/Stacks/kms-stack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/kms-stack.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lambda/cloudWatch/squareTokenUpdater.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/cloudWatch/squareTokenUpdater.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lambda/likes/setLike.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/likes/setLike.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lambda/organization/addPayment.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/addPayment.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lambda/organization/getAccount.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/getAccount.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lambda/organization/getBilling.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/getBilling.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lambda/organization/getOrg.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/getOrg.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lambda/organization/like.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/like.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lambda/organization/newOrganization.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/newOrganization.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lambda/organization/removePayment.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/removePayment.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lambda/organization/search.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/search.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lambda/organization/setDefaultPayment.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/organization/setDefaultPayment.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lambda/shop/getRadiusShops.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lambda/shop/getRadiusShops.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/Stacks/APIs/App/UserApiStack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/APIs/App/UserApiStack.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/Stacks/APIs/Business/OrganizationApiStack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/APIs/Business/OrganizationApiStack.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/Stacks/APIs/Business/ShopsApiStack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/APIs/Business/ShopsApiStack.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/Stacks/APIs/Business/SquareApiStack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/APIs/Business/SquareApiStack.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/Stacks/customEmail-stack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Stacks/customEmail-stack.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -54,20 +98,20 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;Brian&quot;,
-    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;/Users/brian/myRewards/pipeline/node_modules/typescript/lib&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "#84 on Brian",
+    "junie.onboarding.icon.badge.shown": "true",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "ts.external.directory.path": "/Users/brian/myRewards/pipeline/node_modules/typescript/lib",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -92,7 +136,7 @@
       <option name="presentableId" value="Default" />
       <updated>1745468476595</updated>
       <workItem from="1745468477943" duration="6930000" />
-      <workItem from="1746375496458" duration="7099000" />
+      <workItem from="1746375496458" duration="22242000" />
     </task>
     <task id="LOCAL-00002" summary="modulated setup for having lambda be able to modify, implemented shops page">
       <option name="closed" value="true" />
@@ -134,7 +178,15 @@
       <option name="project" value="LOCAL" />
       <updated>1745706403291</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="inmplemented reward redeeming + updated fetch shop api">
+      <option name="closed" value="true" />
+      <created>1746385329410</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1746385329410</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -165,6 +217,7 @@
     <MESSAGE value="updated plans retrieval (can get rewards)" />
     <MESSAGE value="cleaned package-lock.json" />
     <MESSAGE value="fixed plans errors with rewards" />
-    <option name="LAST_COMMIT_MESSAGE" value="fixed plans errors with rewards" />
+    <MESSAGE value="inmplemented reward redeeming + updated fetch shop api" />
+    <option name="LAST_COMMIT_MESSAGE" value="inmplemented reward redeeming + updated fetch shop api" />
   </component>
 </project>

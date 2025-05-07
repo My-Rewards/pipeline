@@ -1,6 +1,7 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, UpdateCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent } from "aws-lambda";
+import {STATUS_CODE} from "../../global/statusCodes";
 
 const client = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(client);
@@ -12,11 +13,11 @@ export const handler = async (event: APIGatewayProxyEvent) => {
 
     switch (true) {
         case !likesTable:
-            return { statusCode: 500, body: JSON.stringify({ error: "Missing Shop Table Info" }) };
+            return { statusCode: STATUS_CODE.MissingData, body: JSON.stringify({ error: "Missing Shop Table Info" }) };
         case !userId:
-            return { statusCode: 404, body: JSON.stringify({ error: "Missing User ID" }) };
+            return { statusCode: STATUS_CODE.MissingData, body: JSON.stringify({ error: "Missing User ID" }) };
         case !shop_id:
-            return { statusCode: 404, body: JSON.stringify({ error: "Missing [shop_id] path parameter" }) };
+            return { statusCode: STATUS_CODE.MissingParam, body: JSON.stringify({ error: "Missing [shop_id] path parameter" }) };
     }
 
     try {
@@ -49,7 +50,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
         const { Attributes } = await dynamoDb.send(updateParams);
 
         return {
-            statusCode: 200,
+            statusCode: STATUS_CODE.Success,
             body: JSON.stringify({
                 message: `Shop ${newFavoriteValue ? 'liked' : 'unliked'} successfully`,
                 favorite: Attributes?.favorite
@@ -59,7 +60,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
     } catch (error) {
         console.error('Error:', error);
         return {
-            statusCode: 500,
+            statusCode: STATUS_CODE.Error,
             body: JSON.stringify({ error: "Could not update like status" })
         };
     }

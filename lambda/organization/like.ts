@@ -6,6 +6,7 @@ import {
     RDSDataClient,
     ExecuteStatementCommand
 } from "@aws-sdk/client-rds-data";
+import {STATUS_CODE} from "../../global/statusCodes";
 
 const rds = new RDSDataClient({});
 
@@ -26,7 +27,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const liked = await auroraCall(userId, org_id);
 
         return {
-            statusCode: 200,
+            statusCode: STATUS_CODE.Success,
             body: JSON.stringify({
                 sucess:true,
                 liked
@@ -35,7 +36,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     } catch (err) {
         console.error("Error toggling like:", err);
         return {
-            statusCode: 500,
+            statusCode: STATUS_CODE.Error,
             body: JSON.stringify({ error: "Internal error" })
         };
     }

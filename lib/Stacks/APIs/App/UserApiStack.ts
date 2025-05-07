@@ -51,6 +51,18 @@ export class UsersApiStack extends cdk.NestedStack {
       },
     });
 
+    const onboardLambda = new nodejs.NodejsFunction(this, "Onboard-Customer-User",{
+      runtime: lambda.Runtime.NODEJS_20_X,
+      entry: 'lambda/user/onboard.ts',
+      handler: 'handler',
+      environment: {
+        USERS_TABLE: usersTable.tableName,
+      },
+      bundling: {
+        externalModules: ['aws-sdk'],
+      },
+    });
+
     //Delete Customer Account
     const deleteCustomerAccountLambda = new nodejs.NodejsFunction(this, "Delete-Customer-User",{
       runtime: lambda.Runtime.NODEJS_20_X,
@@ -67,6 +79,7 @@ export class UsersApiStack extends cdk.NestedStack {
 
     usersTable.grantReadData(getCustomerAccountLambda);
     usersTable.grantReadWriteData(updateCustomerAccountLambda);
+    usersTable.grantReadWriteData(onboardLambda);
     usersTable.grantReadWriteData(deleteCustomerAccountLambda);
 
     deleteCustomerAccountLambda.addToRolePolicy(new iam.PolicyStatement({
@@ -96,18 +109,19 @@ export class UsersApiStack extends cdk.NestedStack {
       },
     });
 
-
     // API Gateway integration
     const customer = props.api.root.addResource('customer'); 
     const usersApi = customer.addResource('user'); 
     const userDelete = usersApi.addResource('delete');
     const userUpdate = usersApi.addResource('update');
+    const onboardingComplete = usersApi.addResource('onboard');
     const orgLike = customer.addResource('like');
 
     const getCustomerUserIntegration = new apigateway.LambdaIntegration(getCustomerAccountLambda);
     const updateCustomerUserIntegration = new apigateway.LambdaIntegration(updateCustomerAccountLambda);
     const deleteCustomerUserIntegration = new apigateway.LambdaIntegration(deleteCustomerAccountLambda);
     const orgLikeIntegration = new apigateway.LambdaIntegration(setOrgLike);
+    const onboardIntegrations = new apigateway.LambdaIntegration(onboardLambda);
 
     usersApi.addMethod('GET', getCustomerUserIntegration, {
       authorizer: props.authorizer,
@@ -120,6 +134,11 @@ export class UsersApiStack extends cdk.NestedStack {
     });
 
     userUpdate.addMethod('PUT', updateCustomerUserIntegration, {
+      authorizer: props.authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO,
+    });
+
+    onboardingComplete.addMethod('PUT', onboardIntegrations, {
       authorizer: props.authorizer,
       authorizationType: apigateway.AuthorizationType.COGNITO,
     });

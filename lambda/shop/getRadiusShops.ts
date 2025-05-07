@@ -3,6 +3,7 @@ import {
   RDSDataClient,
 } from "@aws-sdk/client-rds-data";
 import { APIGatewayProxyEvent } from "aws-lambda";
+import {STATUS_CODE} from "../../global/statusCodes";
 
 const rdsClient = new RDSDataClient({});
 const secretArn = process.env.SECRET_ARN;
@@ -56,7 +57,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
   } catch (error) {
     console.log("Error in getRadiusShops lambda", error);
     return {
-      statusCode: 500,
+      statusCode: STATUS_CODE.Error,
       body: JSON.stringify({ error: "Internal server error" }),
     };
   }

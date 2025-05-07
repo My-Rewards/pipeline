@@ -1,5 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { RDSDataClient, ExecuteStatementCommand } from "@aws-sdk/client-rds-data";
+import {STATUS_CODE} from "../../global/statusCodes";
 
 const rdsClient = new RDSDataClient({region: "us-east-1"});
 
@@ -15,7 +16,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const limit = event.queryStringParameters?.limit ? parseInt(event.queryStringParameters.limit) : 10;
 
     if (!searchQuery) {
-        return { statusCode: 400, body: JSON.stringify({ error: "Search query is required" }) };
+        return { statusCode: STATUS_CODE.MissingParam, body: JSON.stringify({ error: "Search query is required" }) };
     }
     
     searchQuery = searchQuery.toLowerCase();
@@ -58,14 +59,14 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             });
 
         return {
-            statusCode: 200,
+            statusCode: STATUS_CODE.Success,
             body: JSON.stringify(formattedRecords)
         };
 
     } catch (error) {
         console.error("Error searching organizations:", error);
         return {
-            statusCode: 500,
+            statusCode: STATUS_CODE.Error,
             body: JSON.stringify({ error: "Failed to search organizations" })
         };
     }

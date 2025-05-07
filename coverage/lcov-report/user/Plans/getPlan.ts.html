@@ -30,9 +30,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">9.37% </span>
+                <span class="strong">8.82% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>3/32</span>
+                <span class='fraction'>3/34</span>
             </div>
         
             
@@ -207,7 +207,13 @@
 <a name='L142'></a><a href='#L142'>142</a>
 <a name='L143'></a><a href='#L143'>143</a>
 <a name='L144'></a><a href='#L144'>144</a>
-<a name='L145'></a><a href='#L145'>145</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L145'></a><a href='#L145'>145</a>
+<a name='L146'></a><a href='#L146'>146</a>
+<a name='L147'></a><a href='#L147'>147</a>
+<a name='L148'></a><a href='#L148'>148</a>
+<a name='L149'></a><a href='#L149'>149</a>
+<a name='L150'></a><a href='#L150'>150</a>
+<a name='L151'></a><a href='#L151'>151</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -232,6 +238,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -327,10 +338,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -359,6 +371,11 @@ import { PlanProps, RLProps, RMProps } from "../../Interfaces";
 const client = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(client);
 &nbsp;
+interface reward{
+  reward_id:string;
+  id:string
+}
+&nbsp;
 interface ShopPlan {
   reward_plan: {
     rewards_loyalty: RLProps | undefined;
@@ -366,13 +383,13 @@ interface ShopPlan {
   };
   visits: number;
   points: number;
-  redeemableRewards: string[];
+  name:string;
+  redeemableRewards: reward[];
   rl_active: boolean;
   rm_active: boolean;
   firstPlan: boolean;
-  activePlan: boolean;
+  organization_id:string;
   id: string;
-  favorite: boolean;
   active: boolean;
 }
 &nbsp;
@@ -421,9 +438,9 @@ export const handler = async (event: APIGatewayProxyEvent) =&gt; {
 &nbsp;
     const activePlan = <span class="cstat-no" title="statement not covered" >!!(planResult.Item);</span>
 &nbsp;
-    const redeemableRewards:string[] = <span class="cstat-no" title="statement not covered" >planResult.Item ? await getActiveRewards(planResult.Item.plan_id, org.rl_active, org.rm_active) : [];</span>
+    const redeemableRewards:reward[] = <span class="cstat-no" title="statement not covered" >planResult.Item ? await getActiveRewards(planResult.Item.id, org.rl_active, org.rm_active) : [];</span>
 &nbsp;
-    const shopPlan = <span class="cstat-no" title="statement not covered" >{</span>
+    const shopPlan:ShopPlan = <span class="cstat-no" title="statement not covered" >{</span>
       reward_plan: {
         rewards_loyalty: org.rl_active ? org.rewards_loyalty : undefined,
         rewards_milestone: org.rm_active ? org.rewards_milestone : undefined
@@ -434,8 +451,8 @@ export const handler = async (event: APIGatewayProxyEvent) =&gt; {
       rl_active: org.rl_active || false,
       rm_active: org.rm_active || false,
       firstPlan: false,
-      id:planResult.Item?.id,
-      active:activePlan,
+      id: planResult.Item?.id,
+      active: activePlan,
       organization_id: org.id,
       name: org.name
     };
@@ -470,31 +487,32 @@ function <span class="fstat-no" title="function not covered" >validateIds(</span
 }
 &nbsp;
 async function <span class="fstat-no" title="function not covered" >getActiveRewards(</span>plan_id:string, rl_active:boolean, rm_active:boolean) {
-  let filterExpression = <span class="cstat-no" title="statement not covered" >"";</span>
   const expressionAttributeValues: Record&lt;string, any&gt; = <span class="cstat-no" title="statement not covered" >{</span>
     ":planId": plan_id,
     ":isActive": 1,
   };
 &nbsp;
+  let filterExpression: string | undefined = <span class="cstat-no" title="statement not covered" >undefined;</span>
+&nbsp;
 <span class="cstat-no" title="statement not covered" >  if (rl_active &amp;&amp; !rm_active) {</span>
-<span class="cstat-no" title="statement not covered" >    filterExpression += " AND category = :loyalty";</span>
-<span class="cstat-no" title="statement not covered" >    expressionAttributeValues[":loyalty"] = { S: "loyalty" };</span>
+<span class="cstat-no" title="statement not covered" >    filterExpression = "category = :loyalty";</span>
+<span class="cstat-no" title="statement not covered" >    expressionAttributeValues[":loyalty"] = 'loyalty';</span>
   } else <span class="cstat-no" title="statement not covered" ><span class="missing-if-branch" title="if path not taken" >I</span>if (rm_active &amp;&amp; !rl_active) {</span>
-<span class="cstat-no" title="statement not covered" >    filterExpression += " AND category = :milestone";</span>
-<span class="cstat-no" title="statement not covered" >    expressionAttributeValues[":milestone"] = { S: "milestone" };</span>
+<span class="cstat-no" title="statement not covered" >    filterExpression = "category = :milestone";</span>
+<span class="cstat-no" title="statement not covered" >    expressionAttributeValues[":milestone"] = 'milestone';</span>
   }
 &nbsp;
   const rewardsParams = <span class="cstat-no" title="statement not covered" >new QueryCommand({</span>
     TableName: rewardsTable,
     IndexName: "activeRewardsIndex",
     KeyConditionExpression: "plan_id = :planId AND active = :isActive",
-    FilterExpression: filterExpression,
     ExpressionAttributeValues: expressionAttributeValues,
+    ...(filterExpression ? { FilterExpression: filterExpression } : {}),
   });
 &nbsp;
   const result = <span class="cstat-no" title="statement not covered" >await client.send(rewardsParams);</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (result?.Items?.map(<span class="fstat-no" title="function not covered" >item </span>=&gt; <span class="cstat-no" title="statement not covered" >item.reward_id)</span> || []) as string[]</span>
+<span class="cstat-no" title="statement not covered" >  return (result?.Items?.map(<span class="fstat-no" title="function not covered" >item </span>=&gt; (<span class="cstat-no" title="statement not covered" >{id:item.id, reward_id:item.reward_id})</span>) as reward[]) || []</span>
 }</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -502,7 +520,7 @@ async function <span class="fstat-no" title="function not covered" >getActiveRew
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-04-26T17:05:01.493Z
+                at 2025-05-04T21:43:37.472Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

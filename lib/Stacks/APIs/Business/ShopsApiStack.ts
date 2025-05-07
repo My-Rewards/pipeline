@@ -6,8 +6,8 @@ import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as nodejs from "aws-cdk-lib/aws-lambda-nodejs";
 import * as kms from "aws-cdk-lib/aws-kms";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
-import * as iam from "aws-cdk-lib/aws-iam";
 import {DATABASE_NAME} from "../../../../global/constants";
+import {getAuroraAccess} from "../../util/aurora-access";
 
 interface UsersApiStackProps extends cdk.NestedStackProps {
   api: apigateway.RestApi;
@@ -19,39 +19,7 @@ export class ShopApiStack extends cdk.NestedStack {
   constructor(scope: Construct, id: string, props: UsersApiStackProps) {
     super(scope, id, props);
 
-    const vpc = ec2.Vpc.fromVpcAttributes(this, "ImportedVPC", {
-      vpcId: cdk.Fn.importValue("ClusterVPC-Id"),
-      availabilityZones: cdk.Fn.getAzs(),
-      vpcCidrBlock: "10.0.0.0/24",
-      privateSubnetIds: [
-        cdk.Fn.importValue("PrivateSubnetWithEgress1-Id"),
-        cdk.Fn.importValue("PrivateSubnetWithEgress2-Id"),
-      ],
-      privateSubnetNames: ["Private1", "Private2"],
-      publicSubnetIds: [
-        cdk.Fn.importValue("PublicSubnet1-Id"),
-        cdk.Fn.importValue("PublicSubnet2-Id"),
-      ],
-      publicSubnetNames: ["Public1", "Public2"],
-      isolatedSubnetIds: [
-        cdk.Fn.importValue("PrivateSubnet1-Id"),
-        cdk.Fn.importValue("PrivateSubnet2-Id"),
-      ],
-      isolatedSubnetNames: ["Isolated1", "Isolated2"],
-    });
-
-    const clusterRole = iam.Role.fromRoleArn(
-        this,
-        "ImportedRole",
-        cdk.Fn.importValue("ClusterRoleARN")
-    );
-
-    const securityGroupResolvers = ec2.SecurityGroup.fromSecurityGroupId(
-        this,
-        "ImportedSecurityGroupResolvers",
-        cdk.Fn.importValue("SecurityGroupResolversId"),
-        { allowAllOutbound: true }
-    );
+    const { vpc, clusterSecret, clusterArn, clusterRole, securityGroupResolvers } = getAuroraAccess(this, id);
 
     const shopTable = dynamodb.Table.fromTableArn(
         this,
@@ -78,8 +46,8 @@ export class ShopApiStack extends cdk.NestedStack {
         SHOP_TABLE: shopTable.tableName,
         USER_TABLE: userTable.tableName,
         ORG_TABLE: orgTable.tableName,
-        SECRET_ARN: cdk.Fn.importValue("AuroraSecretARN"),
-        CLUSTER_ARN: cdk.Fn.importValue("ClusterARN"),
+        SECRET_ARN: clusterSecret.secretArn,
+        CLUSTER_ARN: clusterArn,
         DB_NAME: DATABASE_NAME,
       },
       vpc,
@@ -98,11 +66,43 @@ export class ShopApiStack extends cdk.NestedStack {
     userTable.grantReadData(createShopLambda);
     props.encryptionKey.grantEncryptDecrypt(createShopLambda);
 
+    const fetchShopLambda = new nodejs.NodejsFunction(this, "Fetch-Shop-Bizz", {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      entry: "lambda/shop/getShop.ts",
+      handler: "handler",
+      functionName: "Fetch-Shop-Bizz",
+      environment: {
+        SHOP_TABLE: shopTable.tableName,
+        USER_TABLE: userTable.tableName,
+        ORG_TABLE: orgTable.tableName,
+      },
+      vpc,
+      role: clusterRole,
+      securityGroups: [securityGroupResolvers],
+      vpcSubnets: {
+        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+      },
+      bundling: {
+        externalModules: ["aws-sdk"],
+      },
+    });
+
+    shopTable.grantReadWriteData(fetchShopLambda);
+    orgTable.grantReadWriteData(fetchShopLambda);
+    userTable.grantReadData(fetchShopLambda);
+
     const shopApi = props.api.root.addResource("shops");
     const createShopApi = shopApi.addResource("create");
+
     const createShop = new apigateway.LambdaIntegration(createShopLambda);
+    const getShop = new apigateway.LambdaIntegration(fetchShopLambda);
 
     createShopApi.addMethod("POST", createShop, {
+      authorizer: props.authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO,
+    });
+
+    shopApi.addMethod("GET", getShop, {
       authorizer: props.authorizer,
       authorizationType: apigateway.AuthorizationType.COGNITO,
     });
