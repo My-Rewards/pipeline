@@ -5,6 +5,7 @@ import { OrganizationProps } from "../Interfaces";
 import Stripe from "stripe";
 import { getStripeSecret } from "../constants/validOrganization";
 import { STRIPE_API_VERSION } from "../../global/constants";
+import {STATUS_CODE} from "../../global/statusCodes";
 
 const dynamoClient = new DynamoDBClient({region: "us-east-1"});
 const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
@@ -57,7 +58,7 @@ const setDefaultPM = async (stripe_id:string, meterPrice:string, pm_id:string):P
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     if (!event.body) {
         return {
-            statusCode: 400,
+            statusCode: STATUS_CODE.MissingParam,
             body: JSON.stringify({ error: "Request body is required" }),
         };
     }
@@ -107,31 +108,31 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const org = await dynamoDb.send(getOrg);
         
         if (!org.Item) {
-            return { statusCode: 210, body: JSON.stringify({ info: "Organization not found" }) };
+            return { statusCode: STATUS_CODE.NotFound, body: JSON.stringify({ info: "Organization not found" }) };
         }
 
         if (!cachedStripeKey) {
             cachedStripeKey = await getStripeSecret(stripeArn);
-            if (!cachedStripeKey) return { statusCode: 404, body: JSON.stringify({ error: "Failed to retrieve Stripe secret key" }) };
+            if (!cachedStripeKey) return { statusCode: STATUS_CODE.MissingData, body: JSON.stringify({ error: "Failed to retrieve Stripe secret key" }) };
         } 
 
         if(!stripe){
             stripe = new Stripe(cachedStripeKey, { apiVersion: STRIPE_API_VERSION });
-            if (!stripe) return { statusCode: 404, body: JSON.stringify({ error: "Failed to open stripe Client" }) };
+            if (!stripe) return { statusCode: STATUS_CODE.MissingData, body: JSON.stringify({ error: "Failed to open stripe Client" }) };
         }
 
         const organization = org.Item as OrganizationProps;
 
         if(!organization?.linked){
             return { 
-                statusCode: 211, 
+                statusCode: STATUS_CODE.OrgNotLinked,
                 body: JSON.stringify({ info:'Organization not Linked' })
             };
         }
 
         if(!organization.stripe_id){
             return { 
-                statusCode: 220, 
+                statusCode: STATUS_CODE.PaymentMissing,
                 body: JSON.stringify({ info:'Organization Payment not Setup' })
             };
         }
@@ -139,7 +140,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const {success} = await setDefaultPM(organization.stripe_id, meterPrice, paymentMethod)
 
         return {
-            statusCode: 200,
+            statusCode: STATUS_CODE.Success,
             body: JSON.stringify({ 
                 success
             })

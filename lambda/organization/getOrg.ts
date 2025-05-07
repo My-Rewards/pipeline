@@ -69,7 +69,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const shopResults = await dynamoDb.send(queryShops);
 
         if (!shopResults.Items) {
-            return { statusCode: 212, body: JSON.stringify({ info: "Error Fetching Shops" }) };
+            return { statusCode: 500, body: JSON.stringify({ info: "Error Fetching Shops" }) };
         }
 
         const shops = shopResults.Items as ShopProps[];

@@ -5,6 +5,7 @@ import { OrganizationProps } from "../Interfaces";
 import Stripe from "stripe";
 import { dfPM, getStripeSecret } from "../constants/validOrganization";
 import { STRIPE_API_VERSION } from "../../global/constants";
+import {STATUS_CODE} from "../../global/statusCodes";
 
 const dynamoClient = new DynamoDBClient({region: "us-east-1"});
 const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
@@ -12,13 +13,17 @@ const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
 let cachedStripeKey: string | null; 
 let stripe: Stripe| null;
 
+const orgTable = process.env.ORG_TABLE
+const userTable = process.env.USER_TABLE
+const stripeArn = process.env.STRIPE_ARN;
+
 const removePayment = async (payment_id:string):Promise<{success:boolean}> => {
     try {
 
         const deletedPayment = await stripe?.paymentMethods.detach(payment_id)
 
         return{
-            success: deletedPayment?.id ? true:false
+            success: !!deletedPayment?.id
         }
 
       } catch (error) {
@@ -32,10 +37,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     try {
         const userSub = event.requestContext.authorizer?.claims?.sub;
         const paymentId = event.queryStringParameters?.paymentId;
-
-        const orgTable = process.env.ORG_TABLE
-        const userTable = process.env.USER_TABLE
-        const stripeArn = process.env.STRIPE_ARN;
 
         switch(true){
             case (!orgTable || !userTable): return { statusCode: 404, body: JSON.stringify({ error: "No Org/Shop Table" }) };
@@ -70,24 +71,24 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const org = await dynamoDb.send(getOrg);
         
         if (!org.Item) {
-            return { statusCode: 210, body: JSON.stringify({ info: "Organization not found" }) };
+            return { statusCode: STATUS_CODE.NotFound, body: JSON.stringify({ info: "Organization not found" }) };
         }
 
         if (!cachedStripeKey) {
             cachedStripeKey = await getStripeSecret(stripeArn);
-            if (!cachedStripeKey) return { statusCode: 404, body: JSON.stringify({ error: "Failed to retrieve Stripe secret key" }) };
+            if (!cachedStripeKey) return { statusCode: STATUS_CODE.MissingData, body: JSON.stringify({ error: "Failed to retrieve Stripe secret key" }) };
         } 
 
         if(!stripe){
             stripe = new Stripe(cachedStripeKey, { apiVersion: STRIPE_API_VERSION });
-            if (!stripe) return { statusCode: 404, body: JSON.stringify({ error: "Failed to open stripe Client" }) };
+            if (!stripe) return { statusCode: STATUS_CODE.MissingData, body: JSON.stringify({ error: "Failed to open stripe Client" }) };
         }
 
         const organization = org.Item as OrganizationProps;
 
         if(!organization?.linked){
             return { 
-                statusCode: 211, 
+                statusCode: STATUS_CODE.OrgNotLinked,
                 body: JSON.stringify({ info:'Organization not Linked' })
             };
         }
@@ -114,7 +115,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         }
 
         return {
-            statusCode: 200,
+            statusCode: STATUS_CODE.Success,
             body: JSON.stringify({ 
                 success
             })
@@ -122,6 +123,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
     } catch (error) {
         console.error("Error fetching organization:", error);
-        return { statusCode: 501, body: JSON.stringify({ error, success:false })};
+        return { statusCode: STATUS_CODE.Error, body: JSON.stringify({ error, success:false })};
     }
 };

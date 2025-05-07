@@ -7,6 +7,7 @@ import * as nodejs from 'aws-cdk-lib/aws-lambda-nodejs'
 import * as iam from 'aws-cdk-lib/aws-iam';
 import {DATABASE_NAME, METER_PRICE} from '../../../../global/constants';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import {getAuroraAccess} from "../../util/aurora-access";
 
 interface OrgApiStackProps extends cdk.NestedStackProps {
   api: apigateway.RestApi;
@@ -27,38 +28,8 @@ export class OrgApiStack extends cdk.NestedStack {
     const ImageBucketName = cdk.Fn.importValue('OrganizationImageBucket');
     const ImageBucketARN = cdk.Fn.importValue('OrganizationImageBucketARN');
     const ImageCloudfrontId = cdk.Fn.importValue('ImageCloudfrontId');
-    const clusterSecret = cdk.aws_secretsmanager.Secret.fromSecretCompleteArn(this, 'auroraSecret', cdk.Fn.importValue('AuroraSecretARN'));
-    const clusterArn = cdk.Fn.importValue('ClusterARN');
 
-    const vpc = ec2.Vpc.fromVpcAttributes(this, 'ImportedVPC', {
-      vpcId: cdk.Fn.importValue('ClusterVPC-Id'),
-      availabilityZones: cdk.Fn.getAzs(),
-      vpcCidrBlock: '10.0.0.0/24',
-      privateSubnetIds: [
-        cdk.Fn.importValue('PrivateSubnetWithEgress1-Id'),
-        cdk.Fn.importValue('PrivateSubnetWithEgress2-Id')
-      ],
-      privateSubnetNames: ['Private1', 'Private2'],
-      publicSubnetIds: [
-        cdk.Fn.importValue('PublicSubnet1-Id'),
-        cdk.Fn.importValue('PublicSubnet2-Id')
-      ],
-      publicSubnetNames: ['Public1', 'Public2'],
-      isolatedSubnetIds: [
-        cdk.Fn.importValue('PrivateSubnet1-Id'),
-        cdk.Fn.importValue('PrivateSubnet2-Id')
-      ],
-      isolatedSubnetNames: ['Isolated1', 'Isolated2']
-    });
-
-    const securityGroupResolvers = ec2.SecurityGroup.fromSecurityGroupId(
-        this,
-        'ImportedSecurityGroupResolvers',
-        cdk.Fn.importValue('SecurityGroupResolversId'),
-        { allowAllOutbound: true }
-    );
-
-    const clusterRole = iam.Role.fromRoleArn(this, 'ImportedRole', cdk.Fn.importValue('ClusterRoleARN'));
+    const { vpc, clusterSecret, clusterArn, clusterRole, securityGroupResolvers } = getAuroraAccess(this, id);
 
     // Create ORG Lambda
     const createOrgLambda = new nodejs.NodejsFunction(this, "create-organization",{

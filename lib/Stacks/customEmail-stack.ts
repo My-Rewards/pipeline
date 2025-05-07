@@ -69,7 +69,7 @@ export class CustomEmailStack extends cdk.Stack {
 
     // Lambda Function to Poll SES Verification
     const verificationCheckerFn = new lambda.Function(this, 'VerificationCheckerFn', {
-        runtime: lambda.Runtime.NODEJS_18_X,
+        runtime: lambda.Runtime.NODEJS_20_X,
         handler: 'index.handler',
         code: lambda.Code.fromInline(`
             const AWS = require('aws-sdk');

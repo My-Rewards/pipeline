@@ -9,6 +9,7 @@ import {
   QueryCommand,
 } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import {STATUS_CODE} from "../../global/statusCodes";
 
 const dynamoClient = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
@@ -23,14 +24,14 @@ export const handler = async (
 
     if (!userTable || !orgTable) {
       return {
-        statusCode: 500,
+        statusCode: STATUS_CODE.Error,
         body: JSON.stringify({ error: "No Org/Shop/User Table" }),
       };
     }
 
     if (!userSub) {
       return {
-        statusCode: 500,
+        statusCode: STATUS_CODE.Error,
         body: JSON.stringify({ error: "no userID supplied" }),
       };
     }
@@ -44,7 +45,7 @@ export const handler = async (
 
     if (!user.Item) {
       return {
-        statusCode: 210,
+        statusCode: STATUS_CODE.MissingUser,
         body: JSON.stringify({ info: "User not found" }),
       };
     }
@@ -53,7 +54,7 @@ export const handler = async (
 
     if (!orgId) {
       return {
-        statusCode: 404,
+        statusCode: STATUS_CODE.NotFound,
         body: JSON.stringify({ info: "User not found" }),
       };
     }
@@ -67,14 +68,14 @@ export const handler = async (
 
     if (!org.Item) {
       return {
-        statusCode: 210,
+        statusCode: STATUS_CODE.NotFound,
         body: JSON.stringify({ info: "Organization not found" }),
       };
     }
 
     if (!org.Item.linked) {
       return {
-        statusCode: 211,
+        statusCode: STATUS_CODE.OrgNotLinked,
         body: JSON.stringify({ info: "Organization not Linked" }),
       };
     }

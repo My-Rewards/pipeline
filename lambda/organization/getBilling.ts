@@ -5,6 +5,7 @@ import Stripe from "stripe";
 import { StripeBillingProps, StripeInvoice } from "../Interfaces";
 import { getStripeSecret } from "../constants/validOrganization";
 import { STRIPE_API_VERSION } from "../../global/constants";
+import {STATUS_CODE} from "../../global/statusCodes";
 
 const dynamoClient = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
@@ -184,11 +185,11 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const org = await dynamoDb.send(getOrg);
 
         if(!org.Item){
-            return { statusCode: 210, body: JSON.stringify({ info: "Organization not found" }) };
+            return { statusCode: STATUS_CODE.NotFound, body: JSON.stringify({ info: "Organization not found" }) };
         }
 
         if(!org.Item.linked){
-            return { statusCode: 211, body: JSON.stringify({ info: "Organization not Linked" }) };
+            return { statusCode: STATUS_CODE.OrgNotLinked, body: JSON.stringify({ info: "Organization not Linked" }) };
         }
 
 
@@ -204,7 +205,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     
         const stripeData = await getStripe(org.Item.stripe_id)
         return {
-            statusCode: 200, 
+            statusCode: STATUS_CODE.Success,
             body: JSON.stringify({ 
             organization: { 
                 date_registered: org.Item.date_registered,

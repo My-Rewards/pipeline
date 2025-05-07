@@ -54,7 +54,6 @@ export interface ShopHour {
     open: string | null;
     close: string | null;
 }
-  
 
 export interface StripeBillingProps {
     total: number | null;
@@ -96,6 +95,28 @@ export interface PlanProps {
     visits_total:number,
     points:number,
     points_total:number
+}
+
+export interface ShopProp {
+    id: string;
+    org_id: string;
+    shop_name:string;
+    org_name:string
+    banner: string;
+    logo:string;
+    menu:string|undefined;
+    preview:string;
+    phone_number:string;
+    description:string;
+    shop_hours: ShopHour[];
+    location:{
+        city:string,
+        state:string,
+        address:string
+        zipcode:string
+    };
+    latitude: number;
+    longitude: number;
 }
 
 export interface ShopProps {

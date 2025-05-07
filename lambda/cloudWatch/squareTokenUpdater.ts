@@ -2,6 +2,7 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand, ScanCommandInput, UpdateCommand, UpdateCommandInput } from '@aws-sdk/lib-dynamodb';
 import * as square from 'square';
 import { fetchSquareSecret } from '../constants/square';
+import {STATUS_CODE} from "../../global/statusCodes";
 
 const dynamoClient = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
@@ -23,12 +24,12 @@ export const handler = async () => {
         switch(true){
           case(!squareSecretArn || !app_env):
             return {
-              statusCode: 500,
+              statusCode: STATUS_CODE.Error,
               body: JSON.stringify({ error: 'Square ARN required' }),
             };
           case !kmsKeyId:
             return {
-              statusCode: 500,
+              statusCode: STATUS_CODE.Error,
               body: JSON.stringify({ error: 'KMS Key ID is not configured' }),
             };
         }
@@ -92,13 +93,13 @@ export const handler = async () => {
         await Promise.all(updatePromises);
 
         return {
-            statusCode: 200,
+            statusCode: STATUS_CODE.Success,
             body: JSON.stringify({ message: 'Token update process completed successfully' }),
         };
     } catch (error) {
         console.error('Error in token update process:', error);
         return {
-            statusCode: 500,
+            statusCode: STATUS_CODE.Error,
             body: JSON.stringify({ error: 'Failed to process token updates' }),
         };
     }
