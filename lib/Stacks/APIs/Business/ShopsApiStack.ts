@@ -11,6 +11,7 @@ import {getAuroraAccess} from "../../util/aurora-access";
 
 interface UsersApiStackProps extends cdk.NestedStackProps {
   api: apigateway.RestApi;
+  stageName: string;
   authorizer: cdk.aws_apigateway.CognitoUserPoolsAuthorizer;
   encryptionKey: kms.IKey;
 }
@@ -19,7 +20,7 @@ export class ShopApiStack extends cdk.NestedStack {
   constructor(scope: Construct, id: string, props: UsersApiStackProps) {
     super(scope, id, props);
 
-    const { vpc, clusterSecret, clusterArn, clusterRole, securityGroupResolvers } = getAuroraAccess(this, id);
+    const { vpc, clusterSecret, clusterArn, clusterRole, securityGroupResolvers } = getAuroraAccess(this, id, props.stageName);
 
     const shopTable = dynamodb.Table.fromTableArn(
         this,
@@ -39,7 +40,7 @@ export class ShopApiStack extends cdk.NestedStack {
 
     const createShopLambda = new nodejs.NodejsFunction(this, "Create-Shop", {
       runtime: lambda.Runtime.NODEJS_20_X,
-      entry: "lambda/shop/newShop.ts",
+      entry: "lambda/shop/modifier/newShop.ts",
       handler: "handler",
       functionName: "Create-Shop",
       environment: {
@@ -68,7 +69,7 @@ export class ShopApiStack extends cdk.NestedStack {
 
     const fetchShopLambda = new nodejs.NodejsFunction(this, "Fetch-Shop-Bizz", {
       runtime: lambda.Runtime.NODEJS_20_X,
-      entry: "lambda/shop/getShop.ts",
+      entry: "lambda/shop/feature/getShop.ts",
       handler: "handler",
       functionName: "Fetch-Shop-Bizz",
       environment: {
@@ -91,13 +92,46 @@ export class ShopApiStack extends cdk.NestedStack {
     orgTable.grantReadWriteData(fetchShopLambda);
     userTable.grantReadData(fetchShopLambda);
 
-    const shopApi = props.api.root.addResource("shops");
-    const createShopApi = shopApi.addResource("create");
+    const deleteShopLambda = new nodejs.NodejsFunction(this, "Delete-Shop", {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      entry: "lambda/shop/modifier/deleteShop.ts",
+      handler: "handler",
+      functionName: "Delete-Shop",
+      environment: {
+        SHOP_TABLE: shopTable.tableName,
+        USER_TABLE: userTable.tableName,
+        SECRET_ARN: clusterSecret.secretArn,
+        CLUSTER_ARN: clusterArn,
+        DB_NAME: DATABASE_NAME,
+      },
+      vpc,
+      role: clusterRole,
+      securityGroups: [securityGroupResolvers],
+      vpcSubnets: {
+        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+      },
+      bundling: {
+        externalModules: ["aws-sdk"],
+      },
+    });
+
+    shopTable.grantReadWriteData(deleteShopLambda);
+    orgTable.grantReadData(deleteShopLambda);
+    userTable.grantReadData(deleteShopLambda);
+    props.encryptionKey.grantEncryptDecrypt(deleteShopLambda);
+
+    const shopApi = props.api.root.addResource("shop");
 
     const createShop = new apigateway.LambdaIntegration(createShopLambda);
     const getShop = new apigateway.LambdaIntegration(fetchShopLambda);
+    const deleteShop = new apigateway.LambdaIntegration(deleteShopLambda);
 
-    createShopApi.addMethod("POST", createShop, {
+    shopApi.addMethod("POST", createShop, {
+      authorizer: props.authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO,
+    });
+
+    shopApi.addMethod("DELETE", deleteShop, {
       authorizer: props.authorizer,
       authorizationType: apigateway.AuthorizationType.COGNITO,
     });

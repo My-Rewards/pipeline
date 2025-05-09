@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { mockClient } from "aws-sdk-client-mock";
 import { DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
-import { handler } from "@/lambda/shop/newShop"; // Adjust path as needed
+import { handler } from "@/lambda/shop/modifier/newShop"; // Adjust path as needed
 
 // Mock modules
 jest.mock("crypto", () => ({
@@ -66,7 +66,7 @@ describe("Shop Creation Lambda Handler", () => {
     test("should return 404 when environment variables are missing", async () => {
         // Arrange
         const event = createMockEvent({
-            square_id: "sq_123",
+            square_location_id: "sq_123",
             latitude: 37.7749,
             longitude: -122.4194,
             shop_hours: { "monday": "9:00-17:00" }
@@ -101,7 +101,7 @@ describe("Shop Creation Lambda Handler", () => {
     test("should return 400 when user is not authenticated", async () => {
         // Arrange
         const event = createMockEvent({
-            square_id: "sq_123",
+            square_location_id: "sq_123",
             latitude: 37.7749,
             longitude: -122.4194,
             shop_hours: { "monday": "9:00-17:00" }
@@ -117,11 +117,11 @@ describe("Shop Creation Lambda Handler", () => {
 
     test("should return 400 when required fields are missing", async () => {
         // Arrange - test each required field
-        const requiredFields = ["square_id", "latitude", "longitude", "shop_hours"];
+        const requiredFields = ["square_location_id", "latitude", "longitude", "shop_hours"];
 
         for (const field of requiredFields) {
             const body = {
-                square_id: "sq_123",
+                square_location_id: "sq_123",
                 latitude: 37.7749,
                 longitude: -122.4194,
                 shop_hours: { "monday": "9:00-17:00" }
@@ -144,7 +144,7 @@ describe("Shop Creation Lambda Handler", () => {
     test("should return 210 when user is not found", async () => {
         // Arrange
         const event = createMockEvent({
-            square_id: "sq_123",
+            square_location_id: "sq_123",
             latitude: 37.7749,
             longitude: -122.4194,
             shop_hours: { "monday": "9:00-17:00" }
@@ -169,7 +169,7 @@ describe("Shop Creation Lambda Handler", () => {
     test("should return 210 when user has no organization", async () => {
         // Arrange
         const event = createMockEvent({
-            square_id: "sq_123",
+            square_location_id: "sq_123",
             latitude: 37.7749,
             longitude: -122.4194,
             shop_hours: { "monday": "9:00-17:00" }
@@ -197,7 +197,7 @@ describe("Shop Creation Lambda Handler", () => {
     test("should return 210 when organization is not found", async () => {
         // Arrange
         const event = createMockEvent({
-            square_id: "sq_123",
+            square_location_id: "sq_123",
             latitude: 37.7749,
             longitude: -122.4194,
             shop_hours: { "monday": "9:00-17:00" }
@@ -234,7 +234,7 @@ describe("Shop Creation Lambda Handler", () => {
     test("should return 403 when user is not associated with the organization", async () => {
         // Arrange
         const event = createMockEvent({
-            square_id: "sq_123",
+            square_location_id: "sq_123",
             latitude: 37.7749,
             longitude: -122.4194,
             shop_hours: { "monday": "9:00-17:00" }
@@ -285,7 +285,7 @@ describe("Shop Creation Lambda Handler", () => {
     test("should successfully create a shop", async () => {
         // Arrange
         const event = createMockEvent({
-            square_id: "sq_123",
+            square_location_id: "sq_123",
             latitude: 37.7749,
             longitude: -122.4194,
             shop_hours: { "monday": "9:00-17:00" }
@@ -349,7 +349,7 @@ describe("Shop Creation Lambda Handler", () => {
         expect(putParams.Item).toEqual({
             id: "mocked-uuid-123",
             org_id: "org123",
-            square_id: "sq_123",
+            square_location_id: "sq_123",
             latitude: 37.7749,
             longitude: -122.4194,
             shop_hours: { "monday": "9:00-17:00" },
@@ -372,7 +372,7 @@ describe("Shop Creation Lambda Handler", () => {
     test("should handle internal server errors", async () => {
         // Arrange
         const event = createMockEvent({
-            square_id: "sq_123",
+            square_location_id: "sq_123",
             latitude: 37.7749,
             longitude: -122.4194,
             shop_hours: { "monday": "9:00-17:00" }

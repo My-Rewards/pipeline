@@ -12,6 +12,7 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 interface UserPlansStackProps extends cdk.NestedStackProps {
     appRoot:  cdk.aws_apigateway.Resource
     authorizer: cdk.aws_apigateway.CognitoUserPoolsAuthorizer;
+    stageName: string;
 }
 
 export class PlansApiStack extends cdk.NestedStack {
@@ -19,7 +20,7 @@ export class PlansApiStack extends cdk.NestedStack {
         super(scope, id, props);
 
         // Get infrastructure resources using the helper function
-        const { vpc, clusterSecret, clusterArn, clusterRole, securityGroupResolvers } = getAuroraAccess(this, id);
+        const { vpc, clusterSecret, clusterArn, clusterRole, securityGroupResolvers } = getAuroraAccess(this, id, props.stageName);
 
         const orgTable = dynamodb.Table.fromTableArn(this, 'ImportedOrganizationTableARN', cdk.Fn.importValue('OrganizationTableARN'));
         const plansTable = dynamodb.Table.fromTableArn(this, 'ImportedPlanTableARN', cdk.Fn.importValue('PlanTableARN'));

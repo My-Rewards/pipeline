@@ -1,4 +1,4 @@
-import { handler } from "@/lambda/shop/getShopApp";
+import { handler } from "@/lambda/shop/feature/getShopApp";
 import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { mockClient } from "aws-sdk-client-mock";

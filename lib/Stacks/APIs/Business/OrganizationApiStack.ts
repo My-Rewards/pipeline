@@ -12,6 +12,7 @@ import {getAuroraAccess} from "../../util/aurora-access";
 interface OrgApiStackProps extends cdk.NestedStackProps {
   api: apigateway.RestApi;
   authorizer: cdk.aws_apigateway.CognitoUserPoolsAuthorizer;
+  stageName:string;
 }
 
 export class OrgApiStack extends cdk.NestedStack {
@@ -29,7 +30,7 @@ export class OrgApiStack extends cdk.NestedStack {
     const ImageBucketARN = cdk.Fn.importValue('OrganizationImageBucketARN');
     const ImageCloudfrontId = cdk.Fn.importValue('ImageCloudfrontId');
 
-    const { vpc, clusterSecret, clusterArn, clusterRole, securityGroupResolvers } = getAuroraAccess(this, id);
+    const { vpc, clusterSecret, clusterArn, clusterRole, securityGroupResolvers } = getAuroraAccess(this, id, props.stageName);
 
     // Create ORG Lambda
     const createOrgLambda = new nodejs.NodejsFunction(this, "create-organization",{
@@ -219,6 +220,7 @@ export class OrgApiStack extends cdk.NestedStack {
         CLUSTER_ARN: clusterArn,
         DB_NAME: DATABASE_NAME
       },
+      timeout:cdk.Duration.seconds(5),
       bundling: {
         nodeModules: ['stripe', 'aws-sdk']
       },

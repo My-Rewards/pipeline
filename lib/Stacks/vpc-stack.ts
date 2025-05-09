@@ -9,7 +9,7 @@ export class VpcStack extends cdk.Stack {
         super(scope, id, props);
 
         const vpc = new ec2.Vpc(this, 'AuroraVpc', {
-            vpcName: 'Aurora-vpc',
+            vpcName: `aurora-vpc-${props.stageName}`,
             maxAzs: 2,
             natGateways: 1,
             subnetConfiguration: [
