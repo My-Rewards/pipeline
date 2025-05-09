@@ -18,25 +18,10 @@ export class AuroraStack extends cdk.Stack {
 
         const isProd = props.stageName === 'prod';
 
-        const vpc = ec2.Vpc.fromVpcAttributes(this, 'ImportedVPC', {
-            vpcId: cdk.Fn.importValue('ClusterVPC-Id'),
-            availabilityZones: cdk.Fn.getAzs(),
-            vpcCidrBlock: '10.0.0.0/16',
-            privateSubnetIds: [
-                cdk.Fn.importValue('PrivateSubnetWithEgress1-Id'),
-                cdk.Fn.importValue('PrivateSubnetWithEgress2-Id')
-            ],
-            privateSubnetNames: ['Private1', 'Private2'],
-            publicSubnetIds: [
-                cdk.Fn.importValue('PublicSubnet1-Id'),
-                cdk.Fn.importValue('PublicSubnet2-Id')
-            ],
-            publicSubnetNames: ['Public1', 'Public2'],
-            isolatedSubnetIds: [
-                cdk.Fn.importValue('PrivateSubnet1-Id'),
-                cdk.Fn.importValue('PrivateSubnet2-Id')
-            ],
-            isolatedSubnetNames: ['Isolated1', 'Isolated2']
+        const vpc = ec2.Vpc.fromLookup(this, "ImportedVPC", {
+            tags: {
+                Name: `aurora-vpc-${props.stageName}`,
+            }
         });
 
         const securityGroupResolvers = new ec2.SecurityGroup(this, 'SecurityGroupResolvers', {

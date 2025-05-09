@@ -35,11 +35,11 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
     try {
         const {
-            square_id,
             latitude,
             longitude,
             shop_hours,
             phone,
+            country_code,
             name,
             location,
             geohash,
@@ -53,7 +53,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             return { statusCode: 400, body: JSON.stringify({ error: "User ID is required" }) };
         }
 
-        if (!square_id || !latitude || !longitude || !shop_hours) {
+        if (!square_location_id || !latitude || !longitude || !shop_hours) {
             return {
                 statusCode: 400,
                 body: JSON.stringify({ error: "Missing required fields" }),
@@ -108,9 +108,9 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
                 resourceArn: process.env.CLUSTER_ARN!,
                 database: process.env.DB_NAME!,
                 sql: `
-      INSERT INTO Shops (id, organization_id, location)
-      VALUES (:shopId, :orgId, ST_MakePoint(:lon, :lat)::geography)
-    `,
+                  INSERT INTO Shops (id, organization_id, location)
+                  VALUES (:shopId, :orgId, ST_MakePoint(:lon, :lat)::geography)
+                `,
                 parameters: [
                     { name: "shopId", value: { stringValue: shopId } },
                     { name: "orgId", value: { stringValue: org_id } },
@@ -125,10 +125,10 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             Item: {
                 id: shopId,
                 org_id: org_id,
-                square_id,
                 square_location_id,
                 name,
                 phone,
+                country_code,
                 location,
                 latitude,
                 longitude,

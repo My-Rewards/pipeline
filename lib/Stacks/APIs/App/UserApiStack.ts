@@ -13,6 +13,7 @@ import {getAuroraAccess} from "../../util/aurora-access";
 interface UsersApiStackProps extends cdk.NestedStackProps {
   api: apigateway.RestApi;
   authorizer: cdk.aws_apigateway.CognitoUserPoolsAuthorizer;
+  stageName: string;
 }
 
 export class UsersApiStack extends cdk.NestedStack {
@@ -20,7 +21,7 @@ export class UsersApiStack extends cdk.NestedStack {
     super(scope, id, props);
 
     // Get infrastructure resources using the helper function
-    const { vpc, clusterSecret, clusterArn, clusterRole, securityGroupResolvers } = getAuroraAccess(this, id);
+    const { vpc, clusterSecret, clusterArn, clusterRole, securityGroupResolvers } = getAuroraAccess(this, id, props.stageName);
 
     const usersTable = dynamodb.Table.fromTableArn(this, 'ImportedUsersTable', cdk.Fn.importValue('UserTableARN'));
     const orgTable = dynamodb.Table.fromTableArn(this, 'ImportedOrganizationTableARN', cdk.Fn.importValue('OrganizationTableARN'));

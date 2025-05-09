@@ -6,6 +6,7 @@ import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as nodejs from 'aws-cdk-lib/aws-lambda-nodejs'
 import * as kms from 'aws-cdk-lib/aws-kms';
 import * as ec2 from "aws-cdk-lib/aws-ec2";
+import * as iam from 'aws-cdk-lib/aws-iam';
 import {DATABASE_NAME} from "../../../../global/constants";
 import {getAuroraAccess} from "../../util/aurora-access";
 
@@ -13,7 +14,7 @@ interface SquareApiStackProps extends cdk.NestedStackProps {
   api: apigateway.RestApi;
   authorizer: cdk.aws_apigateway.CognitoUserPoolsAuthorizer
   encryptionKey: kms.IKey;
-  stage: string;
+  stageName: string;
 }
 
 export class SquareApiStack extends cdk.NestedStack {
@@ -21,11 +22,12 @@ export class SquareApiStack extends cdk.NestedStack {
     super(scope, id, props);
 
     const userTable = dynamodb.Table.fromTableArn(this, 'ImportedBizzUsersTable', cdk.Fn.importValue('BizzUserTableARN'));
+    const shopTable = dynamodb.Table.fromTableArn(this, "ImportedShopTableARN", cdk.Fn.importValue("ShopTableARN"));
     const orgTable = dynamodb.Table.fromTableArn(this, 'ImportedOrganizationTableARN', cdk.Fn.importValue('OrganizationTableARN'));
 
     const secretData = cdk.aws_secretsmanager.Secret.fromSecretNameV2(this, 'fetchSquareSecret', 'square/credentials');
 
-    const { vpc, clusterSecret, clusterArn, clusterRole, securityGroupResolvers } = getAuroraAccess(this, id);
+    const { vpc, clusterSecret, clusterArn, clusterRole, securityGroupResolvers } = getAuroraAccess(this, id, props.stageName);
 
     const setupSquareLambda = new nodejs.NodejsFunction(this, "linkSquare",{
       runtime: lambda.Runtime.NODEJS_20_X,
@@ -36,7 +38,7 @@ export class SquareApiStack extends cdk.NestedStack {
         ORG_TABLE: orgTable.tableName,
         SQUARE_ARN: secretData.secretArn,
         KMS_KEY_ID: props.encryptionKey.keyId,
-        APP_ENV: props.stage
+        APP_ENV: props.stageName
       },
       bundling: {
         externalModules: ['aws-sdk'],
@@ -82,10 +84,10 @@ export class SquareApiStack extends cdk.NestedStack {
       functionName:'List-Square-Shops',
       environment: {
         USER_TABLE: userTable.tableName,
+        SHOP_TABLE: shopTable.tableName,
         ORG_TABLE: orgTable.tableName,
-        SQUARE_ARN: secretData.secretArn,
         KMS_KEY_ID: props.encryptionKey.keyId,
-        APP_ENV: props.stage
+        APP_ENV: props.stageName
       },
       bundling: {
         externalModules: ['aws-sdk'],
@@ -93,13 +95,17 @@ export class SquareApiStack extends cdk.NestedStack {
       },
       timeout: cdk.Duration.seconds(20),
     })
-
     userTable.grantReadData(listSquareShops);
-    userTable.grantWriteData(listSquareShops);
     orgTable.grantReadData(listSquareShops);
+    shopTable.grantReadData(listSquareShops);
     secretData.grantRead(listSquareShops);
     props.encryptionKey.grantDecrypt(listSquareShops);
-
+    listSquareShops.addToRolePolicy(
+        new iam.PolicyStatement({
+          actions: ["dynamodb:Query"],
+          resources: [`${shopTable.tableArn}/index/SquareIndex`]
+        })
+    );
 
     const squareApi = props.api.root.addResource('square');
     const connectApi = squareApi.addResource('connect');

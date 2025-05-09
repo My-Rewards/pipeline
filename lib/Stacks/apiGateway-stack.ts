@@ -90,47 +90,52 @@ export class ApiGatewayStack extends cdk.Stack {
     const appPath = api.root.addResource('app');
 
       new UsersApiStack(this, "UsersApiStack", {
-      api: api,
-      authorizer: authorizerUser,
-    });
+          api: api,
+          authorizer: authorizerUser,
+          stageName: props.stageName,
+      });
 
     new AppShopApiStack(this, "AppShopApiStack", {
-      appRoot: appPath,
-      authorizer: authorizerUser,
+        appRoot: appPath,
+        authorizer: authorizerUser,
+        stageName: props.stageName,
     });
 
     new VisitsApiStack(this, "AppVisitsApiStack", {
-      appRoot: appPath,
-      authorizer: authorizerUser,
-      encryptionKey: encryptionKey
+        appRoot: appPath,
+        authorizer: authorizerUser,
+        encryptionKey: encryptionKey
     });
 
     new PlansApiStack(this, "AppPlanApiStack", {
-      appRoot: appPath,
-      authorizer: authorizerUser,
+        appRoot: appPath,
+        authorizer: authorizerUser,
+        stageName: props.stageName,
     });
     
     new SquareApiStack(this, "SquareApiStack", {
-      api: api,
-      authorizer: authorizerBizz,
-      encryptionKey: encryptionKey,
-      stage: props.stageName,
+        api: api,
+        authorizer: authorizerBizz,
+        encryptionKey: encryptionKey,
+        stageName: props.stageName,
     });
 
     new OrgApiStack(this, "OrgApiStack", {
-      api: api,
-      authorizer: authorizerBizz,
+        api: api,
+        authorizer: authorizerBizz,
+        stageName: props.stageName,
     });
 
     new BusinessApiStack(this, "BusinessApiStack", {
-      api: api,
-      authorizer: authorizerBizz,
+        api: api,
+        authorizer: authorizerBizz,
     });
 
     new ShopApiStack(this, "ShopApiStack", {
-      api: api,
-      authorizer: authorizerBizz,
-      encryptionKey: encryptionKey,
+        api: api,
+        authorizer: authorizerBizz,
+        encryptionKey: encryptionKey,
+        stageName: props.stageName,
     });
 
     new cdk.CfnOutput(this, 'RestApi', {
@@ -138,5 +143,5 @@ export class ApiGatewayStack extends cdk.Stack {
         description: 'RestApi ID',
         exportName: 'restApi',
     });
-    }
+  }
 }

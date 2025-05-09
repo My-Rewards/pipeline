@@ -73,6 +73,11 @@ export class DynamoStack extends cdk.Stack {
       partitionKey: { name: "org_id", type: aws_dynamodb.AttributeType.STRING },
       projectionType: aws_dynamodb.ProjectionType.ALL,
     });
+    shopTable.addGlobalSecondaryIndex({
+      indexName: "SquareIndex",
+      partitionKey: { name: "square_location_id", type: aws_dynamodb.AttributeType.STRING },
+      projectionType: aws_dynamodb.ProjectionType.ALL,
+    });
 
     // plans Table
     const planTable = new aws_dynamodb.Table(this, 'Plans-Table', {

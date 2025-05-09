@@ -1,38 +1,33 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent } from "aws-lambda";
-import { ShopProps } from "../Interfaces";
-import {ExecuteStatementCommand, RDSDataClient } from "@aws-sdk/client-rds-data";
+import {ShopProp} from "../../Interfaces";
+import {STATUS_CODE} from "../../../global/statusCodes";
 
 const client = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(client);
-const rdsClient = new RDSDataClient({});
 
 const shopTable = process.env.SHOP_TABLE;
 const orgTable = process.env.ORG_TABLE;
-const secretArn = process.env.SECRET_ARN;
-const resourceArn = process.env.CLUSTER_ARN;
-const database = process.env.DB_NAME;
 
 export const handler = async (event: APIGatewayProxyEvent) => {
 
-
-    const { shop_id } = event.queryStringParameters || {};
+    const { id } = event.queryStringParameters || {};
     const userSub = event.requestContext.authorizer?.claims?.sub;
 
     switch (true) {
-        case (!shopTable || !orgTable || !secretArn || !resourceArn || !database):
+        case (!shopTable || !orgTable):
             return { statusCode: 500, body: JSON.stringify({ error: "Missing env values" }) };
         case !userSub:
             return { statusCode: 404, body: JSON.stringify({ error: "Missing userSub" }) };
-        case !shop_id:
+        case !id:
             return { statusCode: 404, body: JSON.stringify({ error: "Missing [shop_id] parameter" }) };
     }
 
     try {
         const shopParams = new GetCommand({
             TableName: shopTable,
-            Key: { id:shop_id }
+            Key: { id }
         });
 
         const shopResult = await dynamoDb.send(shopParams);
@@ -62,28 +57,27 @@ export const handler = async (event: APIGatewayProxyEvent) => {
             };
         }
 
-        const records = await auroraCall(shop.org_id, userSub);
-        const favorite = records[0]?.[0]?.booleanValue === true;
-
-        const finalShop:ShopProps = {
+        const finalShop:ShopProp = {
             org_id: org.id,
-            name: org.name,
+            shop_name: shop.name,
+            org_name: org.name,
             banner: org.images.banner.url,
             preview: org.images.preview.url,
             logo: org.images.logo.url,
             description: org.description,
             id: shop.id,
+            country_code:shop.country_code,
             latitude: shop.latitude,
             longitude: shop.longitude,
+            active: shop.active,
             menu: shop.menu,
             phone_number: shop.phone,
             location: shop.location,
             shop_hours: shop.shop_hours,
-            favorite
         };
 
         return {
-            statusCode: 200,
+            statusCode: STATUS_CODE.Success,
             body: JSON.stringify(finalShop),
             headers: {
                 "Content-Type": "application/json",
@@ -98,27 +92,3 @@ export const handler = async (event: APIGatewayProxyEvent) => {
         };
     }
 };
-
-async function auroraCall(org_id: string, userSub: string) {
-    const auroraResult = await rdsClient.send(
-        new ExecuteStatementCommand({
-            secretArn: secretArn,
-            resourceArn: resourceArn,
-            database: database,
-            sql: `
-                SELECT EXISTS (
-                    SELECT 1
-                    FROM OrgLikes
-                    WHERE user_id = :userSub
-                      AND organization_id = :orgId
-                ) AS is_liked;
-            `,
-            parameters: [
-                { name: "userSub", value: { stringValue: userSub } },
-                { name: "orgId", value: { stringValue: org_id } },
-            ],
-        })
-    );
-
-    return auroraResult.records || []
-}

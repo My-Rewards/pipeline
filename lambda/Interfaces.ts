@@ -107,6 +107,8 @@ export interface ShopProp {
     menu:string|undefined;
     preview:string;
     phone_number:string;
+    country_code:string;
+    active:boolean;
     description:string;
     shop_hours: ShopHour[];
     location:{

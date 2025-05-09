@@ -4,23 +4,21 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as nodejs from "aws-cdk-lib/aws-lambda-nodejs";
-import * as kms from "aws-cdk-lib/aws-kms";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
-import * as iam from "aws-cdk-lib/aws-iam";
 import { DATABASE_NAME } from "../../../../global/constants";
 import {getAuroraAccess} from "../../util/aurora-access";
 
 interface UsersApiStackProps extends cdk.NestedStackProps {
     appRoot:  cdk.aws_apigateway.Resource
     authorizer: cdk.aws_apigateway.CognitoUserPoolsAuthorizer;
+    stageName: string;
 }
 
 export class ShopApiStack extends cdk.NestedStack {
     constructor(scope: Construct, id: string, props: UsersApiStackProps) {
         super(scope, id, props);
 
-        // Get infrastructure resources using the helper function
-        const { vpc, clusterSecret, clusterArn, clusterRole, securityGroupResolvers } = getAuroraAccess(this, id);
+        const { vpc, clusterSecret, clusterArn, clusterRole, securityGroupResolvers } = getAuroraAccess(this, id, props.stageName);
 
         const shopTable = dynamodb.Table.fromTableArn(this, "ImportedShopTableARN",
             cdk.Fn.importValue("ShopTableARN")
@@ -35,7 +33,7 @@ export class ShopApiStack extends cdk.NestedStack {
         // Get Shop API
         const getShopLambda = new nodejs.NodejsFunction(this, "getShop-handler", {
             runtime: lambda.Runtime.NODEJS_20_X,
-            entry: "lambda/shop/getShopApp.ts",
+            entry: "lambda/shop/feature/getShopApp.ts",
             handler: "handler",
             functionName:'Fetch-Shop',
             vpc,
@@ -65,7 +63,7 @@ export class ShopApiStack extends cdk.NestedStack {
             "radiusShopsLambda",
             {
                 runtime: lambda.Runtime.NODEJS_20_X,
-                entry: "lambda/shop/getRadiusShops.ts",
+                entry: "lambda/shop/feature/getRadiusShops.ts",
                 handler: "handler",
                 functionName:'Fetch-Radius-Shops',
                 vpc,
@@ -94,7 +92,7 @@ export class ShopApiStack extends cdk.NestedStack {
         // Discover Shops API
         const discoverShopsLambda = new nodejs.NodejsFunction(this, "discoverShopsLambda", {
                 runtime: lambda.Runtime.NODEJS_20_X,
-                entry: "lambda/shop/getDiscoverShops.ts",
+                entry: "lambda/shop/feature/getDiscoverShops.ts",
                 handler: "handler",
                 functionName:'Fetch-Discover-Page',
                 vpc,
@@ -147,7 +145,7 @@ export class ShopApiStack extends cdk.NestedStack {
         const nearestShopLambda = new nodejs.NodejsFunction( this, "nearestOrganization",
             {
                 runtime: lambda.Runtime.NODEJS_20_X,
-                entry: "lambda/shop/nearestShop.ts",
+                entry: "lambda/shop/feature/nearestShop.ts",
                 handler: "handler",
                 functionName:'Fetch-Nearest-Shops',
                 vpc,
@@ -174,7 +172,7 @@ export class ShopApiStack extends cdk.NestedStack {
         const pinShopLambda = new nodejs.NodejsFunction( this, "pinnedShop",
             {
                 runtime: lambda.Runtime.NODEJS_20_X,
-                entry: "lambda/shop/getPinShop.ts",
+                entry: "lambda/shop/feature/getPinShop.ts",
                 handler: "handler",
                 functionName:'Fetch-Pinned-Shop',
                 vpc,
