@@ -120,7 +120,7 @@ export class ShopApiStack extends cdk.NestedStack {
         // Discover Shops API
         const popularShopsLambda = new nodejs.NodejsFunction(this, "popularShopsLambda", {
             runtime: lambda.Runtime.NODEJS_20_X,
-            entry: "lambda/shop/getPopularShops.ts",
+            entry: "lambda/shop/feature/getPopularShops.ts",
             handler: "handler",
             functionName:'Fetch-Popular-Shops',
             vpc,
@@ -148,7 +148,7 @@ export class ShopApiStack extends cdk.NestedStack {
                     // Discover Shops API
         const favoriteShopsLambda = new nodejs.NodejsFunction(this, "favoriteShopsLambda", {
             runtime: lambda.Runtime.NODEJS_20_X,
-            entry: "lambda/shop/getFavoriteShops.ts",
+            entry: "lambda/shop/feature/getFavoriteShops.ts",
             handler: "handler",
             functionName:'Fetch-Favorite-Shops',
             vpc,
